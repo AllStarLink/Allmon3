@@ -1,4 +1,4 @@
-#/usr/bin/python3
+#!/usr/bin/python3
 # asl-statmon.py - Monitor ASL Asterisk server for events
 #
 
