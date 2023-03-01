@@ -120,19 +120,22 @@ def ASLCmdResponse(s, cmd):
 			if part == b'':
 				log.debug("ASLCmdResponse() socket went away on the far side")
 				raise BrokenPipeError("other side went away")
-			if part[-4:] == b"\r\n\r\n":
-				cont_recv = False
 			resp += part.decode("UTF-8")
+			if resp[-4:] == "\r\n\r\n":
+				cont_recv = False
 
 		log.debug("response >> %s" % rern.sub("  ", resp))
 		return resp
 
 	except TimeoutError as e:
-		log.error(e)
+		log.debug("ASLCmdResponse() TimeoutError")
+        log.error("socket error: %s" % e)
 		raise e
 	except BrokenPipeError as e:
+		log.debug("ASLCmdResponse() BrokenPipeError")
 		raise e
 	except Exception as e:
+		log.debug("ASLCmdResponse() Exception: %s" % (e.__class__))
 		log.error(e)
 		return None
 
@@ -493,3 +496,4 @@ finally:
 	publisher.close()
 
 sys.exit(0)
+
