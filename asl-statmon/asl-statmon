@@ -220,7 +220,7 @@ def genNodeHTMLTable():
 			last_xmit = str(datetime.timedelta(seconds=int(NodeConns[n]['SSK'])))
 
 		if n in NodeData:
-			re.description = "{0} {1} {2}".format(NodeData[n]['CALL'], NodeData[n]['DESC'], NodeData[n]['LOC'])
+			description = "{0} {1} {2}".format(NodeData[n]['CALL'], NodeData[n]['DESC'], NodeData[n]['LOC'])
 		else:
 			description = "AllmonDB Unavailable"
 
