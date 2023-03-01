@@ -129,7 +129,7 @@ def ASLCmdResponse(s, cmd):
 
 	except TimeoutError as e:
 		log.debug("ASLCmdResponse() TimeoutError")
-        log.error("socket error: %s" % e)
+		log.error("socket error: %s" % e)
 		raise e
 	except BrokenPipeError as e:
 		log.debug("ASLCmdResponse() BrokenPipeError")
@@ -200,48 +200,14 @@ def genNodeJSONStatus():
 	
 	d = NodeStatus
 	d["Conns"] = NodeConns
-	pp = pprint.PrettyPrinter(indent=4)
-	print(json.dumps(d))
 
-# Generate the connections HTML table
-def genNodeHTMLTable():
-	log.debug("genNodeHTMLTable()")
-	t = ""
-	
-	if ASL_NODE in NodeData:
-		t += "<div class=\"nodelabel\">Node {} - {} {} {}</div>".format(
-			ASL_NODE, NodeData[ASL_NODE]['CALL'], NodeData[ASL_NODE]['DESC'], NodeData[ASL_NODE]['LOC'])
-	else:
-		t += "<div class=\"nodelabel\">Node {}</div>".format(ASL_NODE)
-
-	if NodeStatus['TXKEYED'] and not NodeStatus['TXEKEYED'] and NodeStatus['RXKEYED']:
-		log.debug("transmitting locally-received signal")
-		t += "<div class=\"nodetxactlocal\">Transmit Locally Received Signal</div>"
-	elif NodeStatus['TXKEYED'] and not NodeStatus['TXEKEYED'] and not NodeStatus['RXKEYED']:
-		log.debug("transmitting network-received signal")
-		t += "<div class=\"nodetxactremote\">Transmit Network Received Signal</div>"
-	else:
-		log.debug("transmitter is idle")
-		t += "<div class=\"nodetxidle\">Transmit Idle</div>"
-
-	t += "<table class=\"table\">"
-	t += "<thead><tr><th>Node</th><th>Description</th><th>Connected Time</th><th>Last Received</th><th>Direction</th><th>Connect State</th><th>Mode</th></tr></thead><tbody>"
-	for n in NodeConns:
-		if int(NodeConns[n]['SSK']) == -1:
-			last_xmit = "Never"
-		else:
-			last_xmit = str(datetime.timedelta(seconds=int(NodeConns[n]['SSK'])))
-
+	for n in d["Conns"]:
 		if n in NodeData:
-			description = "{0} {1} {2}".format(NodeData[n]['CALL'], NodeData[n]['DESC'], NodeData[n]['LOC'])
+			d["Conns"][n]["DESC"] = "{} {} {}".format(NodeData[n]['CALL'], NodeData[n]['DESC'],NodeData[n]['LOC'])
 		else:
-			description = "AllmonDB Unavailable"
+			d["Conns"][n]["DESC"] = "Unavailable"
 
-		t += "<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>" % (
-			n, description , NodeConns[n]['CTIME'], last_xmit,
-			NodeConns[n]['DIR'], NodeConns[n]['CSTATE'], NodeConns[n]['MODE']  )
-	t += "</tbody></table>"
-	return t
+	return(json.dumps(d))
 
 # Read and load in the ASL Database
 def getAllmonDB():
@@ -263,6 +229,16 @@ def getAllmonDB():
 			NodeData[r[0]].update( { "CALL" : r[1] , "DESC" : r[2] , "LOC" : r[3] } )
 	elapsed_time = time.time() - start_time
 	log.info("Updated node database in {0:.2f} seconds".format(elapsed_time))
+	setMyInfo()
+
+def setMyInfo():
+	log.debug("setMyInfo()")
+	NodeStatus["ME"] = int(ASL_NODE)
+	if str(ASL_NODE) in NodeData:
+		NodeStatus["DESC"] = "{0} {1} {2}".format(NodeData[str(ASL_NODE)]['CALL'], 
+			NodeData[str(ASL_NODE)]['DESC'], NodeData[str(ASL_NODE)]['LOC'])
+	else:
+		 NodeStatus["DESC"] = "Unavailable"
 
 ######## MAIN PROGRAM ########
 
@@ -293,8 +269,8 @@ NodeData = { }
 
 # Node Status
 #
-# NodeStatus = { RXKEYED : bool , TXKEYED : bool, TXEKEYED }
-NodeStatus = { "RXKEYED" : False , "TXKEYED" : False , "TXEKEYED" : False }
+# NodeStatus = { ME: int : DESC : str :  RXKEYED : bool , TXKEYED : bool, TXEKEYED : bool }
+NodeStatus = { "ME" : 0 , "DESC" : "" , "RXKEYED" : False , "TXKEYED" : False , "TXEKEYED" : False }
 
 # Helpers
 rern = re.compile('\r\n', re.MULTILINE)
@@ -432,8 +408,7 @@ try:
 				parseXStat(xstat)
 				sawstat = ASLCmdResponse(asl, sawstat_cmd)
 				parseSawStat(sawstat)
-				#publisher.send_string(genNodeHTMLTable())
-				genNodeJSONStatus()
+				publisher.send_string(genNodeJSONStatus())
 	
 			except BrokenPipeError as e:
 				log.error("received BrokenPipeError; trying to reconnect")
