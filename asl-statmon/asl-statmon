@@ -64,9 +64,9 @@ def ASLCreateConnection(failhard):
 		# Check this connected to an Asterisk Call Manager (ACM)
 		cont_recv = True
 		resp = ""
-		part = asl.recv(1024)
-		if part != b"Asterisk Call Manager/1.0\r\n":
-			log.error("Connection to %s:%d is not an Asterisk Call Manager/1.0" % ( ASL_HOST, ASL_PORT) )
+		part = asl.recv(1024).decode("UTF-8")
+		if re.match("^Asterisk Call Manager", part)
+			log.error("Connection to %s:%d does not appear to be an Asterisk Call Manager" % ( ASL_HOST, ASL_PORT) )
 			asl.close()
 			sys.exit(1)
 	
@@ -220,7 +220,7 @@ def genNodeHTMLTable():
 			last_xmit = str(datetime.timedelta(seconds=int(NodeConns[n]['SSK'])))
 
 		if n in NodeData:
-			description = "{0} {1} {2}".format(NodeData[n]['CALL'], NodeData[n]['DESC'], NodeData[n]['LOC'])
+			re.description = "{0} {1} {2}".format(NodeData[n]['CALL'], NodeData[n]['DESC'], NodeData[n]['LOC'])
 		else:
 			description = "AllmonDB Unavailable"
 
