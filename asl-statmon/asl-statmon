@@ -5,6 +5,7 @@
 import argparse
 import configparser
 import datetime
+import json
 import logging
 import logging.handlers
 import os
@@ -122,8 +123,8 @@ def ASLCmdResponse(s, cmd):
 			if part[-4:] == b"\r\n\r\n":
 				cont_recv = False
 			resp += part.decode("UTF-8")
-			log.debug("response >> %s" % rern.sub("  ", resp))
 
+		log.debug("response >> %s" % rern.sub("  ", resp))
 		return resp
 
 	except TimeoutError as e:
@@ -191,6 +192,14 @@ def parseXStat(response):
 		log.debug("no nodes connected")
 		NodeConns.clear()
 
+def genNodeJSONStatus():
+	log.debug("genNodeJSONStatus()")
+	
+	d = NodeStatus
+	d["Conns"] = NodeConns
+	pp = pprint.PrettyPrinter(indent=4)
+	print(json.dumps(d))
+
 # Generate the connections HTML table
 def genNodeHTMLTable():
 	log.debug("genNodeHTMLTable()")
@@ -212,7 +221,7 @@ def genNodeHTMLTable():
 		log.debug("transmitter is idle")
 		t += "<div class=\"nodetxidle\">Transmit Idle</div>"
 
-	t += "<table>"
+	t += "<table class=\"table\">"
 	t += "<thead><tr><th>Node</th><th>Description</th><th>Connected Time</th><th>Last Received</th><th>Direction</th><th>Connect State</th><th>Mode</th></tr></thead><tbody>"
 	for n in NodeConns:
 		if int(NodeConns[n]['SSK']) == -1:
@@ -420,7 +429,8 @@ try:
 				parseXStat(xstat)
 				sawstat = ASLCmdResponse(asl, sawstat_cmd)
 				parseSawStat(sawstat)
-				publisher.send_string(genNodeHTMLTable())
+				#publisher.send_string(genNodeHTMLTable())
+				genNodeJSONStatus()
 	
 			except BrokenPipeError as e:
 				log.error("received BrokenPipeError; trying to reconnect")
