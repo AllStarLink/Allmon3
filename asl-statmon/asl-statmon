@@ -65,7 +65,8 @@ def ASLCreateConnection(failhard):
 		cont_recv = True
 		resp = ""
 		part = asl.recv(1024).decode("UTF-8")
-		if re.match("^Asterisk Call Manager", part)
+		log.debug("AIM version: %s" % (rern.sub("",part)))
+		if not re.match("^Asterisk Call Manager", part):
 			log.error("Connection to %s:%d does not appear to be an Asterisk Call Manager" % ( ASL_HOST, ASL_PORT) )
 			asl.close()
 			sys.exit(1)
