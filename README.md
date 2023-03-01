@@ -13,6 +13,7 @@ Allmon3 features and functionality shall be governed by the following guidelines
 
 * Use of modern web responsive design for usability on all device form factors
 * Clear separation between long-running tasks and client-based display updates
+* Permit reduced workload on potentially slow repeater site links by cleanly supporting the ability to run only the pollers on the device controlling the repeater and run the dashaboard in the cloud; easy prevention of unnecessary web traffic, spidering, etc.
 * Prioritization of the common use cases of AllStarLink for feature enhancements
 
 ## Community
