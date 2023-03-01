@@ -1,4 +1,4 @@
-#
+#!/usr/bin/python3
 #   Hello World client in Python
 #   Connects REQ socket to tcp://localhost:5555
 #   Sends "Hello" to server, expects "World" back
@@ -10,7 +10,7 @@ context = zmq.Context()
 
 #  Socket to talk to server
 socket = context.socket(zmq.SUB)
-socket.connect("tcp://localhost:5555")
+socket.connect("tcp://localhost:6750")
 socket.setsockopt(zmq.SUBSCRIBE, b'')
 
 while True:
