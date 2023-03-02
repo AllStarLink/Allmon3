@@ -98,6 +98,11 @@ body {
     --bs-tooltip-bg: var(--bs-light-text);
 }
 
+.nodetxline {
+	color: #000;
+	font-weight: bold;
+}
+
 /*
  * Icon
  */
