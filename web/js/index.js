@@ -84,19 +84,19 @@ function nodeLineHeader(nodeNumber, nodeDescription){
 
 function nodeConnTable(conns) {
 	var tTop = `
-<table class="table">
-<thead>
+<table class="table table-responsive table-bordered table-hover">
+<thead class="table-dark">
 	<tr>
-		<th>Node</th>
-		<th>Description</th>
-		<th>Connected Time</th>
-		<th>Last Received</th>
-		<th>Direction</th>
-		<th>Connect State</th>
-		<th>Mode</th>
+		<th scope="col">Node</th>
+		<th scope="col">Description</th>
+		<th scope="col">Connected Time</th>
+		<th scope="col">Last Received</th>
+		<th scope="col">Direction</th>
+		<th scope="col">Connect State</th>
+		<th scope="col">Mode</th>
 	</tr>
 </thead>
-<tbody>
+<tbody class="table-group-divider">
 `;
 
 	var tBottom = `</tbody></table>`;
@@ -125,7 +125,16 @@ function nodeConnTable(conns) {
 			}
 		} 
 
-		row = row.concat(`<tr><td>${c}</td><td>${conns[c].DESC}</td><td>${conns[c].CTIME}</td><td>${lastXmit}</td><td>${conns[c].DIR}</td><td>${conns[c].CSTATE}</td><td>${conns[c].MODE}</td></tr>`);
+		row = row.concat(`
+			<tr>
+				<th scope="row">${c}</td>
+				<td>${conns[c].DESC}</td>
+				<td>${conns[c].CTIME}</td>
+				<td>${lastXmit}</td>
+				<td>${conns[c].DIR}</td>
+				<td>${conns[c].CSTATE}</td>
+				<td>${conns[c].MODE}</td>
+			</tr>`);
 
 	} else {
 		row = "<tr><td colspan=7>No Conenctions - Repeat Only</td></tr>";
