@@ -37,7 +37,6 @@ function nodeEntry(nodeinfo){
 
 	// enable the tooltips
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-	console.log(...tooltipTriggerList);
 	const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 };
 
@@ -115,7 +114,6 @@ function nodeConnTable(conns) {
 					var lastXmit = "Never";
 				}
 			}
-		} 
 
 		row = row.concat(`
 			<tr>
@@ -127,7 +125,7 @@ function nodeConnTable(conns) {
 				<td>${conns[c].CSTATE}</td>
 				<td>${conns[c].MODE}</td>
 			</tr>`);
-
+		}
 	} else {
 		row = "<tr><td colspan=7>No Conenctions - Repeat Only</td></tr>";
 	}
