@@ -108,17 +108,9 @@ function nodeConnTable(conns) {
 			} else {
 				t = conns[c]['SSK'];
 				if( t > -1 ){
-					var seconds = Math.round(t % 60);
-					t = Math.floor(t / 60);
-					var minutes = Math.round(t % 60);
-					t = Math.floor(t / 60);
-					var hours = Math.round(t % 24);
-					var days = Math.floor(t / 24);
-					if( days > 0 ){
-						var lastXmit = `${days} days ${hours}:${minutes}:${seconds}`;
-					} else {
-						var lastXmit = `${hours}:${minutes}:${seconds}`;
-					}
+					const date = new Date(null);
+					date.setSeconds(t);
+					var lastXmit = date.toISOString().slice(11,19);
 				} else {
 					var lastXmit = "Never";
 				}
