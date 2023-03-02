@@ -2,11 +2,6 @@ body {
   font-size: .875rem;
 }
 
-.feather {
-  width: 16px;
-  height: 16px;
-}
-
 /*
  * Sidebar
  */
@@ -90,3 +85,24 @@ body {
   border-color: transparent;
   box-shadow: 0 0 0 3px rgba(255, 255, 255, .25);
 }
+
+/*
+ * Node Connections Display
+ */
+
+.nodeline-header {
+  background-color: rgb(168, 198, 217);
+}
+
+.nodeline-tooltip {
+    --bs-tooltip-bg: var(--bs-light-text);
+}
+
+/*
+ * Icon
+ */
+.bi {
+  vertical-align: -.125em;
+  color: #000000;
+}
+
