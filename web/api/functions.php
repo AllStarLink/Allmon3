@@ -7,7 +7,7 @@ function getGetVar($id) {
     return filter_var(trim($_GET[$id]), FILTER_SANITIZE_STRING);
 }
 
-function genJSONError($errmsg) {
+function getJSONError($errmsg) {
 	return sprintf("{ \"%s\" : \"%s\" }", "ERROR", $errmsg);
 }
 
