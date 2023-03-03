@@ -150,12 +150,21 @@ def ASLLogout(s):
 # Parse the (String) response from a SawStat command
 def parseSawStat(response):
 	log.debug("parseSawStat()")
+	
+	# Clear the CONNKEYED* status
+	NodeStatus.update( { "CONNKEYED" : False } )
+	NodeStatus.update( { "CONNKEYEDNODE" : False } )
+
+	# Process the XStat message
 	ra = re.split(r'[\n\r]+', response)
 	for l in ra:
 		if re.match("^Conn", l):
 			ce = re.split(r"\s+", l)
 			# Conn: NODE PTT SEC_SINCE_KEY SEC_SINCE_UNKEY
 			NodeConns[ce[1]].update( { "PTT" : ce[2] , "SSK" : ce[3] , "SSU" : ce[4] } )				
+			if int(ce[2]) == 1:
+				NodeStatus.update( { "CONNKEYED" : True } )
+				NodeStatus.update( { "CONNKEYEDNODE" : ce[1] })
 
 # Parse the (String) response from XStat command
 def parseXStat(response):
@@ -165,7 +174,7 @@ def parseXStat(response):
 	for l in ra:
 		if re.match("^Conn", l):
 			ce = re.split(r"\s+", l)
-			# Conn: NODE IP ?? DIRECETION CONNTIME CONNSTATE
+			# Conn: NODE IP ??  DIRECETION CONNTIME CONNSTATE
 			NodeConns.update( { ce[1] : {} } )
 			NodeConns[ce[1]].update( { "IP" : ce[2] , "DIR" : ce[4] , "CTIME" : ce[5] ,
 				"CSTATE" : ce[6] , "MODE" : "Initializing" } )
