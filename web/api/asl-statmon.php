@@ -6,7 +6,7 @@ if(!strcmp(php_sapi_name(),"cli")){
 	header('Content-Type: application/json');
 }
 
-if(!extension_loaded("zm2q")){
+if(!extension_loaded("zmq")){
 	print(getJSONError("PHP instanance does not have the zmq module available"));
 	exit(1);
 }
