@@ -171,6 +171,7 @@ def parseXStat(response):
 	log.debug("parseXStat()")
 	ra = re.split(r'[\n\r]+', response)
 	conn_count = 0
+	NodeConns.clear();
 	for l in ra:
 		if re.match("^Conn", l):
 			ce = re.split(r"\s+", l)
@@ -202,7 +203,6 @@ def parseXStat(response):
 
 	if conn_count == 0:
 		log.debug("no nodes connected")
-		NodeConns.clear()
 
 def genNodeJSONStatus():
 	log.debug("genNodeJSONStatus()")
