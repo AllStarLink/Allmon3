@@ -2,15 +2,51 @@
 // Global Variables
 //
 var updateStatusDashboardIntervalID = 0;	// ID for the setInterval() of the dashboard
-var monNodes = [ 50815, 48496 ];			// node(s) to monitor in Array
+var monNodes = [ ];			// node(s) to monitor in Array
 
 // Things to do when the page loads
 window.addEventListener("load", function(){
+	uiConfigs();
 	updateStatusDashboardIntervalID = setInterval(updateStatusDashboard, 1000);
 	updateStatusDashboard();
 });
 
-// 
+// Generic AJAX function
+function XHRRequest(label, url, action){
+	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.onreadystatechange = function () {
+		if( this.readyState == 4 && this.status == 200 ){
+			action(this.responseText);
+		} else if( this.readyState == 4 && this.status != 200 ){
+			console.log("Failed to execute " + label)
+		}
+
+	}
+	xmlhttp.open("GET", url, true);
+	xmlhttp.send();
+}	
+
+// Get the configs
+function uiConfigs(){
+	XHRRequest("drawMenu", "api/uiconfig.php?e=nodelist", drawMenu);
+};
+
+// Update menu
+function drawMenu(menulist){
+	monNodes = JSON.parse(menulist);
+	li = "";
+	for(const n of monNodes){
+		li = li.concat(`<li class="nav-item">
+                        <a class="nav-link" href="#">
+							<svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img"><use xlink:href="#node"/></svg>
+                           	${n} 
+                        </a>
+                    </li>`);
+	}
+	document.getElementById("asl-node-navigation").innerHTML = li;
+}
+
+// Update the dashboard
 function updateStatusDashboard(){
 	var dashArea = document.getElementById("asl-statmon-dashboard-area");
 	var monNodeDivs = "";
@@ -49,9 +85,9 @@ function nodeEntry(nodeid, nodeinfo){
 	}
 
 	var nodeTxLine = ""	
-	if(node.RXKEYED === true && node.TXKEYED === true && node.TXEKEYED === false){	
+	if(node.RXKEYED === true && node.TXKEYED === true){	
 		nodeTxLine = "<div class=\"alert alert-danger mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Signal</div>";
-	} else if( node.RXKEYED === false && node.TXKEYED === false && node.TXEKEYED === true ){
+	} else if( node.CONKEYED === false || ( node.TXKEYED === true && node.RXKEYED === false) ){
 		nodeTxLine = "<div class=\"alert alert-danger mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Network Signal</div>";
 	} else {
 		nodeTxLine = "<div class=\"alert alert-success mx-3 py-0 nodetxline nodetxline-unkeyed\">Transmit - Idle</div>";
