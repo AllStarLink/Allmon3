@@ -1,28 +1,52 @@
+//
+// Global Variables
+//
+var updateStatusDashboardIntervalID = 0;	// ID for the setInterval() of the dashboard
+var monNodes = [ 50815, 48496 ];			// node(s) to monitor in Array
+
+// Things to do when the page loads
 window.addEventListener("load", function(){
-	setInterval(updateStatusDashboard, 10000);
+	updateStatusDashboardIntervalID = setInterval(updateStatusDashboard, 1000);
+	updateStatusDashboard();
 });
 
-updateStatusDashboard();
-
+// 
 function updateStatusDashboard(){
-	var xmlhttp = new XMLHttpRequest();
-	var url = "api/asl-statmon.php";
-	xmlhttp.onreadystatechange = function () {
-		if( this.readyState == 4 && this.status == 200 ){
-//		document.getElementById("statmon").innerHTML = this.responseText;
-		nodeEntry(this.responseText);
-		} else if( this.readyState == 4 && this.status != 200 ){
-			console.log("Failed to get dashboard update")
+	var dashArea = document.getElementById("asl-statmon-dashboard-area");
+	var monNodeDivs = "";
+	for(const n of monNodes){
+		var daExists = document.getElementById(`asl-statmon-dashboard-${n}`);
+		if(!daExists){
+			const newDiv = document.createElement("div");
+			newDiv.id = `asl-statmon-dashboard-${n}`;
+			dashArea.appendChild(newDiv);
 		}
-
 	}
-	xmlhttp.open("GET", url, true);
-	xmlhttp.send();
+	for(const n of monNodes){
+		var xmlhttp = new XMLHttpRequest();
+		var url = `api/asl-statmon.php?node=${n}`;
+		xmlhttp.onreadystatechange = function () {
+			if( this.readyState == 4 && this.status == 200 ){
+				nodeEntry(n, this.responseText);
+			} else if( this.readyState == 4 && this.status != 200 ){
+				console.log("Failed to get dashboard update")
+			}
+	
+		}
+		xmlhttp.open("GET", url, true);
+		xmlhttp.send();
+	}
 };
 
-function nodeEntry(nodeinfo){
-	dashArea = document.getElementById("asl-statmon-dashboard-area");
-	node = JSON.parse(nodeinfo);
+function nodeEntry(nodeid, nodeinfo){
+	var dashArea = document.getElementById(`asl-statmon-dashboard-${nodeid}`);
+	const node = JSON.parse(nodeinfo);
+
+	if(node.ERROR){
+		window.alert(`SERVER ERROR: NODE=${nodeid}\n\n${node.ERROR}\n\nYou must fix the error and reload this page`);
+		window.clearInterval(updateStatusDashboardIntervalID);
+		return false;
+	}
 
 	var nodeTxLine = ""	
 	if(node.RXKEYED === true && node.TXKEYED === true && node.TXEKEYED === false){	
