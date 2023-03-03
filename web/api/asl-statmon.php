@@ -6,6 +6,11 @@ if(!strcmp(php_sapi_name(),"cli")){
 	header('Content-Type: application/json');
 }
 
+if(!extension_loaded("zm2q")){
+	print(getJSONError("PHP instanance does not have the zmq module available"));
+	exit(1);
+}
+
 if(defined('STDIN')){
 	if(array_key_exists(1,$argv)){
 		$ASL_NODE = $argv[1];
@@ -18,20 +23,20 @@ if(defined('STDIN')){
 }
 
 if(!$ASL_NODE){
-	print(genJSONError("node not specified"));
+	print(getJSONError("node not specified"));
 	exit;
 }
 
 $allmon_cfg = parse_ini_file("/usr/local/etc/allmon3.ini", true);
 
 if(! $allmon_cfg){
-	print(genJSONError("could not parse /usr/local/etc/allmon3.ini"));
+	print(getJSONError("could not parse /usr/local/etc/allmon3.ini"));
 	exit;
 }
 
 $z_port = getINIConfigVal($allmon_cfg, $ASL_NODE, "monport");
 if( $z_port == "" ){
-	print(genJSONError("could not find monport= for node " . $ASL_NODE));
+	print(getJSONError("could not find monport= for node " . $ASL_NODE));
 	exit;
 }
 
@@ -50,7 +55,7 @@ if($msg){
 	print($msg);
 	exit(0);
 } else {
-	print(genJSONError("no response from ZMQ message bus; wrong IP or port?"));
+	print(getJSONError("no response from ZMQ message bus; wrong IP or port?"));
 	exit(1);
 }
 ?>
