@@ -87,8 +87,10 @@ function nodeEntry(nodeid, nodeinfo){
 	var nodeTxLine = ""	
 	if(node.RXKEYED === true && node.TXKEYED === true){	
 		nodeTxLine = "<div class=\"alert alert-danger mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Signal</div>";
-	} else if( node.CONKEYED === false || ( node.TXKEYED === true && node.RXKEYED === false) ){
+	} else if( node.CONKEYED === true && node.TXKEYED === true && node.RXKEYED === false ){
 		nodeTxLine = "<div class=\"alert alert-danger mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Network Signal</div>";
+	} else if( node.TXKEYED === true && node.RXKEYED === false && node.CONNKEYED === false ){
+		 nodeTxLine = "<div class=\"alert alert-danger mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Telemetry/Playback</div>";
 	} else {
 		nodeTxLine = "<div class=\"alert alert-success mx-3 py-0 nodetxline nodetxline-unkeyed\">Transmit - Idle</div>";
 	}
