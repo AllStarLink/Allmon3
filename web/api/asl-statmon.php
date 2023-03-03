@@ -1,16 +1,56 @@
 <?php
+require_once("functions.php");
+require_once("config.php");
+
+if(!strcmp(php_sapi_name(),"cli")){
+	header('Content-Type: application/json');
+}
+
+if(defined('STDIN')){
+	if(array_key_exists(1,$argv)){
+		$ASL_NODE = $argv[1];
+	} else {
+		print "asl-statmon.php NODE\n";
+		exit(1);
+	}
+} else {
+	$ASL_NODE = getGetVar("node");
+}
+
+if(!$ASL_NODE){
+	print(genJSONError("node not specified"));
+	exit;
+}
+
+$allmon_cfg = parse_ini_file("/usr/local/etc/allmon3.ini", true);
+
+if(! $allmon_cfg){
+	print(genJSONError("could not parse /usr/local/etc/allmon3.ini"));
+	exit;
+}
+
+$z_port = getINIConfigVal($allmon_cfg, $ASL_NODE, "monport");
+if( $z_port == "" ){
+	print(genJSONError("could not find monport= for node " . $ASL_NODE));
+	exit;
+}
+
+$zmq_dsn = sprintf("tcp://%s:%d", $CONFIG_ZMQ_LOCALHOST, $z_port);
 
 $r = new ZMQSocket(new ZMQContext(), ZMQ::SOCKET_SUB);
-$r->connect ("tcp://127.0.0.1:6750");
-$r->setSockOpt(ZMQ::SOCKOPT_SUBSCRIBE, "");
-$r->setSockOpt(ZMQ::SOCKOPT_SNDTIMEO, 2000);
-$r->setSockOpt(ZMQ::SOCKOPT_RCVTIMEO, 2000);
-$r->setSockOpt(ZMQ::SOCKOPT_LINGER, 2000);
-$main_loop = 1;
-$record = "";
-$have_sor = 0;
-$eventctr = 0;
+$r->connect ($zmq_dsn);
+$r->setSockOpt(ZMQ::SOCKOPT_SUBSCRIBE, $CONFIG_ZMQ_SUBSCRIBE);
+$r->setSockOpt(ZMQ::SOCKOPT_SNDTIMEO, $CONFIG_ZMQ_SNDTIMEO);
+$r->setSockOpt(ZMQ::SOCKOPT_RCVTIMEO, $CONFIG_ZMQ_RCVTIMEO);
+$r->setSockOpt(ZMQ::SOCKOPT_LINGER, $CONFIG_ZMQ_LINGER);
 $msg = $r->recv();
-$r->disconnect("tcp://127.0.0.1:6750");
-print($msg);
+$r->disconnect($zmq_dsn);
+
+if($msg){
+	print($msg);
+	exit(0);
+} else {
+	print(genJSONError("no response from ZMQ message bus; wrong IP or port?"));
+	exit(1);
+}
 ?>
