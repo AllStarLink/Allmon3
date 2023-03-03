@@ -7,7 +7,7 @@ if(!strcmp(php_sapi_name(),"cli")){
 }
 
 if(!extension_loaded("zmq")){
-	print(getJSONError("PHP instanance does not have the zmq module available"));
+	print(getJSONError("PHP instance does not have the zmq module available"));
 	exit(1);
 }
 
