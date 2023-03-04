@@ -8,7 +8,6 @@ var monNodes = [ ];			// node(s) to monitor in Array
 window.addEventListener("load", function(){
 	uiConfigs();
 	updateStatusDashboardIntervalID = setInterval(updateStatusDashboard, 1000);
-	updateStatusDashboard();
 });
 
 // Generic AJAX function
@@ -96,7 +95,7 @@ function nodeEntry(nodeid, nodeinfo){
 	}
 
 	dashArea.innerHTML = nodeLineHeader(node.ME, node.DESC) + nodeTxLine + 
-		nodeConnTable(node.Conns, node.CONNKEYED, node.CONNKEYEDNODE);
+		nodeConnTable(node.CONNS, node.CONNKEYED, node.CONNKEYEDNODE);
 
 	// enable the tooltips
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');

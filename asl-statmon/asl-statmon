@@ -148,12 +148,12 @@ def ASLLogout(s):
 	return None
 
 # Parse the (String) response from a SawStat command
-def parseSawStat(response):
-	log.debug("parseSawStat()")
+def parseSawStat(curr_node, response):
+	log.debug("enter parseSawStat(%d)" % (curr_node))
 	
 	# Clear the CONNKEYED* status
-	NodeStatus.update( { "CONNKEYED" : False } )
-	NodeStatus.update( { "CONNKEYEDNODE" : False } )
+	node_mon_list[curr_node].update( { "CONNKEYED" : False } )
+	node_mon_list[curr_node].update( { "CONNKEYEDNODE" : False } )
 
 	# Process the XStat message
 	ra = re.split(r'[\n\r]+', response)
@@ -161,24 +161,41 @@ def parseSawStat(response):
 		if re.match("^Conn", l):
 			ce = re.split(r"\s+", l)
 			# Conn: NODE PTT SEC_SINCE_KEY SEC_SINCE_UNKEY
-			NodeConns[ce[1]].update( { "PTT" : ce[2] , "SSK" : ce[3] , "SSU" : ce[4] } )				
+			node_mon_list[curr_node]["CONNS"][ce[1]].update( { "PTT" : ce[2] , "SSK" : ce[3] , "SSU" : ce[4] } )				
 			if int(ce[2]) == 1:
-				NodeStatus.update( { "CONNKEYED" : True } )
-				NodeStatus.update( { "CONNKEYEDNODE" : ce[1] })
+				node_mon_list[curr_node].update( { "CONNKEYED" : True } )
+				node_mon_list[curr_node].update( { "CONNKEYEDNODE" : ce[1] } )
+	log.debug("exiting parseSawStat(%d)" % (curr_node))
 
 # Parse the (String) response from XStat command
-def parseXStat(response):
-	log.debug("parseXStat()")
+def parseXStat(curr_node, response):
+	log.debug("entering parseXStat(%d)" % (curr_node))
 	ra = re.split(r'[\n\r]+', response)
 	conn_count = 0
-	NodeConns.clear();
+
+	# {
+	#	NODE : {
+	#       IP : str            (ip adderss)
+	#       DIR : str           (direction of link)
+	#       CTIME: str          (connection time)
+	#       CSTATE: str         (connection state)
+	#       PTT : TRUE|FALSE    (current PTT state)
+	#       SSK : int           (sec since key)
+	#       SSU : int           (sec since unkey)
+	#       MODE : str          (mode)
+	#   } , 
+	#	NODE { ... } ,
+	#	... 
+	# }
+	node_conns = {}
+
 	for l in ra:
 		if re.match("^Conn", l):
 			ce = re.split(r"\s+", l)
 			# Conn: NODE IP ??  DIRECETION CONNTIME CONNSTATE
-			NodeConns.update( { ce[1] : {} } )
-			NodeConns[ce[1]].update( { "IP" : ce[2] , "DIR" : ce[4] , "CTIME" : ce[5] ,
-				"CSTATE" : ce[6] , "MODE" : "Initializing" } )
+			node_conns.update( { ce[1] : {} } )
+			node_conns[ce[1]].update( { "IP" : ce[2] , "DIR" : ce[4] , "CTIME" : ce[5] ,
+				"CSTATE" : ce[6] , "PTT" : False, "SSK" : -1, "SSU" : -1, "MODE" : "Initializing" } )
 			conn_count += 1
 		elif re.match("^Var:\sRPT_ALINKS=", l) and not re.match("^Var:\sRPT_ALINKS=0", l):
 			for alink in  l.split(","):
@@ -186,44 +203,39 @@ def parseXStat(response):
 					ns = re.search('([0-9]+)([A-Z])[A-Z]', alink)
 					if ns.group(2) == "T":
 						log.debug(ns.group(2))
-						NodeConns[ns.group(1)].update( { "MODE" : "Transceive" } )
+						node_conns[ns.group(1)].update( { "MODE" : "Transceive" } )
 					elif ns.group(2) == "R":
-						NodeConns[ns.group(1)].update( { "MODE" : "Monitor" } )
+						node_conns[ns.group(1)].update( { "MODE" : "Monitor" } )
 					else:
-						NodeConns[ns.group(1)].update( { "MODE" : "Unknown" } )
+						node_conns[ns.group(1)].update( { "MODE" : "Unknown" } )
 		elif re.match("^Var:\sRPT_TXKEYED=1", l):
-			NodeStatus.update( { "TXKEYED" : True } )
+			node_mon_list[curr_node].update( { "TXKEYED" : True } )
 		elif re.match("^Var:\sRPT_TXEKEYED=1", l):
-			NodeStatus.update( { "TXEKEYED" : True } )
+			node_mon_list[curr_node].update( { "TXEKEYED" : True } )
 		elif re.match("^Var:\sRPT_RXKEYED=1", l):
-			NodeStatus.update( { "RXKEYED" : True } )
+			node_mon_list[curr_node].update( { "RXKEYED" : True } )
 		elif re.match("^Var:\sRPT_TXKEYED=0", l):
-			NodeStatus.update( { "TXKEYED" : False } )
+			node_mon_list[curr_node].update( { "TXKEYED" : False } )
 		elif re.match("^Var:\sRPT_TXEKEYED=0", l):
-			NodeStatus.update( { "TXEKEYED" : False } )
+			node_mon_list[curr_node].update( { "TXEKEYED" : False } )
 		elif re.match("^Var:\sRPT_RXKEYED=0", l):
-			NodeStatus.update( { "RXKEYED" : False } )
+			node_mon_list[curr_node].update( { "RXKEYED" : False } )
 
 	if conn_count == 0:
 		log.debug("no nodes connected")
+	else:
+		log.debug("processed %d connections" % (conn_count))
 
-def genNodeJSONStatus():
-	log.debug("genNodeJSONStatus()")
-	
-	d = NodeStatus
-	d["Conns"] = NodeConns
+	node_mon_list[curr_node]["CONNS"] = node_conns
+	log.debug("exiting parseXStat(%d)" % (curr_node))
 
-	for n in d["Conns"]:
-		if n in NodeData:
-			d["Conns"][n]["DESC"] = "{} {} {}".format(NodeData[n]['CALL'], NodeData[n]['DESC'],NodeData[n]['LOC'])
-		else:
-			d["Conns"][n]["DESC"] = "Unavailable"
-
-	return(json.dumps(d))
+def genNodeJSONStatus(curr_node):
+	log.debug("genNodeJSONStatus(%d)" % (curr_node))
+	return(json.dumps(node_mon_list[curr_node]))
 
 # Read and load in the ASL Database
 def getAllmonDB():
-	log.debug("getAllmonDB()")
+	log.debug("entering getAllmonDB()")
 	try:
 		url = "http://allmondb.allstarlink.org/"
 		req = urllib.request.Request(url, data=None, headers={ "User-Agent" : "Mozilla/5.0" })
@@ -234,55 +246,40 @@ def getAllmonDB():
 	except Exception as e:
 		raise e
 	nodedb = re.split(r"\n", dbf)
+
 	for n in nodedb:
 		r = re.split(r"\|", n)
 		if len(r) == 4:
-			NodeData.update( { r[0] : {} } )
-			NodeData[r[0]].update( { "CALL" : r[1] , "DESC" : r[2] , "LOC" : r[3] } )
+			node_database.update( { int(r[0]) : {} } )
+			node_database[int(r[0])].update( { "CALL" : r[1] , "DESC" : r[2] , "LOC" : r[3] } )
 	elapsed_time = time.time() - start_time
 	log.info("Updated node database in {0:.2f} seconds".format(elapsed_time))
 	setMyInfo()
+	log.debug("exiting getAllMonDB()")
 
 def setMyInfo():
-	log.debug("setMyInfo()")
-	NodeStatus["ME"] = int(ASL_NODE)
-	if str(ASL_NODE) in NodeData:
-		NodeStatus["DESC"] = "{0} {1} {2}".format(NodeData[str(ASL_NODE)]['CALL'], 
-			NodeData[str(ASL_NODE)]['DESC'], NodeData[str(ASL_NODE)]['LOC'])
-	else:
-		 NodeStatus["DESC"] = "Unavailable"
+	log.debug("entering setMyInfo()")
+	for n in node_mon_list:
+		if n in node_database:
+			node_mon_list[n]["DESC"] = "{0} {1} {2}".format(node_database[n]['CALL'], 
+			node_database[n]['DESC'], node_database[n]['LOC'])
+		else:
+			node_mon_list[n]["DESC"] = "Unavailable"
+	log.debug("exiting setMyInfo()")
 
 ######## MAIN PROGRAM ########
 
-# Connections dictonary table
-
-#Node Conns = {
-#	NODE : {
-#		IP : str			(ip adderss)
-#		DIR : str			(direction of link)
-#		CTIME: str			(connection time)
-#		CSTATE:	str			(connection state)
-#		PTT : TRUE|FALSE	(current PTT state)
-#		SSK : int			(sec since key)
-#		SSU : int			(sec since unkey)
-#		MODE : str			(mode)
-#	}
-#
-#	NODE : { ... }
-#
-#	...
-#}
-NodeConns = { }
-
 # Node database
-#
-# NodeData = { NODE : { CALL : str , DESC : str , LOC : str } , ... }
-NodeData = { } 
+# node_database = { NODE : { CALL : str , DESC : str , LOC : str } , ... }
+node_database = { } 
 
 # Node Status
-#
-# NodeStatus = { ME: int : DESC : str :  RXKEYED : bool , TXKEYED : bool, TXEKEYED : bool }
-NodeStatus = { "ME" : 0 , "DESC" : "" , "RXKEYED" : False , "TXKEYED" : False , "TXEKEYED" : False }
+# node_status = "ME" : int(n) , "DESC" : None , "RXKEYED" : False, "TXKEYED" : False ,
+#                "TXEKEYED" : False, "CONNKEYED" : False, "CONNKEYEDNODE" : None , "CONNS" : None } 
+
+# node_mon_list
+# node_mon_list = { NODE : node_status{} , .... }
+node_mon_list = { }
 
 # Helpers
 rern = re.compile('\r\n', re.MULTILINE)
@@ -310,7 +307,6 @@ if not 1000 <= args.node <= 9999999:
 	sys.exit(1)
 else:
 	log.debug("using node %d" % (args.node))
-	ASL_NODE = args.node
 
 # Parse configuration
 
@@ -377,8 +373,21 @@ try:
 		ZMQ_PORT = int(config[str(args.node)]["monport"])
 		log.debug("ZMQ_PORT - %s" % (ZMQ_PORT))
 
+	if "multinodes" in config[str(args.node)]:
+		log.debug("found multinodes")
+		for n in re.split(r',', config[str(args.node)]["multinodes"]):
+			log.debug("Adding node %d", int(n))
+			node_mon_list.update({ int(n): {
+				"ME" : int(n) , "DESC" : None , "RXKEYED" : False, "TXKEYED" : False ,
+				"TXEKEYED" : False, "CONNKEYED" : False, "CONNKEYEDNODE" : None , "CONNS" : None }})
+	else:
+		node_mon_list.update({ args.node : { 
+				"ME" : args.node , "DESC" : None , "RXKEYED" : False, "TXKEYED" : False ,
+				"TXEKEYED" : False, "CONNKEYED" : False, "CONNKEYEDNODE" : None , "CONNS" : None }})
+
 except Exception as e:
 	log.error("INI parser error: %s" % (e));
+	raise e
 	sys.exit(1)
 
 # Create the initial connection to the ASL Manager
@@ -404,23 +413,26 @@ except Exception as e:
 	log.error("unable to get allmondb: %s" % (e) )
 	log.error("info fields will be labeled UNAVAILABLE until the data is retrieve")
 
+
 # Execute the main status gathering loop
 log.debug("starting the main work loop")
 main_loop = True
 inner_loop = True
 last_db_update = time.time()
-xstat_cmd = "ACTION: RptStatus\r\nCOMMAND: XStat\r\nNODE: %d\r\n" % ( ASL_NODE )
-sawstat_cmd = "ACTION: RptStatus\r\nCOMMAND: SawStat\r\nNODE: %d\r\n" % ( ASL_NODE )
 try:
 	while main_loop:
 		while inner_loop:
 			try:
-	
-				xstat = ASLCmdResponse(asl, xstat_cmd)
-				parseXStat(xstat)
-				sawstat = ASLCmdResponse(asl, sawstat_cmd)
-				parseSawStat(sawstat)
-				publisher.send_string(genNodeJSONStatus())
+				for curr_node in node_mon_list:
+					xstat_cmd = "ACTION: RptStatus\r\nCOMMAND: XStat\r\nNODE: %d\r\n" % ( curr_node )
+					sawstat_cmd = "ACTION: RptStatus\r\nCOMMAND: SawStat\r\nNODE: %d\r\n" % ( curr_node )
+
+					xstat = ASLCmdResponse(asl, xstat_cmd)
+					parseXStat(curr_node, xstat)
+					sawstat = ASLCmdResponse(asl, sawstat_cmd)
+					parseSawStat(curr_node, sawstat)
+					publisher.send_multipart([str(curr_node).encode("UTF-8"),
+						genNodeJSONStatus(curr_node).encode("UTF-8")])
 	
 			except BrokenPipeError as e:
 				log.error("received BrokenPipeError; trying to reconnect")
