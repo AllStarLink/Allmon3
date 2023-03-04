@@ -44,7 +44,7 @@ $zmq_dsn = sprintf("tcp://%s:%d", $CONFIG_ZMQ_LOCALHOST, $z_port);
 
 $r = new ZMQSocket(new ZMQContext(), ZMQ::SOCKET_SUB);
 $r->connect ($zmq_dsn);
-$r->setSockOpt(ZMQ::SOCKOPT_SUBSCRIBE, $CONFIG_ZMQ_SUBSCRIBE);
+$r->setSockOpt(ZMQ::SOCKOPT_SUBSCRIBE, $ASL_NODE);
 $r->setSockOpt(ZMQ::SOCKOPT_SNDTIMEO, $CONFIG_ZMQ_SNDTIMEO);
 $r->setSockOpt(ZMQ::SOCKOPT_RCVTIMEO, $CONFIG_ZMQ_RCVTIMEO);
 $r->setSockOpt(ZMQ::SOCKOPT_LINGER, $CONFIG_ZMQ_LINGER);
