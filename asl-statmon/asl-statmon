@@ -161,10 +161,11 @@ def parseSawStat(curr_node, response):
 		if re.match("^Conn", l):
 			ce = re.split(r"\s+", l)
 			# Conn: NODE PTT SEC_SINCE_KEY SEC_SINCE_UNKEY
-			node_mon_list[curr_node]["CONNS"][ce[1]].update( { "PTT" : ce[2] , "SSK" : ce[3] , "SSU" : ce[4] } )				
-			if int(ce[2]) == 1:
-				node_mon_list[curr_node].update( { "CONNKEYED" : True } )
-				node_mon_list[curr_node].update( { "CONNKEYEDNODE" : ce[1] } )
+			if ce[1] in node_mon_list[curr_node]["CONNS"]:
+				node_mon_list[curr_node]["CONNS"][ce[1]].update( { "PTT" : ce[2] , "SSK" : ce[3] , "SSU" : ce[4] } )				
+				if int(ce[2]) == 1:
+					node_mon_list[curr_node].update( { "CONNKEYED" : True } )
+					node_mon_list[curr_node].update( { "CONNKEYEDNODE" : ce[1] } )
 	log.debug("exiting parseSawStat(%d)" % (curr_node))
 
 # Parse the (String) response from XStat command
