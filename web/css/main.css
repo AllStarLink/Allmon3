@@ -103,6 +103,10 @@ body {
 	font-weight: bold;
 }
 
+.node-conn-keyed {
+	background-color: lightyellow;
+}
+
 /*
  * Icon
  */

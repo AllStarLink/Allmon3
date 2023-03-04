@@ -84,18 +84,19 @@ function nodeEntry(nodeid, nodeinfo){
 		return false;
 	}
 
-	var nodeTxLine = ""	
+	var nodeTxLine = "";
 	if(node.RXKEYED === true && node.TXKEYED === true){	
-		nodeTxLine = "<div class=\"alert alert-danger mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Signal</div>";
-	} else if( node.CONKEYED === true && node.TXKEYED === true && node.RXKEYED === false ){
-		nodeTxLine = "<div class=\"alert alert-danger mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Network Signal</div>";
+		nodeTxLine = "<div class=\"alert alert-danger mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
+	} else if( node.CONNKEYED === true && node.TXKEYED === true && node.RXKEYED === false ){
+		nodeTxLine = "<div class=\"alert alert-danger mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Network Source</div>";
 	} else if( node.TXKEYED === true && node.RXKEYED === false && node.CONNKEYED === false ){
 		 nodeTxLine = "<div class=\"alert alert-danger mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Telemetry/Playback</div>";
 	} else {
 		nodeTxLine = "<div class=\"alert alert-success mx-3 py-0 nodetxline nodetxline-unkeyed\">Transmit - Idle</div>";
 	}
 
-	dashArea.innerHTML = nodeLineHeader(node.ME, node.DESC) + nodeTxLine + nodeConnTable(node.Conns);
+	dashArea.innerHTML = nodeLineHeader(node.ME, node.DESC) + nodeTxLine + 
+		nodeConnTable(node.Conns, node.CONNKEYED, node.CONNKEYEDNODE);
 
 	// enable the tooltips
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
@@ -143,7 +144,7 @@ function nodeLineHeader(nodeNumber, nodeDescription){
 	return nodeLineHeaderStr;
 };
 
-function nodeConnTable(conns) {
+function nodeConnTable(conns, keyed, keyednode) {
 	var tTop = `
 <table class="table table-responsive table-bordered table-hover">
 <thead class="table-dark">
@@ -177,8 +178,13 @@ function nodeConnTable(conns) {
 				}
 			}
 
-		row = row.concat(`
-			<tr>
+			var rowclass = "node-conn-nokey";
+			if( keyed === true && c == keyednode ){
+				rowclass = "node-conn-keyed";
+			}
+
+			row = row.concat(`
+			<tr class="${rowclass}">
 				<th scope="row">${c}</td>
 				<td>${conns[c].DESC}</td>
 				<td>${conns[c].CTIME}</td>
