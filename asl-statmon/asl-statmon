@@ -374,18 +374,20 @@ try:
 		log.debug("ZMQ_PORT - %s" % (ZMQ_PORT))
 
 	if "multinodes" in config[str(args.node)]:
+		log.debug("found multinodes")
 		for n in re.split(r',', config[str(args.node)]["multinodes"]):
 			log.debug("Adding node %d", int(n))
 			node_mon_list.update({ int(n): {
 				"ME" : int(n) , "DESC" : None , "RXKEYED" : False, "TXKEYED" : False ,
 				"TXEKEYED" : False, "CONNKEYED" : False, "CONNKEYEDNODE" : None , "CONNS" : None }})
 	else:
-		node_mon_list.update({ args.node, { 
-				"ME" : int(n) , "DESC" : None , "RXKEYED" : False, "TXKEYED" : False ,
+		node_mon_list.update({ args.node : { 
+				"ME" : args.node , "DESC" : None , "RXKEYED" : False, "TXKEYED" : False ,
 				"TXEKEYED" : False, "CONNKEYED" : False, "CONNKEYEDNODE" : None , "CONNS" : None }})
 
 except Exception as e:
 	log.error("INI parser error: %s" % (e));
+	raise e
 	sys.exit(1)
 
 # Create the initial connection to the ASL Manager
