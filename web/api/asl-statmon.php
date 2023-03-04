@@ -48,11 +48,13 @@ $r->setSockOpt(ZMQ::SOCKOPT_SUBSCRIBE, $ASL_NODE);
 $r->setSockOpt(ZMQ::SOCKOPT_SNDTIMEO, $CONFIG_ZMQ_SNDTIMEO);
 $r->setSockOpt(ZMQ::SOCKOPT_RCVTIMEO, $CONFIG_ZMQ_RCVTIMEO);
 $r->setSockOpt(ZMQ::SOCKOPT_LINGER, $CONFIG_ZMQ_LINGER);
-$msg = $r->recv();
+
+# the other end sends 2 messages in a multipart
+$msg = $r->recvMulti();
 $r->disconnect($zmq_dsn);
 
-if($msg){
-	print($msg);
+if($msg[1]){
+	print($msg[1]);
 	exit(0);
 } else {
 	print(getJSONError("no response from ZMQ message bus; wrong IP or port?"));
