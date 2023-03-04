@@ -107,7 +107,7 @@ function nodeEntry(nodeid, nodeinfo){
 function nodeLineHeader(nodeNumber, nodeDescription){
 	var nodeLineHeaderStr = `
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-2 px-2 mt-1 mb-3 border-bottom shadow nodeline-header">
-            <h1 class="h3">${nodeNumber} - ${nodeDescription}</h3>
+            <h1 class="h5">${nodeNumber} - ${nodeDescription}</h5>
             <div class="btn-toolbar mb-2 mb-md-0">
                 <div class="btn-group me-2">
                     <a class="btn btn-sm btn-outline-secondary"
