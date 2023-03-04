@@ -196,13 +196,18 @@ def parseXStat(curr_node, response):
 			node_conns.update( { ce[1] : {} } )
 			node_conns[ce[1]].update( { "IP" : ce[2] , "DIR" : ce[4] , "CTIME" : ce[5] ,
 				"CSTATE" : ce[6] , "PTT" : False, "SSK" : -1, "SSU" : -1, "MODE" : "Initializing" } )
+			if int(ce[1]) in node_database:
+				node_conns[ce[1]]["DESC"] = "{0} {1} {2}".format(node_database[int(ce[1])]['CALL'], 
+					node_database[int(ce[1])]['DESC'], node_database[int(ce[1])]['LOC'])
+			else:
+				node_conns[ce[1]]["DESC"] = "Unavailable"
+
 			conn_count += 1
 		elif re.match("^Var:\sRPT_ALINKS=", l) and not re.match("^Var:\sRPT_ALINKS=0", l):
 			for alink in  l.split(","):
 				if re.match("^[0-9]+\S", alink):
 					ns = re.search('([0-9]+)([A-Z])[A-Z]', alink)
 					if ns.group(2) == "T":
-						log.debug(ns.group(2))
 						node_conns[ns.group(1)].update( { "MODE" : "Transceive" } )
 					elif ns.group(2) == "R":
 						node_conns[ns.group(1)].update( { "MODE" : "Monitor" } )
