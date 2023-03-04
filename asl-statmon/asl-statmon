@@ -181,13 +181,16 @@ def parseXStat(response):
 				"CSTATE" : ce[6] , "MODE" : "Initializing" } )
 			conn_count += 1
 		elif re.match("^Var:\sRPT_ALINKS=", l) and not re.match("^Var:\sRPT_ALINKS=0", l):
-			ns = re.search('ALINKS=[0-9]+,([0-9]+)([A-Z])', l)
-			if ns.group(2) == "T":
-				NodeConns[ns.group(1)].update( { "MODE" : "Transceive" } )
-			elif ns.group(2) == "R":
-				NodeConns[ns.group(1)].update( { "MODE" : "Monitor" } )
-			else:
-				NodeConns[ns.group(1)].update( { "MODE" : "Unknown" } )
+			for alink in  l.split(","):
+				if re.match("^[0-9]+\S", alink):
+					ns = re.search('([0-9]+)([A-Z])[A-Z]', alink)
+					if ns.group(2) == "T":
+						log.debug(ns.group(2))
+						NodeConns[ns.group(1)].update( { "MODE" : "Transceive" } )
+					elif ns.group(2) == "R":
+						NodeConns[ns.group(1)].update( { "MODE" : "Monitor" } )
+					else:
+						NodeConns[ns.group(1)].update( { "MODE" : "Unknown" } )
 		elif re.match("^Var:\sRPT_TXKEYED=1", l):
 			NodeStatus.update( { "TXKEYED" : True } )
 		elif re.match("^Var:\sRPT_TXEKEYED=1", l):
