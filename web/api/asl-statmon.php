@@ -36,8 +36,13 @@ if(! $allmon_cfg){
 
 $z_port = getINIConfigVal($allmon_cfg, $ASL_NODE, "monport");
 if( $z_port == "" ){
-	print(getJSONError("could not find monport= for node " . $ASL_NODE));
-	exit;
+	$colocated = getINIConfigVal($allmon_cfg, $ASL_NODE, "colocated_on");
+	if( $colocated == "" ){
+		print(getJSONError("could not find monport= or colocated_on= for node " . $ASL_NODE));
+		exit;
+	} else {
+		$z_port = getINIConfigVal($allmon_cfg, $colocated, "monport");
+	}
 }
 
 $zmq_dsn = sprintf("tcp://%s:%d", $CONFIG_ZMQ_LOCALHOST, $z_port);
