@@ -21,6 +21,7 @@ signal.signal(signal.SIGTERM, sigterm_handler)
 ap = argparse.ArgumentParser(description="Simple client to see that an asl-statmon instance. Dumps 0MQ messages from the specified port")
 ap.add_argument("host", type=str, help="FQDN or IP address of the asl-statmon to test")
 ap.add_argument("port", type=int, help="TCP port of asl-statmon to test")
+ap.add_argument("--topic", type=str, help="Topic to subscribe to")
 args = ap.parse_args()
 
 try:
@@ -29,7 +30,7 @@ try:
 	socket = context.socket(zmq.SUB)
 	socket.connect("tcp://%s:%d" % (args.host, args.port))
 	print("Connected. Press CTRL+c to stop...")
-	socket.setsockopt(zmq.SUBSCRIBE, b'')
+	socket.setsockopt(zmq.SUBSCRIBE, args.topic.encode("UTF-8"))
 
 	while True:
 	    message = socket.recv()
