@@ -34,7 +34,7 @@ These are *alpha* quality installation instructions. Eventually the plan is this
 will be an installable package. At the moment, these are Debian-specific and 
 assume you already know how to install a webserver with PHP support.
 
-1. Install dependencies `apt installi -y php-zmq python3-zmq`
+1. Install dependencies `apt install -y php-zmq python3-zmq`
 
 2. Copy the files into place:
 ```
