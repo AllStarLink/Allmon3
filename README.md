@@ -87,7 +87,7 @@ and hopefully stuff will Just Work(SM)
 Allmon3 is organized around a tierd structure: Asterisk AMI, stats monitor (asl-statmon), 
 and the website. In order to reduce webserver load see in Allmon2 (especially for systems 
 using workers with php-fpm) and on Asterisk AMI calls, one asl-statmon process operates
-as a [https://zeromq.org/](0MQ Messaging Publisher) polling AMI one time and distributing
+as a [0MQ Messaging Publisher](https://www.zeromq.org/) polling AMI one time and distributing
 the information to many web clients efficiently. It also allows for interesting things
 such as different views and abstractions of clusters of Asterisk servers and it permits
 polling of many nodes running on the same Asterisk server to be efficient.
