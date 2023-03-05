@@ -30,7 +30,10 @@ try:
 	socket = context.socket(zmq.SUB)
 	socket.connect("tcp://%s:%d" % (args.host, args.port))
 	print("Connected. Press CTRL+c to stop...")
-	socket.setsockopt(zmq.SUBSCRIBE, args.topic.encode("UTF-8"))
+	if args.topic:
+		socket.setsockopt(zmq.SUBSCRIBE, args.topic.encode("UTF-8"))
+	else:
+		socket.setsockopt(zmq.SUBSCRIBE, b"")
 
 	while True:
 	    message = socket.recv()
