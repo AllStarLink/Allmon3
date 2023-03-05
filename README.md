@@ -38,10 +38,16 @@ assume you already know how to install a webserver with PHP support.
 
 2. Copy the files into place:
 ```
-cp asl-statmon/asl-statmon asl/statmon-test-client.py /usr/local/bin
-cp example.ini /usr/local/etc/allmon3.ini
-cp asl-statmon@.service /etc/systemd/system
-cp -r web /var/www/html/allmon3
+cp asl-statmon/asl-statmon /usr/local/bin
+cp asl-statmon/asl-statmon-test-client.py /usr/local/bin
+cp asl-statmon/example.ini /usr/local/etc/allmon3.ini
+cp asl-statmon/asl-statmon@.service /etc/systemd/system
+cp -r web/* /var/www/html/allmon3
+```
+2.1 Enable asl-statmon service
+```
+systemctl daemon-reload
+systemctl enable systemctl enable asl-statmon@.service
 ```
 
 3. Edit `allmon3.ini` for at least one ASL AMI interface. Each node
