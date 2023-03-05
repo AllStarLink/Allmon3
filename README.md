@@ -47,7 +47,7 @@ cp -r web/* /var/www/html/allmon3
 2.1 Enable asl-statmon service
 ```
 systemctl daemon-reload
-systemctl enable systemctl enable asl-statmon@.service
+systemctl enable asl-statmon@.service
 ```
 
 3. Edit `allmon3.ini` for at least one ASL AMI interface. Each node
