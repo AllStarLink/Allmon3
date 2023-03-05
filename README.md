@@ -39,7 +39,7 @@ assume you already know how to install a webserver with PHP support.
 2. Copy the files into place:
 ```
 cp asl-statmon/asl-statmon /usr/local/bin
-cp asl/statmon-test-client.py /usr/local/bin
+cp asl-statmon-test-client.py /usr/local/bin
 cp example.ini /usr/local/etc/allmon3.ini
 cp asl-statmon@.service /etc/systemd/system
 cp -r web /var/www/html/allmon3
