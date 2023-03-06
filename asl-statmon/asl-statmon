@@ -135,9 +135,9 @@ def ASLCmdResponse(s, cmd):
 		log.debug("ASLCmdResponse() BrokenPipeError")
 		raise e
 	except Exception as e:
-		log.debug("ASLCmdResponse() Exception: %s" % (e.__class__))
-		log.error(e)
-		return None
+		log.error("ASLCmdResponse() Exception: %s" % (e.__class__))
+		log.error("ASLCmdResponse() Message: %s" % (e))
+		raise e
 
 # (try) to logout of ASL Manager neatly
 def ASLLogout(s):	
