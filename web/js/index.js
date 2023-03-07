@@ -98,8 +98,9 @@ function nodeEntry(nodeid, nodeinfo){
 		nodeConnTable(node.CONNS, node.CONNKEYED, node.CONNKEYEDNODE);
 
 	// enable the tooltips
-	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-	const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+	// const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+	//const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
 };
 
 
@@ -109,7 +110,7 @@ function nodeLineHeader(nodeNumber, nodeDescription){
             <h1 class="h5">${nodeNumber} - ${nodeDescription}</h5>
             <div class="btn-toolbar mb-2 mb-md-0">
                 <div class="btn-group me-2">
-                    <a class="btn btn-sm btn-outline-secondary"
+                    <a id="btn-bubble-${nodeNumber}" onmouseover="dispToolTip(this)" class="btn btn-sm btn-outline-secondary"
 						data-bs-toggle="tooltip" data-bs-placement="left"
 						data-bs-custom-class="nodeline-tooltip" 
 						data-bs-title="View this node with the ASL Bubble Map"
