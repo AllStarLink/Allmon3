@@ -27,10 +27,10 @@ if(!$ASL_NODE){
 	exit;
 }
 
-$allmon_cfg = parse_ini_file("/usr/local/etc/allmon3.ini", true);
+$allmon_cfg = parse_ini_file($CONFIG_ALLMON3_INI, true);
 
 if(! $allmon_cfg){
-	print(getJSONError("could not parse /usr/local/etc/allmon3.ini"));
+	print(getJSONError("could not parse $CONFIG_ALLMON3_INI"));
 	exit;
 }
 
@@ -45,7 +45,10 @@ if( $z_port == "" ){
 	}
 }
 
-$z_host = getINIConfigVal($allmon_cfg, $ASL_NODE, "ip");
+$z_host = getINIConfigVal($allmon_cfg, $ASL_NODE, "monip");
+if( $z_host == "" ){
+	$z_host = "127.0.0.1";
+}
 
 $zmq_dsn = sprintf("tcp://%s:%d", $z_host, $z_port);
 
