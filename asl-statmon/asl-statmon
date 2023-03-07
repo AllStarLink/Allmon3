@@ -217,6 +217,10 @@ def parseXStat(curr_node, response):
 				if ce[1] in node_database:
 					node_conns[ce[1]]["DESC"] = "{0} {1} {2}".format(node_database[ce[1]]['CALL'], 
 						node_database[ce[1]]['DESC'], node_database[ce[1]]['LOC'])
+				elif re.match('^.*\-P$', ce[1]):
+					node_conns[ce[1]].update( { "DESC" : "Allstar Telephone Portal User",
+						"MODE" : "Transceive" } )
+
 				else:
 					node_conns[ce[1]]["DESC"] = "Unavailable"
 			else:					# Echolink
