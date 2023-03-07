@@ -41,7 +41,7 @@ assume you already know how to install a webserver with PHP support.
 cp asl-statmon/asl-statmon /usr/local/bin
 cp asl-statmon/asl-statmon-test-client.py /usr/local/bin
 cp asl-statmon/example.ini /usr/local/etc/allmon3.ini
-cp asl-statmon/asl-statmon@.service /lib/systemd/system
+cp asl-statmon/asl-statmon@.service /etc/systemd/system
 cp -r web/* /var/www/html/allmon3
 ```
 2.1 Enable asl-statmon service
