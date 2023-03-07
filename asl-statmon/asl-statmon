@@ -168,6 +168,22 @@ def parseSawStat(curr_node, response):
 					node_mon_list[curr_node].update( { "CONNKEYEDNODE" : ce[1] } )
 	log.debug("exiting parseSawStat(%d)" % (curr_node))
 
+# Query/Parse Echolink Node Info
+def get_echolink_name(echolink_id):
+	log.debug("enter get_echolink_name(%s)" % (echolink_id))
+	elnodecmd = "ACTION: COMMAND\r\nCOMMAND: echolink dbget nodename %s\r\n" % (echolink_id)
+	el_info = ASLCmdResponse(asl, elnodecmd)
+	ra = re.split(r'[\n\r]+', el_info)
+	for l in ra:
+		log.debug(l)
+		if re.match("^Error", l):
+			log.debug("exiting get_echolink_name(%s)" % (echolink_id))
+			return None
+		elif re.match("^[0-9]", l):
+			ell = re.split(r'\|', l)
+			log.debug("exiting get_echolink_name(%s)" % (echolink_id))
+			return "%s - Echolink" % (ell[1])
+
 # Parse the (String) response from XStat command
 def parseXStat(curr_node, response):
 	log.debug("entering parseXStat(%d)" % (curr_node))
@@ -193,16 +209,24 @@ def parseXStat(curr_node, response):
 	for l in ra:
 		if re.match("^Conn", l):
 			ce = re.split(r"\s+", l)
-			# Conn: NODE IP ??  DIRECETION CONNTIME CONNSTATE
 			node_conns.update( { ce[1] : {} } )
-			node_conns[ce[1]].update( { "IP" : ce[2] , "DIR" : ce[4] , "CTIME" : ce[5] ,
-				"CSTATE" : ce[6] , "PTT" : False, "SSK" : -1, "SSU" : -1, "MODE" : "Initializing" } )
-			if int(ce[1]) in node_database:
-				node_conns[ce[1]]["DESC"] = "{0} {1} {2}".format(node_database[int(ce[1])]['CALL'], 
-					node_database[int(ce[1])]['DESC'], node_database[int(ce[1])]['LOC'])
-			else:
-				node_conns[ce[1]]["DESC"] = "Unavailable"
-
+			if(len(ce[1]) < 7 ):	# ASL IDs < 7 digits
+				# Conn: NODE IP ??  DIRECETION CONNTIME CONNSTATE
+				node_conns[ce[1]].update( { "IP" : ce[2] , "DIR" : ce[4] , "CTIME" : ce[5] ,
+					"CSTATE" : ce[6] , "PTT" : False, "SSK" : -1, "SSU" : -1, "MODE" : "Initializing" } )
+				if ce[1] in node_database:
+					node_conns[ce[1]]["DESC"] = "{0} {1} {2}".format(node_database[ce[1]]['CALL'], 
+						node_database[ce[1]]['DESC'], node_database[ce[1]]['LOC'])
+				else:
+					node_conns[ce[1]]["DESC"] = "Unavailable"
+			else:					# Echolink
+				# Conn: NODE ?? DIRECTION CONNSTATE
+				node_conns[ce[1]].update( { "IP" : None , "DIR" : ce[3] , "CTIME" : ce[4] ,
+					"CSTATE" : ce[5] , "PTT" : False, "SSK" : -1, "SSU" : -1, "MODE" : "Initializing" } )
+				ename = get_echolink_name(ce[1][-6:])
+				log.debug(ename)
+				node_conns[ce[1]]["DESC"] = ename
+				
 			conn_count += 1
 		elif re.match("^Var:\sRPT_ALINKS=", l) and not re.match("^Var:\sRPT_ALINKS=0", l):
 			for alink in  l.split(","):
@@ -256,8 +280,8 @@ def getAllmonDB():
 	for n in nodedb:
 		r = re.split(r"\|", n)
 		if len(r) == 4:
-			node_database.update( { int(r[0]) : {} } )
-			node_database[int(r[0])].update( { "CALL" : r[1] , "DESC" : r[2] , "LOC" : r[3] } )
+			node_database.update( { str(r[0]) : {} } )
+			node_database[str(r[0])].update( { "CALL" : r[1] , "DESC" : r[2] , "LOC" : r[3] } )
 	elapsed_time = time.time() - start_time
 	log.info("Updated node database in {0:.2f} seconds".format(elapsed_time))
 	setMyInfo()
@@ -266,9 +290,9 @@ def getAllmonDB():
 def setMyInfo():
 	log.debug("entering setMyInfo()")
 	for n in node_mon_list:
-		if n in node_database:
-			node_mon_list[n]["DESC"] = "{0} {1} {2}".format(node_database[n]['CALL'], 
-			node_database[n]['DESC'], node_database[n]['LOC'])
+		if str(n) in node_database:
+			node_mon_list[n]["DESC"] = "{0} {1} {2}".format(node_database[str(n)]['CALL'], 
+			node_database[str(n)]['DESC'], node_database[str(n)]['LOC'])
 		else:
 			node_mon_list[n]["DESC"] = "Unavailable"
 	log.debug("exiting setMyInfo()")
