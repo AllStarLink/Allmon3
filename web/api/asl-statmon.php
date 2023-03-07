@@ -45,7 +45,9 @@ if( $z_port == "" ){
 	}
 }
 
-$zmq_dsn = sprintf("tcp://%s:%d", $CONFIG_ZMQ_LOCALHOST, $z_port);
+$z_host = getINIConfigVal($allmon_cfg, $ASL_NODE, "ip");
+
+$zmq_dsn = sprintf("tcp://%s:%d", $z_host, $z_port);
 
 $r = new ZMQSocket(new ZMQContext(), ZMQ::SOCKET_SUB);
 $r->connect ($zmq_dsn);
