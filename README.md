@@ -41,13 +41,13 @@ assume you already know how to install a webserver with PHP support.
 cp asl-statmon/asl-statmon /usr/local/bin
 cp asl-statmon/asl-statmon-test-client.py /usr/local/bin
 cp asl-statmon/example.ini /usr/local/etc/allmon3.ini
-cp asl-statmon/asl-statmon@.service /etc/systemd/system
+cp asl-statmon/asl-statmon@.service /lib/systemd/system
 cp -r web/* /var/www/html/allmon3
 ```
 2.1 Enable asl-statmon service
 ```
 systemctl daemon-reload
-systemctl enable systemctl enable asl-statmon@.service
+systemctl enable asl-statmon@.service
 ```
 
 3. Edit `allmon3.ini` for at least one ASL AMI interface. Each node
@@ -87,7 +87,7 @@ and hopefully stuff will Just Work(SM)
 Allmon3 is organized around a tierd structure: Asterisk AMI, stats monitor (asl-statmon), 
 and the website. In order to reduce webserver load see in Allmon2 (especially for systems 
 using workers with php-fpm) and on Asterisk AMI calls, one asl-statmon process operates
-as a [https://zeromq.org/](0MQ Messaging Publisher) polling AMI one time and distributing
+as a [0MQ Messaging Publisher](https://www.zeromq.org/) polling AMI one time and distributing
 the information to many web clients efficiently. It also allows for interesting things
 such as different views and abstractions of clusters of Asterisk servers and it permits
 polling of many nodes running on the same Asterisk server to be efficient.
