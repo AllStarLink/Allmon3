@@ -108,34 +108,25 @@ function nodeEntry(nodeid, nodeinfo){
 // Draw/update the header row for a node
 function nodeLineHeader(nodeNumber, nodeDescription){
 	var nodeLineHeaderStr = `
-        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-2 px-2 mt-1 mb-3 border-bottom shadow nodeline-header">
-            <h1 class="h5">${nodeNumber} - ${nodeDescription}</h5>
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-1 px-2 mt-1 mb-3 border-bottom shadow nodeline-header">
+            <span class="align-middle">${nodeNumber} - ${nodeDescription}</span>
             <div class="btn-toolbar mb-2 mb-md-0">
                 <div class="btn-group me-2">
                     <a id="btn-bubble-${nodeNumber}" onmouseover="dispToolTip(this)" class="btn btn-sm btn-outline-secondary"
-						data-bs-toggle="tooltip" data-bs-placement="left"
-						data-bs-custom-class="nodeline-tooltip" 
-						data-bs-title="View this node with the ASL Bubble Map"
 						href="http://stats.allstarlink.org/stats/${nodeNumber}/networkMap" target="_blank">
-                        <svg class="bi flex-shrink-0" width="24" height="24" role="img" aria-label="Network Map ${nodeNumber}">
+                        <svg class="bi flex-shrink-0" width="16" height="16" role="img" aria-label="Network Map ${nodeNumber}">
                             <use xlink:href="#bubble-chart"/>
                         </svg>
                     </a>
                     <a class="btn btn-sm btn-outline-secondary"
-					data-bs-toggle="tooltip" data-bs-placement="left"
-					data-bs-custom-class="nodeline-tooltip" 
-					data-bs-title="View this node with at the ASL Node Info site"
 					href="http://stats.allstarlink.org/stats/${nodeNumber}/" target="_blank">
-                        <svg class="bi flex-shrink-0" width="24" height="24" role="img" aria-label="Node Details ${nodeNumber}">
+                        <svg class="bi flex-shrink-0" width="16" height="16" role="img" aria-label="Node Details ${nodeNumber}">
                             <use xlink:href="#details"/>
                         </svg>
                     </a>
                     <a class="btn btn-sm btn-outline-secondary"
-						data-bs-toggle="tooltip" data-bs-placement="left"
-						data-bs-custom-class="nodeline-tooltip" 
-						data-bs-title="Manage this node"
 						href="#">
-                        <svg class="bi flex-shrink-0" width="24" height="24" role="img" aria-label="Manage Node ${nodeNumber}">
+                        <svg class="bi flex-shrink-0" width="16" height="16" role="img" aria-label="Manage Node ${nodeNumber}">
                             <use xlink:href="#settings"/>
                         </svg>
                     </a>
