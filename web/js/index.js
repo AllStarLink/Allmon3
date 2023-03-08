@@ -27,7 +27,18 @@ function XHRRequest(label, url, action){
 
 // Get the configs
 function uiConfigs(){
+	XHRRequest("customizeUI", "api/uiconfig.php?e=customize", customizeUI);
 	XHRRequest("drawMenu", "api/uiconfig.php?e=nodelist", drawMenu);
+};
+
+// Update Customizations
+function customizeUI(customize){
+	var customElements = JSON.parse(customize);
+	document.getElementById("navbar-midbar").innerHTML = customElements.HEADER_TITLE;
+	if( customElements.HEADER_LOGO !== "" ){
+		img = `<img src="img/${customElements.HEADER_LOGO}">`;
+		document.getElementById("navbar-custlogo").innerHTML = img;
+	}
 };
 
 // Update menu

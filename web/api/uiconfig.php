@@ -32,6 +32,13 @@ switch($CMD){
 	case 'nodelist':
 		print_r(getAllNodesJSON($allmon_cfg));
 		break;
+	case 'customize':
+		$customize = array(
+			"HEADER_TITLE" => $CONFIG_HEADER_TITLE ,
+			"HEADER_LOGO" => $CONFIG_HEADER_LOGO
+		);
+		print_r(json_encode($customize));
+		break;
 	default:
 		print(getJSONError("unknown command " . $CMD));
 		break;

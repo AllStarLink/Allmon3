@@ -2,6 +2,13 @@ body {
   font-size: .875rem;
 }
 
+/* Header */
+.navbar-midbar {
+	color: white;
+	font-size: 1.2em;
+	font-weight: bold;
+}
+
 /*
  * Sidebar
  */
