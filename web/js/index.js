@@ -36,10 +36,10 @@ function drawMenu(menulist){
 	li = "";
 	for(const n of monNodes){
 		li = li.concat(`<li class="nav-item">
-                        <a class="nav-link" href="#">
+						<a href="#" onclick="changeNodeListSingle(${n})" class="nav-link">
 							<svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img"><use xlink:href="#node"/></svg>
                            	${n} 
-                        </a>
+						</a>
                     </li>`);
 	}
 	document.getElementById("asl-node-navigation").innerHTML = li;
@@ -73,6 +73,7 @@ function updateStatusDashboard(){
 	}
 };
 
+// Each node
 function nodeEntry(nodeid, nodeinfo){
 	var dashArea = document.getElementById(`asl-statmon-dashboard-${nodeid}`);
 	const node = JSON.parse(nodeinfo);
@@ -104,6 +105,7 @@ function nodeEntry(nodeid, nodeinfo){
 };
 
 
+// Draw/update the header row for a node
 function nodeLineHeader(nodeNumber, nodeDescription){
 	var nodeLineHeaderStr = `
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-2 px-2 mt-1 mb-3 border-bottom shadow nodeline-header">
@@ -144,6 +146,7 @@ function nodeLineHeader(nodeNumber, nodeDescription){
 	return nodeLineHeaderStr;
 };
 
+// Draw/update the node tables
 function nodeConnTable(conns, keyed, keyednode) {
 	var tTop = `
 <table class="table table-responsive table-bordered table-hover">
@@ -200,3 +203,19 @@ function nodeConnTable(conns, keyed, keyednode) {
 
 	return tTop + row + tBottom;
 };
+
+//
+// Change the list of nodes to the provided []
+//
+function changeNodeList(newNodeList){
+	window.clearInterval(updateStatusDashboardIntervalID);
+	document.getElementById("asl-statmon-dashboard-area").innerHTML = "";
+	monNodes = newNodeList;
+	updateStatusDashboardIntervalID = setInterval(updateStatusDashboard, 1000);
+}
+
+//
+// Wapper for changeNodeList to take a single integer
+function changeNodeListSingle(newNode){
+	changeNodeList([newNode]);
+}
