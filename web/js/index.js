@@ -96,7 +96,7 @@ function nodeEntry(nodeid, nodeinfo){
 	}
 
 	var nodeTxLine = "";
-	if(node.RXKEYED === true && node.TXKEYED === true){	
+	if(node.RXKEYED === true && ( node.TXKEYED === true || node.TXEKEYED )){	
 		nodeTxLine = "<div class=\"alert alert-danger mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
 	} else if( node.CONNKEYED === true && node.TXKEYED === true && node.RXKEYED === false ){
 		nodeTxLine = "<div class=\"alert alert-danger mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Network Source</div>";
