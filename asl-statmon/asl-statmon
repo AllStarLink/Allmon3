@@ -155,7 +155,7 @@ def parseSawStat(curr_node, response):
 	node_mon_list[curr_node].update( { "CONNKEYED" : False } )
 	node_mon_list[curr_node].update( { "CONNKEYEDNODE" : False } )
 
-	# Process the XStat message
+	# Process the SawStat message
 	ra = re.split(r'[\n\r]+', response)
 	for l in ra:
 		if re.match("^Conn", l):
