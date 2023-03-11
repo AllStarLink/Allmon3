@@ -14,9 +14,7 @@ from itertools import cycle
 import logging
 import logging.handlers
 import os
-import pprint
 import re
-import select
 import signal
 import socket
 import sys
@@ -49,34 +47,35 @@ def asl_create_connection_fail():
 def asl_create_connection(failhard):
 	log.debug("asl_create_connection(failhard=%s)", failhard)
 	try:
-		asl = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		asl.settimeout(10)
+		nasl = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		nasl.settimeout(10)
 		log.debug("connect() using %s:%s", ASL_HOST, ASL_PORT)
-		asl.connect((ASL_HOST, ASL_PORT))
+		nasl.connect((ASL_HOST, ASL_PORT))
 
 		# Check this connected to an Asterisk Call Manager (ACM)
-		part = asl.recv(1024).decode("UTF-8")
+		part = nasl.recv(1024).decode("UTF-8")
 		log.debug("AIM version: %s", rern.sub("",part))
 		if not re.match("^Asterisk Call Manager", part):
-			log.error("Connection to %s:%d does not appear to be an Asterisk Call Manager", ASL_HOST, ASL_PORT) 
-			asl.close()
+			log.error("Connection to %s:%d does not appear to be an Asterisk Call Manager",
+				ASL_HOST, ASL_PORT) 
+			nasl.close()
 			sys.exit(1)
 	
 		# Logon to the ACM
 		logon = "ACTION: LOGIN\r\nUSERNAME: %s\r\nSECRET: %s\r\nEVENTS: 0\r\n" % ( ASL_USER, ASL_PASS )
 
-		logon_response = asl_cmd_response(asl, logon)
+		logon_response = asl_cmd_response(nasl, logon)
 		log.debug(rern.sub(" ",logon_response))
 		lp = re.compile('Response: Success\r\n', re.MULTILINE)
 		logon_success = lp.match(logon_response)
 		if not logon_success:
 			lr = rern.sub("  ", logon_response)
 			log.error("Logon failure msg=(%s)", lr)
-			asl.close()
+			nasl.close()
 			sys.exit(1)
 
 		log.debug("leaving asl_create_connection()")
-		return asl
+		return nasl
 
 	except socket.error as error:
 		log.error("connection failed to %s:%s: %s", ASL_HOST, ASL_PORT, error)
@@ -136,21 +135,20 @@ def asl_logout(s):
 		s.sendall(str.encode("ACTION: Logoff\r\n\r\n"))
 	except Exception as e:
 		log.error(e)
-	return None
 
 # Wrapper for asl_cmd_response to handle ACTION:COMMAND
 def asl_cmd(s, cmdstr):
 	log.debug("enter asl_cmd()")
 	
 	try:
-		cmd = "ACTION: COMMAND\r\nCOMMAND: {}\r\n".format(message)
-		response = asl_cmd_response(s, cmd)
-		if  re.match(r"^Response\:\s+Error\s", response):
-			output = re.search(r"^.*Output:\s+(.*)\s+\(", response, re.MULTILINE)
+		cmd = "ACTION: COMMAND\r\nCOMMAND: {}\r\n".format(cmdstr)
+		c_response = asl_cmd_response(s, cmd)
+		if  re.match(r"^Response\:\s+Error\s", c_response):
+			output = re.search(r"^.*Output:\s+(.*)\s+\(", c_response, re.MULTILINE)
 			return "ERR: {}".format(output.group(1))
 
-		if  re.match(r"^Response\:\s+Success\s", response):
-			output = re.split("\r\n", response)
+		if  re.match(r"^Response\:\s+Success\s", c_response):
+			output = re.split("\r\n", c_response)
 			r = "OK:\r\n"
 			for l in output:
 				if re.match(r"^Output:\s", l):
@@ -173,12 +171,12 @@ def asl_cmd(s, cmdstr):
 # with this program.
 def decrypt_msg(data, key):
 	log.debug("entering decrypt_msg")
-	log.debug("msg: {}".format(data))
+	log.debug("msg: %s", data)
 	data_bytes = data.encode("UTF-8")
 	msg_bytes = base64.b64decode(data_bytes)
 	msg_x = msg_bytes.decode("UTF-8")
 	msg = ''.join(chr(ord(x) ^ ord(y)) for (x,y) in zip(msg_x, cycle(key)))
-	log.debug("msg: {}".format(msg))
+	log.debug("msg: %s", msg)
 	return msg
 
 ######## MAIN PROGRAM ########
@@ -199,7 +197,8 @@ ap = argparse.ArgumentParser(description="Connect to an ASL Asterisk server and 
 ap.add_argument("node", type=int, help="Node ID")
 ap.add_argument("config", help="path to INI configuration for the node")
 ap.add_argument("--debug", help="enable debug-level logging output", action="store_true")
-ap.add_argument("--version", help="get the version of the software", action="version", version='%(prog)s {}'.format(_BUILD_ID))
+ap.add_argument("--version", help="get the version of the software", action="version",
+	version='%(prog)s {}'.format(_BUILD_ID))
 args = ap.parse_args()
 
 log = logging.getLogger("asl-cmdlink")
@@ -230,26 +229,23 @@ try:
 	config.read(args.config)
 	log.debug({section: dict(config[section]) for section in config.sections()})
 
-	if not str(args.node) in config:
+	if str(args.node) not in config:
 		raise Exception("No configuration stanza for node %s in %s" % (args.node, args.config))
 
 	if not "ip" in config[str(args.node)]:
 		raise Exception("Missing required attribute ip= for %s in %s" % (args.node, args.config))
-	else:
-		ASL_HOST = config[str(args.node)]["ip"]
-		log.debug("ASL_HOST - %s", ASL_HOST)
+	ASL_HOST = config[str(args.node)]["ip"]
+	log.debug("ASL_HOST - %s", ASL_HOST)
 
 	if not "user" in config[str(args.node)]:
 		raise Exception("Missing required attribute user= for %s in %s" % (args.node, args.config))
-	else:
-		ASL_USER = config[str(args.node)]["user"]
-		log.debug("ASL_USER - %s" % (ASL_USER))
+	ASL_USER = config[str(args.node)]["user"]
+	log.debug("ASL_USER - %s", ASL_USER)
 
 	if not "pass" in config[str(args.node)]:
 		raise Exception("Missing required attribute pass= for %s in %s" % (args.node, args.config))
-	else:
-		ASL_PASS = config[str(args.node)]["pass"]
-		log.debug("ASL_PASS - %s", ASL_PASS)
+	ASL_PASS = config[str(args.node)]["pass"]
+	log.debug("ASL_PASS - %s", ASL_PASS)
 
 	if not "port" in config[str(args.node)]:
 		log.debug("No port= attribute specified, using default 5038")
@@ -275,9 +271,8 @@ try:
 
 	if not "cmdport" in config[str(args.node)]:
 		raise Exception("Missing required attribute cmdport= for %s in %s" % (args.node, args.config))
-	else:
-		ZMQ_PORT = int(config[str(args.node)]["cmdport"])
-		log.debug("ZMQ_PORT - %s", ZMQ_PORT)
+	ZMQ_PORT = int(config[str(args.node)]["cmdport"])
+	log.debug("ZMQ_PORT - %s", ZMQ_PORT)
 
 	if "multinodes" in config[str(args.node)]:
 		log.debug("found multinodes")
@@ -288,7 +283,7 @@ try:
 		node_mon_list.update({ args.node : True })
 
 except Exception as e:
-	log.error("INI parser error: %s", e);
+	log.error("INI parser error: %s", e)
 	sys.exit(1)
 
 # Create the initial connection to the ASL Manager
@@ -372,7 +367,6 @@ except Exception as e:
 	log.error(e)
 	main_loop = False
 	raise e
-	sys.exit(1)
 
 finally:
 	log.debug("Clean up on aisle 5")
@@ -381,4 +375,3 @@ finally:
 	cmdqueue.close()
 
 sys.exit(0)
-
