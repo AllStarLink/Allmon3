@@ -3,6 +3,11 @@
 # Simple client to see that an asl-statmon instance 
 # is working properly
 #
+# Copyright(C) 2023 AllStarLink
+# Allmon3 and all components are Licensed under the AGPLv3
+# see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
+
+#
 
 import argparse
 import signal

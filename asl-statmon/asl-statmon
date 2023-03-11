@@ -1,6 +1,10 @@
 #!/usr/bin/python3
 # asl-statmon.py - Monitor ASL Asterisk server for events
 #
+# Copyright(C) 2023 AllStarLink
+# Allmon3 and all components are Licensed under the AGPLv3
+# see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
+#
 
 import argparse
 import configparser
