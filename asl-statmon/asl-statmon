@@ -149,7 +149,6 @@ def asl_logout(s):
 		s.sendall(str.encode("ACTION: Logoff\r\n\r\n"))
 	except Exception as e:
 		log.error(e)
-	return None
 
 # Parse the (String) response from a SawStat command
 def parse_saw_stat(curr_node, response):
@@ -187,6 +186,8 @@ def get_echolink_name(echolink_id):
 			ell = re.split(r'\|', l)
 			log.debug("exiting get_echolink_name(%s)", echolink_id)
 			return "%s - Echolink" % (ell[1])
+		else:
+			return None
 
 # Parse the (String) response from XStat command
 def parse_xstat(curr_node, response):
@@ -417,10 +418,10 @@ try:
 
 	if "multinodes" in config[str(args.node)]:
 		log.debug("found multinodes")
-		for n in re.split(r',', config[str(args.node)]["multinodes"]):
-			log.debug("Adding node %d", int(n))
-			node_mon_list.update({ int(n): {
-				"ME" : int(n) , "DESC" : None , "RXKEYED" : False, "TXKEYED" : False ,
+		for mn in re.split(r',', config[str(args.node)]["multinodes"]):
+			log.debug("Adding node %d", int(mn))
+			node_mon_list.update({ int(mn): {
+				"ME" : int(mn) , "DESC" : None , "RXKEYED" : False, "TXKEYED" : False ,
 				"TXEKEYED" : False, "CONNKEYED" : False, "CONNKEYEDNODE" : None , "CONNS" : None }})
 	else:
 		node_mon_list.update({ args.node : { 
