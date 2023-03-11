@@ -128,11 +128,13 @@ def ASLCmdResponse(s, cmd):
 		return resp
 
 	except TimeoutError as e:
-		log.debug("ASLCmdResponse() TimeoutError")
-		log.error("socket error: %s" % e)
+		log.error("ASLCmdResponse() TimeoutError")
 		raise e
 	except BrokenPipeError as e:
-		log.debug("ASLCmdResponse() BrokenPipeError")
+		log.error("ASLCmdResponse() BrokenPipeError")
+		raise e
+	except socket.timeout as e:
+		log.error("ASLCmdResponse() socket.timeout")
 		raise e
 	except Exception as e:
 		log.error("ASLCmdResponse() Exception: %s" % (e.__class__))
@@ -473,6 +475,9 @@ try:
 	
 			except BrokenPipeError as e:
 				log.error("received BrokenPipeError; trying to reconnect")
+				inner_loop = False
+			except socket.timeout as e:
+				log.error("received socket.timeout; trying to reconnect")
 				inner_loop = False
 
 			# Check and execute a database update if needed
