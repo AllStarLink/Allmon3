@@ -6,7 +6,7 @@
 # see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
 #
 
-_build_id = "20230311-00"
+_build_id = "20230311-01"
 
 import argparse
 import configparser
