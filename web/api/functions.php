@@ -15,8 +15,8 @@ function getJSONError($errmsg) {
 
 # Find and parse the configuration file
 function readConfig(){
-	if( file_exists(__DIR__ . "/allmon3.ini") ){
-		return parse_ini_file(__DIR__ . "/allmon3.ini", true);
+	if( file_exists(__DIR__ . "/allmon3.ini.php") ){
+		return parse_ini_file(__DIR__ . "/allmon3.ini.php", true);
 	}
 
 	if( file_exists("/usr/local/etc/allmon3.ini") ){
