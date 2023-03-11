@@ -171,8 +171,8 @@ def asl_cmd(s, cmdstr):
 # Note: this is _not_ cryptographically secure... if you're concerned
 # about that you shouldn't be doing whatever it is you're doing
 # with this program.
-def crypt_msg(data, key):
-	log.debug("entering xor_msg")
+def decrypt_msg(data, key):
+	log.debug("entering decrypt_msg")
 	log.debug("msg: {}".format(data))
 	data_bytes = data.encode("UTF-8")
 	msg_bytes = base64.b64decode(data_bytes)
@@ -315,7 +315,7 @@ try:
 			try:
 				log.debug("Waiting for a message in ZMQ")
 				message_b = cmdqueue.recv()
-				message = crypt_msg(message_b.decode(), ASL_PASS)
+				message = decrypt_msg(message_b.decode(), ASL_PASS)
 				if len(message) > __MAX_MSG_LEN:
 					log.error("message > len({}) was ignored".format(__MAX_MSG_LEN))
 					cmdqueue.send("ERR: cmd > {} not permitted".format(__MAX_MSG_LEN).encode("UTF-8"))
