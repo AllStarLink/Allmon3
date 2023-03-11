@@ -23,14 +23,14 @@ def crypt_msg(msg, key):
 
 def sigterm_handler(_signo, _stack_frame):
 	print("exiting on signal %d" % (_signo))
-	socket.close()
+	client.close()
 	sys.exit(0)
 
 signal.signal(signal.SIGINT, sigterm_handler)
 signal.signal(signal.SIGHUP, sigterm_handler)
 signal.signal(signal.SIGTERM, sigterm_handler)
 
-ap = argparse.ArgumentParser(description="Simple client to see that an asl-cmdlink instance. Dumps 0MQ messages from the specified port")
+ap = argparse.ArgumentParser(description="Simple client to asl-cmdlink")
 ap.add_argument("host", type=str, help="FQDN or IP address of the asl-cmdlink to test")
 ap.add_argument("port", type=int, help="TCP port of asl-cmdlink to test")
 ap.add_argument("passwd", type=str, help="ASL/AMI manager password")
