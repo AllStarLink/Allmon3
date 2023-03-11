@@ -1,5 +1,11 @@
 <?php
 #
+# Copyright(C) 2023 AllStarLink
+# Allmon3 and all components are Licensed under the AGPLv3
+# see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
+#
+
+#
 # Configuration for the Web API of Allmon3
 # Note: This is PHP code executed inline of the program
 # so proper PHP syntax is required

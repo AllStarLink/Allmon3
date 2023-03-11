@@ -1,4 +1,10 @@
 <?php
+#
+# Copyright(C) 2023 AllStarLink
+# Allmon3 and all components are Licensed under the AGPLv3
+# see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
+#
+
 # Standard stuff
 require_once("functions.php");
 require_once("config.php");
