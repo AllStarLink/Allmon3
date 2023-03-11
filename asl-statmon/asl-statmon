@@ -6,7 +6,7 @@
 # see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
 #
 
-_build_id = "20230311-01"
+_build_id = "20230311-02"
 
 import argparse
 import configparser
@@ -41,7 +41,7 @@ def sigusr1_handler(_signo, _stack_frame):
 		get_allmon_db()
 	except Exception as e:
 		log.error("unable to get allmondb: %s" % (e) )
-		if len(NodeDB) > 0:
+		if len(node_database) > 0:
 			log.info("info fields will use cached data until an update succeeds")
 		else:
 			log.error("info fields will be labeled UNAVAILABLE until the data is retrieved")
@@ -498,7 +498,7 @@ try:
 					last_db_update = time.time()
 			except Exception as e:
 				log.error("unable to get allmondb: %s" % (e) )
-				if len(NodeDB) > 0:
+				if len(node_database) > 0:
 					log.info("info fields will use cached data until an update succeeds")
 				else:
 					log.error("info fields will be labeled UNAVAILABLE until the data is retrieved")
