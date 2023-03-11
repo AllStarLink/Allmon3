@@ -9,7 +9,9 @@
 _build_id = "20230311-00"
 
 import argparse
+import base64
 import configparser
+from itertools import cycle
 import logging
 import logging.handlers
 import os
@@ -136,6 +138,7 @@ def asl_logout(s):
 		log.error(e)
 	return None
 
+# Wrapper for asl_cmd_response to handle ACTION:COMMAND
 def asl_cmd(s, cmdstr):
 	log.debug("enter asl_cmd()")
 	
@@ -161,8 +164,22 @@ def asl_cmd(s, cmdstr):
 	except Exception as e:
 		log.error("asl_cmd() exception %s" % (e.__class__))
 		log.error("asl_cmd() message %s" % (e.__class__))
-		raise e
-	
+		raise e	
+
+# To prevent casual interception/hacking, the cmd messages
+# are xor'd with the node admin key. The messages are base64-encoded.
+# Note: this is _not_ cryptographically secure... if you're concerned
+# about that you shouldn't be doing whatever it is you're doing
+# with this program.
+def crypt_msg(data, key):
+	log.debug("entering xor_msg")
+	log.debug("msg: {}".format(data))
+	data_bytes = data.encode("UTF-8")
+	msg_bytes = base64.b64decode(data_bytes)
+	msg_x = msg_bytes.decode("UTF-8")
+	msg = ''.join(chr(ord(x) ^ ord(y)) for (x,y) in zip(msg_x, cycle(key)))
+	log.debug("msg: {}".format(msg))
+	return msg
 
 ######## MAIN PROGRAM ########
 
@@ -298,7 +315,7 @@ try:
 			try:
 				log.debug("Waiting for a message in ZMQ")
 				message_b = cmdqueue.recv()
-				message = message_b.decode()
+				message = crypt_msg(message_b.decode(), ASL_PASS)
 				if len(message) > __MAX_MSG_LEN:
 					log.error("message > len({}) was ignored".format(__MAX_MSG_LEN))
 					cmdqueue.send("ERR: cmd > {} not permitted".format(__MAX_MSG_LEN).encode("UTF-8"))

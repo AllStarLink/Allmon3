@@ -10,9 +10,16 @@
 #
 
 import argparse
+import base64
+from itertools import cycle
 import signal
 import sys
 import zmq
+
+def crypt_msg(msg, key):
+	msg_x = ''.join(chr(ord(x) ^ ord(y)) for (x,y) in zip(msg, cycle(key)))
+	msg_x_b = msg_x.encode("UTF-8")
+	return base64.b64encode(msg_x_b)
 
 def sigterm_handler(_signo, _stack_frame):
 	print("exiting on signal %d" % (_signo))
@@ -26,6 +33,7 @@ signal.signal(signal.SIGTERM, sigterm_handler)
 ap = argparse.ArgumentParser(description="Simple client to see that an asl-cmdlink instance. Dumps 0MQ messages from the specified port")
 ap.add_argument("host", type=str, help="FQDN or IP address of the asl-cmdlink to test")
 ap.add_argument("port", type=int, help="TCP port of asl-cmdlink to test")
+ap.add_argument("passwd", type=str, help="ASL/AMI manager password")
 ap.add_argument("cmd", type=str, help="Command to execute enclosed in double quotes")
 args = ap.parse_args()
 
@@ -36,7 +44,7 @@ try:
 	client.connect("tcp://%s:%d" % (args.host, args.port))
 	print("Connected. Press CTRL+c to stop...")
 
-	client.send(args.cmd.encode("UTF-8"))
+	client.send(crypt_msg(args.cmd, args.passwd))
 
 	if( client.poll(2500) & zmq.POLLIN ) != 0:
 		message = client.recv()
