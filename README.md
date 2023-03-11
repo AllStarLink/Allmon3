@@ -75,6 +75,12 @@ pass=password
 monport=6752
 ```
 
+Note, that for the web interface a separate, distinct configuration file
+can be placed in the webroot under the api folder (e.g. `/var/www/html/api/allmon3.ini`)
+which will be used *in place of* the common `/usr/local/etc/allmon3.ini`. No
+configuration is need to use a web-local configuration and the .ini format
+is identical.
+
 4. Start the asl-statmon process(es) for each node. These are done
 with a systemd services instance launcher. For each node to be
 monitoried - `systemctl start asl-statmon@NNNNN` where NNNNN is 
