@@ -6,6 +6,8 @@
 # see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
 #
 
+_build_id = "20230311-00"
+
 import argparse
 import configparser
 import datetime
@@ -332,6 +334,7 @@ ap = argparse.ArgumentParser(description="Connect to an ASL Asterisk server and 
 ap.add_argument("node", type=int, help="Node ID")
 ap.add_argument("config", help="path to INI configuration for the node")
 ap.add_argument("--debug", help="enable debug-level logging output", action="store_true")
+ap.add_argument("--version", help="get the version of the software", action="version", version='%(prog)s {}'.format(_build_id))
 args = ap.parse_args()
 
 log = logging.getLogger("asl-statmon")
