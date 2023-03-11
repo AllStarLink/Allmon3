@@ -20,7 +20,7 @@ function readConfig(){
 	}
 
 	if( file_exists("/usr/local/etc/allmon3.ini") ){
-		return parse_ini_file("/usr/local/etc/allmon3.ini");
+		return parse_ini_file("/usr/local/etc/allmon3.ini", true);
 	}
 
 	print(getJSONError("no config found at /usr/local/etc/allmon3.ini or " . __DIR__ . "/allmon3.ini"));
