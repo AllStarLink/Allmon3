@@ -66,8 +66,6 @@ def asl_create_connection(failhard):
 		asl.connect((ASL_HOST, ASL_PORT))
 
 		# Check this connected to an Asterisk Call Manager (ACM)
-		cont_recv = True
-		resp = ""
 		part = asl.recv(1024).decode("UTF-8")
 		log.debug("AIM version: %s", rern.sub("",part))
 
@@ -77,7 +75,6 @@ def asl_create_connection(failhard):
 			sys.exit(1)
 	
 		# Logon to the ACM
-		aid = uuid.uuid4()
 		logon = "ACTION: LOGIN\r\nUSERNAME: %s\r\nSECRET: %s\r\nEVENTS: 0\r\n" % ( ASL_USER, ASL_PASS )
 
 		logon_response = asl_cmd_response(asl, logon)
@@ -277,7 +274,7 @@ def parse_xstat(curr_node, response):
 
 def gen_node_json_status(curr_node):
 	log.debug("gen_node_json_status(%d)", curr_node)
-	return(json.dumps(node_mon_list[curr_node]))
+	return json.dumps(node_mon_list[curr_node])
 
 # Read and load in the ASL Database
 def get_allmon_db():
@@ -367,26 +364,23 @@ try:
 	config.read(args.config)
 	log.debug({section: dict(config[section]) for section in config.sections()})
 
-	if not str(args.node) in config:
+	if str(args.node) not in config:
 		raise Exception("No configuration stanza for node %s in %s" % (args.node, args.config))
 
 	if not "ip" in config[str(args.node)]:
 		raise Exception("Missing required attribute ip= for %s in %s" % (args.node, args.config))
-	else:
-		ASL_HOST = config[str(args.node)]["ip"]
-		log.debug("ASL_HOST - %s", ASL_HOST)
+	ASL_HOST = config[str(args.node)]["ip"]
+	log.debug("ASL_HOST - %s", ASL_HOST)
 
 	if not "user" in config[str(args.node)]:
 		raise Exception("Missing required attribute user= for %s in %s" % (args.node, args.config))
-	else:
-		ASL_USER = config[str(args.node)]["user"]
-		log.debug("ASL_USER - %s", ASL_USER)
+	ASL_USER = config[str(args.node)]["user"]
+	log.debug("ASL_USER - %s", ASL_USER)
 
 	if not "pass" in config[str(args.node)]:
 		raise Exception("Missing required attribute pass= for %s in %s" % (args.node, args.config))
-	else:
-		ASL_PASS = config[str(args.node)]["pass"]
-		log.debug("ASL_PASS - %s" % (ASL_PASS))
+	ASL_PASS = config[str(args.node)]["pass"]
+	log.debug("ASL_PASS - %s", ASL_PASS)
 
 	if not "port" in config[str(args.node)]:
 		log.debug("No port= attribute specified, using default 5038")
@@ -418,9 +412,8 @@ try:
 
 	if not "monport" in config[str(args.node)]:
 		raise Exception("Missing required attribute monport= for %s in %s" % (args.node, args.config))
-	else:
-		ZMQ_PORT = int(config[str(args.node)]["monport"])
-		log.debug("ZMQ_PORT - %s", ZMQ_PORT)
+	ZMQ_PORT = int(config[str(args.node)]["monport"])
+	log.debug("ZMQ_PORT - %s", ZMQ_PORT)
 
 	if "multinodes" in config[str(args.node)]:
 		log.debug("found multinodes")
@@ -437,7 +430,6 @@ try:
 except Exception as e:
 	log.error("INI parser error: %s", e)
 	raise e
-	sys.exit(1)
 
 # Create the initial connection to the ASL Manager
 asl = asl_create_connection_fail()
@@ -547,4 +539,3 @@ finally:
 	publisher.close()
 
 sys.exit(0)
-
