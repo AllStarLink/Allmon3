@@ -22,7 +22,7 @@ import urllib.request
 import uuid
 import zmq
 
-_BUILD_ID = "20230311-03"
+_BUILD_ID = "20230311-04"
 
 # Handle Signals
 def sigterm_handler(_signo, _stack_frame):
@@ -60,24 +60,24 @@ def asl_create_connection_fail():
 def asl_create_connection(failhard):
 	log.debug("asl_create_connection(failhard=%s)", failhard)
 	try:
-		asl = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		asl.settimeout(10)
+		nasl = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		nasl.settimeout(10)
 		log.debug("connect() using %s:%s", ASL_HOST, ASL_PORT)
-		asl.connect((ASL_HOST, ASL_PORT))
+		nasl.connect((ASL_HOST, ASL_PORT))
 
 		# Check this connected to an Asterisk Call Manager (ACM)
-		part = asl.recv(1024).decode("UTF-8")
+		part = nasl.recv(1024).decode("UTF-8")
 		log.debug("AIM version: %s", rern.sub("",part))
 
 		if not re.match("^Asterisk Call Manager", part):
 			log.error("Connection to %s:%d does not appear to be an Asterisk Call Manager", ASL_HOST, ASL_PORT)
-			asl.close()
+			nasl.close()
 			sys.exit(1)
 	
 		# Logon to the ACM
 		logon = "ACTION: LOGIN\r\nUSERNAME: %s\r\nSECRET: %s\r\nEVENTS: 0\r\n" % ( ASL_USER, ASL_PASS )
 
-		logon_response = asl_cmd_response(asl, logon)
+		logon_response = asl_cmd_response(nasl, logon)
 		log.debug(rern.sub(" ",logon_response))
 		lp = re.compile('Response: Success\r\n', re.MULTILINE)
 		logon_success = lp.match(logon_response)
@@ -88,7 +88,7 @@ def asl_create_connection(failhard):
 			sys.exit(1)
 
 		log.debug("leaving asl_create_connection()")
-		return asl
+		return nasl
 
 	except socket.error as error:
 		log.error("connection failed to %s:%s: %s", ASL_HOST, ASL_PORT, error)
@@ -290,8 +290,8 @@ def get_allmon_db():
 		raise e
 	nodedb = re.split(r"\n", dbf)
 
-	for n in nodedb:
-		r = re.split(r"\|", n)
+	for ni in nodedb:
+		r = re.split(r"\|", ni)
 		if len(r) == 4:
 			node_database.update( { str(r[0]) : {} } )
 			node_database[str(r[0])].update( { "CALL" : r[1] , "DESC" : r[2] , "LOC" : r[3] } )
@@ -464,16 +464,16 @@ try:
 	while main_loop:
 		while inner_loop:
 			try:
-				for curr_node in node_mon_list:
-					xstat_cmd = "ACTION: RptStatus\r\nCOMMAND: XStat\r\nNODE: %d\r\n" % ( curr_node )
-					sawstat_cmd = "ACTION: RptStatus\r\nCOMMAND: SawStat\r\nNODE: %d\r\n" % ( curr_node )
+				for c_node in node_mon_list:
+					xstat_cmd = "ACTION: RptStatus\r\nCOMMAND: XStat\r\nNODE: %d\r\n" % ( c_node )
+					sawstat_cmd = "ACTION: RptStatus\r\nCOMMAND: SawStat\r\nNODE: %d\r\n" % ( c_node )
 
 					xstat = asl_cmd_response(asl, xstat_cmd)
-					parse_xstat(curr_node, xstat)
+					parse_xstat(c_node, xstat)
 					sawstat = asl_cmd_response(asl, sawstat_cmd)
-					parse_saw_stat(curr_node, sawstat)
-					publisher.send_multipart([str(curr_node).encode("UTF-8"),
-						gen_node_json_status(curr_node).encode("UTF-8")])
+					parse_saw_stat(c_node, sawstat)
+					publisher.send_multipart([str(c_node).encode("UTF-8"),
+						gen_node_json_status(c_node).encode("UTF-8")])
 	
 			except BrokenPipeError as e:
 				log.error("received BrokenPipeError; trying to reconnect")
