@@ -38,7 +38,7 @@ signal.signal(signal.SIGTERM, sigterm_handler)
 def sigusr1_handler(_signo, _stack_frame):
 	log.info("received SIGUSR1; refreshing database")
 	try:
-		getAllmonDB()
+		get_allmon_db()
 	except Exception as e:
 		log.error("unable to get allmondb: %s" % (e) )
 		if len(NodeDB) > 0:
@@ -51,17 +51,17 @@ signal.signal(signal.SIGUSR1, sigusr1_handler)
 # Creating and connecting to the ASL manager socket
 
 ## Use this creator as part of a retry interval
-def ASLCreateConnectionNoFail():
-	return ASLCreateConnection(False)
+def asl_create_connection_nofail():
+	return asl_create_connection(False)
 
 ## Use this creator to fail immediately on any
 ## network-level connect failure
-def ASLCreateConnectionFail():
-	return ASLCreateConnection(True)
+def asl_create_connection_fail():
+	return asl_create_connection(True)
 
 ## If failhard=True then sys.exit() is called on network-level issues
-def ASLCreateConnection(failhard):
-	log.debug("ASLCreateConnection(failhard=%s)" % (failhard))
+def asl_create_connection(failhard):
+	log.debug("asl_create_connection(failhard=%s)" % (failhard))
 	try:
 		asl = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		asl.settimeout(10)
@@ -82,7 +82,7 @@ def ASLCreateConnection(failhard):
 		aid = uuid.uuid4()
 		logon = "ACTION: LOGIN\r\nUSERNAME: %s\r\nSECRET: %s\r\nEVENTS: 0\r\n" % ( ASL_USER, ASL_PASS )
 
-		logon_response = ASLCmdResponse(asl, logon)
+		logon_response = asl_cmd_response(asl, logon)
 		log.debug(rern.sub(" ",logon_response))
 		lp = re.compile('Response: Success\r\n', re.MULTILINE)
 		logon_success = lp.match(logon_response)
@@ -92,7 +92,7 @@ def ASLCreateConnection(failhard):
 			asl.close()
 			sys.exit(1)
 
-		log.debug("leaving ASLCreateConnection()")
+		log.debug("leaving asl_create_connection()")
 		return asl
 
 	except socket.error as error:
@@ -110,7 +110,7 @@ def ASLCreateConnection(failhard):
 
 
 # Generic construct for sending ASL Manager commands and reading responses
-def ASLCmdResponse(s, cmd):
+def asl_cmd_response(s, cmd):
 	try:
 		aid = uuid.uuid4()
 		cmd += "ActionID: %s\r\n\r\n" % aid
@@ -124,7 +124,7 @@ def ASLCmdResponse(s, cmd):
 		while cont_recv:		
 			part = s.recv(1024)
 			if part == b'':
-				log.debug("ASLCmdResponse() socket went away on the far side")
+				log.debug("asl_cmd_response() socket went away on the far side")
 				raise BrokenPipeError("other side went away")
 			resp += part.decode("UTF-8")
 			if resp[-4:] == "\r\n\r\n":
@@ -134,21 +134,21 @@ def ASLCmdResponse(s, cmd):
 		return resp
 
 	except TimeoutError as e:
-		log.error("ASLCmdResponse() TimeoutError")
+		log.error("asl_cmd_response() TimeoutError")
 		raise e
 	except BrokenPipeError as e:
-		log.error("ASLCmdResponse() BrokenPipeError")
+		log.error("asl_cmd_response() BrokenPipeError")
 		raise e
 	except socket.timeout as e:
-		log.error("ASLCmdResponse() socket.timeout")
+		log.error("asl_cmd_response() socket.timeout")
 		raise e
 	except Exception as e:
-		log.error("ASLCmdResponse() Exception: %s" % (e.__class__))
-		log.error("ASLCmdResponse() Message: %s" % (e))
+		log.error("asl_cmd_response() Exception: %s" % (e.__class__))
+		log.error("asl_cmd_response() Message: %s" % (e))
 		raise e
 
 # (try) to logout of ASL Manager neatly
-def ASLLogout(s):	
+def asl_logout(s):	
 	try:
 		s.sendall(str.encode("ACTION: Logoff\r\n\r\n"))
 	except Exception as e:
@@ -156,8 +156,8 @@ def ASLLogout(s):
 	return None
 
 # Parse the (String) response from a SawStat command
-def parseSawStat(curr_node, response):
-	log.debug("enter parseSawStat(%d)" % (curr_node))
+def parse_saw_stat(curr_node, response):
+	log.debug("enter parse_saw_stat(%d)" % (curr_node))
 	
 	# Clear the CONNKEYED* status
 	node_mon_list[curr_node].update( { "CONNKEYED" : False } )
@@ -174,13 +174,13 @@ def parseSawStat(curr_node, response):
 				if int(ce[2]) == 1:
 					node_mon_list[curr_node].update( { "CONNKEYED" : True } )
 					node_mon_list[curr_node].update( { "CONNKEYEDNODE" : ce[1] } )
-	log.debug("exiting parseSawStat(%d)" % (curr_node))
+	log.debug("exiting parse_saw_stat(%d)" % (curr_node))
 
 # Query/Parse Echolink Node Info
 def get_echolink_name(echolink_id):
 	log.debug("enter get_echolink_name(%s)" % (echolink_id))
 	elnodecmd = "ACTION: COMMAND\r\nCOMMAND: echolink dbget nodename %s\r\n" % (echolink_id)
-	el_info = ASLCmdResponse(asl, elnodecmd)
+	el_info = asl_cmd_response(asl, elnodecmd)
 	ra = re.split(r'[\n\r]+', el_info)
 	for l in ra:
 		log.debug(l)
@@ -193,8 +193,8 @@ def get_echolink_name(echolink_id):
 			return "%s - Echolink" % (ell[1])
 
 # Parse the (String) response from XStat command
-def parseXStat(curr_node, response):
-	log.debug("entering parseXStat(%d)" % (curr_node))
+def parse_xstat(curr_node, response):
+	log.debug("entering parse_xstat(%d)" % (curr_node))
 	ra = re.split(r'[\n\r]+', response)
 	conn_count = 0
 
@@ -274,15 +274,15 @@ def parseXStat(curr_node, response):
 		log.debug("processed %d connections" % (conn_count))
 
 	node_mon_list[curr_node]["CONNS"] = node_conns
-	log.debug("exiting parseXStat(%d)" % (curr_node))
+	log.debug("exiting parse_xstat(%d)" % (curr_node))
 
-def genNodeJSONStatus(curr_node):
-	log.debug("genNodeJSONStatus(%d)" % (curr_node))
+def gen_node_json_status(curr_node):
+	log.debug("gen_node_json_status(%d)" % (curr_node))
 	return(json.dumps(node_mon_list[curr_node]))
 
 # Read and load in the ASL Database
-def getAllmonDB():
-	log.debug("entering getAllmonDB()")
+def get_allmon_db():
+	log.debug("entering get_allmon_db()")
 	try:
 		url = "http://allmondb.allstarlink.org/"
 		req = urllib.request.Request(url, data=None, headers={ "User-Agent" : "Mozilla/5.0" })
@@ -301,18 +301,18 @@ def getAllmonDB():
 			node_database[str(r[0])].update( { "CALL" : r[1] , "DESC" : r[2] , "LOC" : r[3] } )
 	elapsed_time = time.time() - start_time
 	log.info("Updated node database in {0:.2f} seconds".format(elapsed_time))
-	setMyInfo()
+	set_my_info()
 	log.debug("exiting getAllMonDB()")
 
-def setMyInfo():
-	log.debug("entering setMyInfo()")
+def set_my_info():
+	log.debug("entering set_my_info()")
 	for n in node_mon_list:
 		if str(n) in node_database:
 			node_mon_list[n]["DESC"] = "{0} {1} {2}".format(node_database[str(n)]['CALL'], 
 			node_database[str(n)]['DESC'], node_database[str(n)]['LOC'])
 		else:
 			node_mon_list[n]["DESC"] = "Unavailable"
-	log.debug("exiting setMyInfo()")
+	log.debug("exiting set_my_info()")
 
 ######## MAIN PROGRAM ########
 
@@ -441,7 +441,7 @@ except Exception as e:
 	sys.exit(1)
 
 # Create the initial connection to the ASL Manager
-asl = ASLCreateConnectionFail()
+asl = asl_create_connection_fail()
 log.debug("have original asl object")
 
 # Create the ZeroMQ listener
@@ -452,13 +452,13 @@ try:
 	publisher.bind("tcp://*:%d" % (ZMQ_PORT))
 except zmq.error.ZMQError as e:
 	log.error("unable to create ZeroMQ listener: %s" % ( e ))
-	ASLLogout(asl)
+	asl_logout(asl)
 	asl.close()
 	sys.exit(1)
 
 # Load the allmon database
 try:
-	getAllmonDB()
+	get_allmon_db()
 except Exception as e:
 	log.error("unable to get allmondb: %s" % (e) )
 	log.error("info fields will be labeled UNAVAILABLE until the data is retrieve")
@@ -477,12 +477,12 @@ try:
 					xstat_cmd = "ACTION: RptStatus\r\nCOMMAND: XStat\r\nNODE: %d\r\n" % ( curr_node )
 					sawstat_cmd = "ACTION: RptStatus\r\nCOMMAND: SawStat\r\nNODE: %d\r\n" % ( curr_node )
 
-					xstat = ASLCmdResponse(asl, xstat_cmd)
-					parseXStat(curr_node, xstat)
-					sawstat = ASLCmdResponse(asl, sawstat_cmd)
-					parseSawStat(curr_node, sawstat)
+					xstat = asl_cmd_response(asl, xstat_cmd)
+					parse_xstat(curr_node, xstat)
+					sawstat = asl_cmd_response(asl, sawstat_cmd)
+					parse_saw_stat(curr_node, sawstat)
 					publisher.send_multipart([str(curr_node).encode("UTF-8"),
-						genNodeJSONStatus(curr_node).encode("UTF-8")])
+						gen_node_json_status(curr_node).encode("UTF-8")])
 	
 			except BrokenPipeError as e:
 				log.error("received BrokenPipeError; trying to reconnect")
@@ -494,7 +494,7 @@ try:
 			# Check and execute a database update if needed
 			try:
 				if ( time.time() - last_db_update ) > 3600:
-					getAllmonDB()
+					get_allmon_db()
 					last_db_update = time.time()
 			except Exception as e:
 				log.error("unable to get allmondb: %s" % (e) )
@@ -522,7 +522,7 @@ try:
 	
 			if RETRY_COUNT == -1 or RETRY_COUNT <= retry_counter:
 				log.debug("attempting reconnection retry #%d" % (retry_counter))
-				asl = ASLCreateConnectionNoFail()
+				asl = asl_create_connection_nofail()
 				if asl:
 					log.info("connection reestablished after %d retries" % (retry_counter))
 					asl_dead = False
@@ -543,7 +543,7 @@ except Exception as e:
 
 finally:
 	log.debug("Clean up on aisle 5")
-	ASLLogout(asl)
+	asl_logout(asl)
 	asl.close()
 	publisher.close()
 
