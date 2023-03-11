@@ -6,7 +6,6 @@
 # see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
 #
 
-_build_id = "20230311-00"
 
 import argparse
 import base64
@@ -24,6 +23,8 @@ import sys
 from time import sleep
 import uuid
 import zmq
+
+_BUILD_ID = "20230311-00"
 
 # Handle Signals
 def sigterm_handler(_signo, _stack_frame):
@@ -144,16 +145,16 @@ def asl_cmd(s, cmdstr):
 	try:
 		cmd = "ACTION: COMMAND\r\nCOMMAND: {}\r\n".format(message)
 		response = asl_cmd_response(s, cmd)
-		if  re.match("^Response\:\s+Error\s", response):
-			output = re.search("^.*Output:\s+(.*)\s+\(", response, re.MULTILINE)
+		if  re.match(r"^Response\:\s+Error\s", response):
+			output = re.search(r"^.*Output:\s+(.*)\s+\(", response, re.MULTILINE)
 			return "ERR: {}".format(output.group(1))
 
-		if  re.match("^Response\:\s+Success\s", response):
+		if  re.match(r"^Response\:\s+Success\s", response):
 			output = re.split("\r\n", response)
 			r = "OK:\r\n"
 			for l in output:
-				if re.match("^Output:\s", l):
-					output = re.search("^Output:\s(.*)$", l)
+				if re.match(r"^Output:\s", l):
+					output = re.search(r"^Output:\s(.*)$", l)
 					log.debug(output.group(1))
 					r += output.group(1) + "\r\n"
 			return r
@@ -187,8 +188,8 @@ def decrypt_msg(data, key):
 node_mon_list = { }
 
 # Helpers
-rern = re.compile('\r\n', re.MULTILINE)
-rens = re.compile('\s', re.MULTILINE)
+rern = re.compile(r'\r\n', re.MULTILINE)
+rens = re.compile(r'\s', re.MULTILINE)
 
 # Tunables
 __MAX_MSG_LEN = 256
@@ -198,7 +199,7 @@ ap = argparse.ArgumentParser(description="Connect to an ASL Asterisk server and 
 ap.add_argument("node", type=int, help="Node ID")
 ap.add_argument("config", help="path to INI configuration for the node")
 ap.add_argument("--debug", help="enable debug-level logging output", action="store_true")
-ap.add_argument("--version", help="get the version of the software", action="version", version='%(prog)s {}'.format(_build_id))
+ap.add_argument("--version", help="get the version of the software", action="version", version='%(prog)s {}'.format(_BUILD_ID))
 args = ap.parse_args()
 
 log = logging.getLogger("asl-cmdlink")
