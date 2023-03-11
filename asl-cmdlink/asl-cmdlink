@@ -62,7 +62,7 @@ def asl_create_connection(failhard):
 			sys.exit(1)
 	
 		# Logon to the ACM
-		logon = "ACTION: LOGIN\r\nUSERNAME: %s\r\nSECRET: %s\r\nEVENTS: 0\r\n", ASL_USER, ASL_PASS )
+		logon = "ACTION: LOGIN\r\nUSERNAME: %s\r\nSECRET: %s\r\nEVENTS: 0\r\n" % ( ASL_USER, ASL_PASS )
 
 		logon_response = asl_cmd_response(asl, logon)
 		log.debug(rern.sub(" ",logon_response))
@@ -98,7 +98,7 @@ def asl_cmd_response(s, cmd):
 		cmd += "ActionID: %s\r\n\r\n" % aid
 		s.settimeout(5)
 		if not cmd is None:
-			log.debug("command >> %s", rern.sub(" ", cmd)
+			log.debug("command >> %s", rern.sub(" ", cmd))
 			s.sendall(str.encode(cmd))
 		
 		cont_recv = True
@@ -112,7 +112,7 @@ def asl_cmd_response(s, cmd):
 			if resp[-4:] == "\r\n\r\n":
 				cont_recv = False
 
-		log.debug("response >> %s", rern.sub("  ", resp)
+		log.debug("response >> %s", rern.sub("  ", resp))
 		return resp
 
 	except TimeoutError as e:
