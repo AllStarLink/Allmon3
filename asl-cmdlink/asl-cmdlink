@@ -318,12 +318,12 @@ try:
 				message_b = cmdqueue.recv()
 				message = decrypt_msg(message_b.decode(), ASL_PASS)
 				if len(message) > __MAX_MSG_LEN:
-					log.error("message > len({}) was ignored".format(__MAX_MSG_LEN))
-					cmdqueue.send("ERR: cmd > {} not permitted".format(__MAX_MSG_LEN).encode("UTF-8"))
+					log.error("message > len(%d) was ignored", __MAX_MSG_LEN)
+					cmdqueue.send("ERR: cmd > %d chars not permitted", __MAX_MSG_LEN).encode("UTF-8")
 					continue
 
 				if not re.match("^(core|iax2|rpt|voter)", message):
-					log.error("unsupported command: {}".format(message))
+					log.error("unsupported command: %s", message)
 					cmdqueue.send("ERR: last command not a supported type".encode("UTF-8"))
 					continue
 
