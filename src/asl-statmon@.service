@@ -1,0 +1,10 @@
+[Unit]
+Description=ASL Asterisk AMI poller for %i
+After=asl-asterisk asterisk
+
+[Service]
+Type=exec
+ExecStart=/usr/local/bin/asl-statmon %i /usr/local/etc/allmon3.ini
+
+[Install]
+WantedBy=multi-user.target
