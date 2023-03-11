@@ -27,10 +27,10 @@ if(!$ASL_NODE){
 	exit;
 }
 
-$allmon_cfg = parse_ini_file($CONFIG_ALLMON3_INI, true);
+$allmon_cfg = readConfig();
 
 if(! $allmon_cfg){
-	print(getJSONError("could not parse $CONFIG_ALLMON3_INI"));
+	print(getJSONError("could not parse config file - likely misformatted"));
 	exit;
 }
 

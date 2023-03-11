@@ -5,11 +5,6 @@
 # so proper PHP syntax is required
 #
 
-# Name of the .ini file. The full directory path 
-# will be appended based on the location of this file
-# to match the installation location
-$CONFIG_INI_FILE = "allmon3.ini";
-
 # Site Customization Settings
 
 # CONFIG_HEADER_TITLE appears centered in the top nav/header bar
@@ -34,5 +29,4 @@ $CONFIG_ZMQ_SNDTIMEO = 2000;
 $CONFIG_ZMQ_RCVTIMEO = 2000;
 $CONFIG_ZMQ_LINGER = 2000;
 
-$CONFIG_ALLMON3_INI = __DIR__ . "/" . $CONFIG_INI_FILE;
 ?>

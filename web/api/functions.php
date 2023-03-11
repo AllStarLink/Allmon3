@@ -13,6 +13,20 @@ function getJSONError($errmsg) {
 	return sprintf("{ \"%s\" : \"%s\" }", "ERROR", $errmsg);
 }
 
+# Find and parse the configuration file
+function readConfig(){
+	if( file_exists(__DIR__ . "/allmon3.ini") ){
+		return parse_ini_file(__DIR__ . "/allmon3.ini", true);
+	}
+
+	if( file_exists("/usr/local/etc/allmon3.ini") ){
+		return parse_ini_file("/usr/local/etc/allmon3.ini");
+	}
+
+	print(getJSONError("no config found at /usr/local/etc/allmon3.ini or " . __DIR__ . "/allmon3.ini"));
+	exit;
+}
+
 # Return the value from an .ini-sourced file
 # $ini - INI Array, $section - [SECTION], $key = field
 # returns the value or false

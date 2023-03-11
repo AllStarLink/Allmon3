@@ -21,9 +21,9 @@ if(defined('STDIN')){
 }
 
 # Parse Config
-$allmon_cfg = parse_ini_file("/usr/local/etc/allmon3.ini", true);
+$allmon_cfg = readConfig();
 if(! $allmon_cfg){
-    print(getJSONError("could not parse /usr/local/etc/allmon3.ini"));
+    print(getJSONError("could not parse config file - likely misformatted"));
     exit;
 }
 
