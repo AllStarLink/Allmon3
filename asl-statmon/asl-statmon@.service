@@ -4,6 +4,8 @@ After=asl-asterisk asterisk
 
 [Service]
 Type=exec
+User=nobody
+Group=nogroup
 ExecStart=/usr/local/bin/asl-statmon %i /usr/local/etc/allmon3.ini
 
 [Install]
