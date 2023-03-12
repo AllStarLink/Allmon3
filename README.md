@@ -49,7 +49,7 @@ cp -r web/* /var/www/html/allmon3
 systemctl daemon-reload
 systemctl enable asl-statmon@NODE.service
 ```
-In the above, replace "NODE" with your ASL node ID. If you have multiple nodes, you need one `asl-statmon@NODE.service` per node. Multiple nodes on the same syste should use the `multinodes=/colocated_on=` structure described in `allmon3.ini`.
+In the above, replace "NODE" with your ASL node ID - e.g. `systemctl enable asl-statmon@1999.service`. If you have multiple nodes, you need one `asl-statmon@NODE.service` per node. Multiple nodes on the same syste should use the `multinodes=/colocated_on=` structure described in `allmon3.ini`.
 
 3. Edit `allmon3.ini` for at least one ASL AMI interface. Each node
 must have a separately-numbered `monport=` value. It's recommended
