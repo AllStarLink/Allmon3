@@ -4,6 +4,7 @@ After=asl-asterisk asterisk
 
 [Service]
 Type=exec
+User=nobody
 ExecStart=/usr/local/bin/asl-cmdlink %i /usr/local/etc/allmon3.ini
 
 [Install]
