@@ -178,16 +178,12 @@ def get_echolink_name(echolink_id):
 	el_info = asl_cmd_response(asl, elnodecmd)
 	ra = re.split(r'[\n\r]+', el_info)
 	for l in ra:
-		log.debug(l)
-		if re.match("^Error", l):
-			log.debug("exiting get_echolink_name(%s)", echolink_id)
-			return None
-		elif re.match("^[0-9]", l):
+		if re.match("^[0-9]+\|", l):
 			ell = re.split(r'\|', l)
 			log.debug("exiting get_echolink_name(%s)", echolink_id)
 			return "%s - Echolink" % (ell[1])
-		else:
-			return None
+	log.debug("Invalid response about echolink - exiting get_echolink_name")
+	return "No Database Information"
 
 # Parse the (String) response from XStat command
 def parse_xstat(curr_node, response):
@@ -215,8 +211,15 @@ def parse_xstat(curr_node, response):
 		if re.match("^Conn", l):
 			ce = re.split(r"\s+", l)
 			node_conns.update( { ce[1] : {} } )
-			if re.match(r'^[0-9]{4,6}$', ce[1]) or re.match(r'^.*\-P$', ce[1]):	# ASL IDs < 7 digits
-				# Conn: NODE IP ??  DIRECETION CONNTIME CONNSTATE
+			# For each Conn: line, a node starting with 3 and seven digits long is an echolink	
+			# node which is missing an IP entry. Treat everything else normally
+			if re.match(r'^3[0-9]{6}$', ce[1]):
+				node_conns[ce[1]].update( { "IP" : None , "DIR" : ce[3] , "CTIME" : ce[4] ,
+					"CSTATE" : ce[5] , "PTT" : False, "SSK" : -1, "SSU" : -1, "MODE" : "Echolink"} )
+				ename = get_echolink_name(ce[1][-6:])
+				log.debug(ename)
+				node_conns[ce[1]]["DESC"] = ename
+			else:
 				node_conns[ce[1]].update( { "IP" : ce[2] , "DIR" : ce[4] , "CTIME" : ce[5] ,
 					"CSTATE" : ce[6] , "PTT" : False, "SSK" : -1, "SSU" : -1, "MODE" : "Local Monitor" } )
 				if ce[1] in node_database:
@@ -225,16 +228,10 @@ def parse_xstat(curr_node, response):
 				elif re.match(r'^.*\-P$', ce[1]):
 					node_conns[ce[1]].update( { "DESC" : "Allstar Telephone Portal User",
 						"MODE" : "Transceive" } )
-
+				elif re.match(r'[A-Za-z]', ce[1]):
+					node_conns[ce[1]].update( { "DESC" : "Direct Client" } )
 				else:
-					node_conns[ce[1]]["DESC"] = "Unavailable"
-			else:					# Echolink
-				# Conn: NODE ?? DIRECTION CONNSTATE
-				node_conns[ce[1]].update( { "IP" : None , "DIR" : ce[3] , "CTIME" : ce[4] ,
-					"CSTATE" : ce[5] , "PTT" : False, "SSK" : -1, "SSU" : -1, "MODE" : "Local Monitor" } )
-				ename = get_echolink_name(ce[1][-6:])
-				log.debug(ename)
-				node_conns[ce[1]]["DESC"] = ename
+					node_conns[ce[1]]["DESC"] = "Private or Unavailable"
 				
 			conn_count += 1
 		elif re.match(r"^LinkedNodes:", l):
