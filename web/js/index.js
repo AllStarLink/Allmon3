@@ -17,6 +17,12 @@ var monNodes = [ ];			// node(s) to monitor in Array
 
 // Things to do when the page loads
 window.addEventListener("load", function(){
+
+	// was this called with n=NODELIST
+	var nodeParam = findGetParameter("n");
+	if( nodeParam ){
+		monNodes = nodeParam.split(",");
+	}
 	uiConfigs();
 	updateStatusDashboardIntervalID = setInterval(updateStatusDashboard, 1000);
 });
@@ -38,8 +44,9 @@ function XHRRequest(label, url, action){
 
 // Get the configs
 function uiConfigs(){
-	XHRRequest("customizeUI", "api/uiconfig.php?e=customize", customizeUI);
-	XHRRequest("drawMenu", "api/uiconfig.php?e=nodelist", drawMenu);
+	//XHRRequest("customizeUI", "api/uiconfig.php?e=customize", customizeUI);
+	XHRRequest("drawMenu", "api/uiconfig.php?e=nodelist", drawMenuJSON);
+
 };
 
 // Update Customizations
@@ -52,11 +59,20 @@ function customizeUI(customize){
 	}
 };
 
+// JSON wrapper for drawMenu
+function drawMenuJSON(menuListJSON){
+	var allNodes = JSON.parse(menuListJSON);
+
+	// set monNodes = allNodes if monNodes isn't defined
+	if( monNodes.length == 0 ){
+		monNodes = allNodes;
+	}
+	drawMenu(allNodes);
+}
 // Update menu
-function drawMenu(menulist){
-	monNodes = JSON.parse(menulist);
+function drawMenu(menuList){
 	li = "";
-	for(const n of monNodes){
+	for(const n of menuList){
 		li = li.concat(`<li class="nav-item">
 						<a href="#" onclick="changeNodeListSingle(${n})" class="nav-link">
 							<svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img"><use xlink:href="#node"/></svg>
