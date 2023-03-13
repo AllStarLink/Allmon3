@@ -19,6 +19,11 @@ function getPostVar($id) {
     return filter_var(trim($_POST[$id]), FILTER_SANITIZE_STRING);
 }
 
+# Format and return a JSON SUCCESS
+function getJSONSuccess($msg) {
+	return sprintf("{ \"%s\" : \"%s\" }", "SUCCESS", $msg);
+}
+
 # Format and return a JSON error
 function getJSONError($errmsg) {
 	return sprintf("{ \"%s\" : \"%s\" }", "ERROR", $errmsg);
@@ -66,10 +71,20 @@ function getAllNodesJSON($ini){
 	return json_encode(getAllNodes($ini));
 }
 
-xor_crypt($string, $key){
+# XOR "crypt" function
+function xor_crypt($string, $key){
 	for($i = 0; $i < strlen($string); $i++) 
 		$string[$i] = ($string[$i] ^ $key[$i % strlen($key)]);
-	return $string;
+	return base64_encode($string);
+}
+
+# Generalized function for ZMQ socket
+function zmq_client_socket($client_type){
+	$client_socket = new ZMQSocket(new ZMQContext(), $client_type);
+	$client_socket->setSockOpt(ZMQ::SOCKOPT_SNDTIMEO, CONFIG_ZMQ_SNDTIMEO);
+	$client_socket->setSockOpt(ZMQ::SOCKOPT_RCVTIMEO, CONFIG_ZMQ_RCVTIMEO);
+	$client_socket->setSockOpt(ZMQ::SOCKOPT_LINGER, CONFIG_ZMQ_LINGER);
+	return $client_socket;
 }
 
 ?>
