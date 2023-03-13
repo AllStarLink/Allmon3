@@ -53,7 +53,7 @@ if( $z_port == "" ){
 
 $z_host = getINIConfigVal($allmon_cfg, $ASL_NODE, "monip");
 if( $z_host == "" ){
-	$z_host = "127.0.0.1";
+	$z_host = CONFIG_ZMQ_LOCALHOST;
 }
 
 $zmq_dsn = sprintf("tcp://%s:%d", $z_host, $z_port);
@@ -61,9 +61,9 @@ $zmq_dsn = sprintf("tcp://%s:%d", $z_host, $z_port);
 $r = new ZMQSocket(new ZMQContext(), ZMQ::SOCKET_SUB);
 $r->connect ($zmq_dsn);
 $r->setSockOpt(ZMQ::SOCKOPT_SUBSCRIBE, $ASL_NODE);
-$r->setSockOpt(ZMQ::SOCKOPT_SNDTIMEO, $CONFIG_ZMQ_SNDTIMEO);
-$r->setSockOpt(ZMQ::SOCKOPT_RCVTIMEO, $CONFIG_ZMQ_RCVTIMEO);
-$r->setSockOpt(ZMQ::SOCKOPT_LINGER, $CONFIG_ZMQ_LINGER);
+$r->setSockOpt(ZMQ::SOCKOPT_SNDTIMEO, CONFIG_ZMQ_SNDTIMEO);
+$r->setSockOpt(ZMQ::SOCKOPT_RCVTIMEO, CONFIG_ZMQ_RCVTIMEO);
+$r->setSockOpt(ZMQ::SOCKOPT_LINGER, CONFIG_ZMQ_LINGER);
 
 # the other end sends 2 messages in a multipart
 $msg = $r->recvMulti();

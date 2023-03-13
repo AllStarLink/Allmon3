@@ -24,15 +24,17 @@ $CONFIG_HEADER_TITLE = "Allmon3 Monitoring Dashboard";
 $CONFIG_HEADER_LOGO = "circle.png";
 
 
-#####                                       #####
-##### WARNING - THIS ARE INTERNAL VARIABLES #####
-##### IT IS **EXTREMELY** UNLIKELY YOU EVER #####
-##### NEED TO CHANGE ANYTHING BELOW!!       #####
-#####                                       #####
+#####                                        #####
+##### WARNING - THESE ARE INTERNAL VARIABLES #####
+##### IT IS **EXTREMELY** UNLIKELY YOU EVER  #####
+##### NEED TO CHANGE ANYTHING BELOW!!        #####
+#####                                        #####
 
-$CONFIG_ZMQ_LOCALHOST = "127.0.0.1";
-$CONFIG_ZMQ_SNDTIMEO = 2000;
-$CONFIG_ZMQ_RCVTIMEO = 2000;
-$CONFIG_ZMQ_LINGER = 2000;
-
+define(CONFIG_ZMQ_LOCALHOST, "127.0.0.1");
+define(CONFIG_ZMQ_SNDTIMEO, 2000);
+define(CONFIG_ZMQ_RCVTIMEO, 2000);
+define(CONFIG_ZMQ_LINGER, 2000);
+define(CONFIG_ZMQ_CMD_RETRIES, 3);
+define(CONFIG_ZMQ_CMD_RETRY_INTERVAL, 1);
+define(CONFIG_ZMQ_CMD_POLL_TIMEO, 3000);
 ?>
