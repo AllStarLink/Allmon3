@@ -101,7 +101,7 @@ $c->disconnect($zmq_dsn);
 if($msg){
 	if(preg_match('/^OK\:/', $msg)){
 		$output = preg_replace("/OK:\r\n/", "", $msg);
-		print(getJSONSuccess($output));
+		print(getJSONSuccess(base64_encode($output)));
 		exit(0);
 	} else {
 		print(getJSONError($msg));
