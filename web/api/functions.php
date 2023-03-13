@@ -14,6 +14,11 @@ function getGetVar($id) {
     return filter_var(trim($_GET[$id]), FILTER_SANITIZE_STRING);
 }
 
+# Sanitize and return a POST parameter
+function getPostVar($id) {
+    return filter_var(trim($_POST[$id]), FILTER_SANITIZE_STRING);
+}
+
 # Format and return a JSON error
 function getJSONError($errmsg) {
 	return sprintf("{ \"%s\" : \"%s\" }", "ERROR", $errmsg);
@@ -61,5 +66,10 @@ function getAllNodesJSON($ini){
 	return json_encode(getAllNodes($ini));
 }
 
+xor_crypt($string, $key){
+	for($i = 0; $i < strlen($string); $i++) 
+		$string[$i] = ($string[$i] ^ $key[$i % strlen($key)]);
+	return $string;
+}
 
 ?>
