@@ -8,15 +8,17 @@
 require_once("functions.php");
 require_once("config.php");
 
-if(defined('STDIN')){
-	if(array_key_exists(1,$argv)){
-		$user = $argv[1];
-	} else {
-		print "password-generate.php USERNAME\n";
-		exit(1);
-	}
+if(strcmp(php_sapi_name(),"cli") != 0){
+    header('Content-Type: application/json');
+	print(getJSONError("CLI interactive use only"));
+	exit;
+}
+
+print(php_sapi_name());
+if(array_key_exists(1,$argv)){
+	$user = $argv[1];
 } else {
-	print "this program may only be run interactively from the command line\n";
+	print "password-generate.php USERNAME\n";
 	exit(1);
 }
 
