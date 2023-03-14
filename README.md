@@ -52,7 +52,7 @@ make install
 
 This will install everything into `/etc`, `/usr/local/bin`, `/usr/local/etc`,
 and `/var/www/html/allmon3`. The `DESTDIR=` modifier is available if you want
-to install monolitically into a seaprate location. For example:
+to install monolithically into a seaprate location. For example:
 
 ```
 make install DESTDIR=/path/to/temp/location
@@ -60,22 +60,22 @@ make install DESTDIR=/path/to/temp/location
 3. Enable and start the services
 ```
 systemctl daemon-reload
-systemctl enable asl-statmon@NODE.service
-systemctl enable asl-cmdlink@NODE.service
-systemctl start asl-statmon@NODE.service
-systemctl start asl-cmdlink@NODE.service
+systemctl enable asl-statmon@NODE
+systemctl enable asl-cmdlink@NODE
+systemctl start asl-statmon@NODE
+systemctl start asl-cmdlink@NODE
 ```
 
 In the above, replace "NODE" with your ASL node ID - for example:
 
 ```
-systemctl enable asl-statmon@NODE.service
-systemctl enable asl-cmdlink@NODE.service
-systemctl start asl-statmon@NODE.service
-systemctl start asl-cmdlink@NODE.service
+systemctl enable asl-statmon@1999
+systemctl enable asl-cmdlink@1999
+systemctl start asl-statmon@1999
+systemctl start asl-cmdlink@1999
 ```
 
-If you have multiple nodes, you need one `asl-statmon@NODE.service` per node. Multiple nodes on the same syste should use the `multinodes=/colocated_on=` structure described in `allmon3.ini`.
+If you have multiple nodes, you need one each of `asl-statmon@NODE` and `asl-cmdlink@NODE` per node. Multiple nodes on the same syste should use the `multinodes=/colocated_on=` structure described in `allmon3.ini`.
 
 4. Edit `/usr/local/etc/allmon3.ini` for at least one ASL AMI interface. Each node
 must have a separately-numbered `monport=` and `cmdport=` value. It's recommended
