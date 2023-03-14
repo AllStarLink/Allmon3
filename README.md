@@ -29,32 +29,59 @@ Allmon3 requires the following:
 * Webserver configured to host PHP-based applications (Apache and Nginx supported)
 * Python3 with the Python ZMQ package
 
+## :warning: Security Warning :biohazard:
+Please note that currently the web frontend application has NOT IMPLEMENTED
+any logon security yet. If you deploy this repository as-is with
+a functioning `api/asl-cmdlink.php` you should make
+other security provisions such as enabling webserver-based HTTP authentication
+or adding IP ACLs to the `api/asl-cmdlink.php` function. Alternatively, deleting
+`api/asl-cmdlink.php` works and will not impact the rest of the application.
+
+
 ## Installation
 These are *alpha* quality installation instructions. Eventually the plan is this
 will be an installable package. At the moment, these are Debian-specific and 
 assume you already know how to install a webserver with PHP support.
 
-1. Install dependencies `apt install -y php-zmq python3-zmq`
+1. Install dependencies `apt install -y php-zmq python3-zmq make rsync`
 
-2. Copy the files into place:
+2. Install the application using make
 ```
-cp asl-statmon/asl-statmon /usr/local/bin
-cp asl-statmon/asl-statmon-test-client.py /usr/local/bin
-cp asl-statmon/example.ini /usr/local/etc/allmon3.ini
-cp asl-statmon/asl-statmon@.service /etc/systemd/system
-cp -r web/* /var/www/html/allmon3
+make install
 ```
-2.1 Enable asl-statmon service
+
+This will install everything into `/etc`, `/usr/local/bin`, `/usr/local/etc`,
+and `/var/www/html/allmon3`. The `DESTDIR=` modifier is available if you want
+to install monolitically into a seaprate location. For example:
+
+```
+make install DESTDIR=/path/to/temp/location
+```
+3. Enable and start the services
 ```
 systemctl daemon-reload
 systemctl enable asl-statmon@NODE.service
+systemctl enable asl-cmdlink@NODE.service
+systemctl start asl-statmon@NODE.service
+systemctl start asl-cmdlink@NODE.service
 ```
-In the above, replace "NODE" with your ASL node ID - e.g. `systemctl enable asl-statmon@1999.service`. If you have multiple nodes, you need one `asl-statmon@NODE.service` per node. Multiple nodes on the same syste should use the `multinodes=/colocated_on=` structure described in `allmon3.ini`.
 
-3. Edit `allmon3.ini` for at least one ASL AMI interface. Each node
-must have a separately-numbered `monport=` value. It's recommended
-to start with port 6750 and count up from there for each node configured
-in the .ini file. Here's an example for monitoring three ASL Nodes:
+In the above, replace "NODE" with your ASL node ID - for example:
+
+```
+systemctl enable asl-statmon@NODE.service
+systemctl enable asl-cmdlink@NODE.service
+systemctl start asl-statmon@NODE.service
+systemctl start asl-cmdlink@NODE.service
+```
+
+If you have multiple nodes, you need one `asl-statmon@NODE.service` per node. Multiple nodes on the same syste should use the `multinodes=/colocated_on=` structure described in `allmon3.ini`.
+
+4. Edit `/usr/local/etc/allmon3.ini` for at least one ASL AMI interface. Each node
+must have a separately-numbered `monport=` and `cmdport=` value. It's recommended
+to start with port 6750 for `monport` and 6850 for `cmdport`
+ and count up from there for each node configured in the .ini file. 
+Here's an example for monitoring three ASL Nodes:
 
 ```
 [50815]
@@ -62,32 +89,30 @@ ip=172.17.16.36
 user=admin
 pass=password
 monport=6750
+cmdport=6850
 
 [460180]
 ip=172.17.16.217
 user=admin
 pass=password
 monport=6751
+cmdport=6851
 
 [48496]
 ip=208.167.248.86
 user=admin
 pass=password
 monport=6752
+cmdport=6852
 ```
 
 Note, that for the web interface a separate, distinct configuration file
-can be placed in the webroot under the api folder (e.g. `/var/www/html/api/allmon3.ini.php`)
+can be placed in the webroot under the api folder 
+(e.g. `/var/www/html/allmon3/api/allmon3.ini.php`)
 which will be used *in place of* the common `/usr/local/etc/allmon3.ini`. No
 configuration is need to use a web-local configuration and the .ini format
 is identical. Please note that the file in the web directory ends in `.ini.php` as 
 a security feature to ensure that the credentials are not exposed to the Internet.
-
-
-4. Start the asl-statmon process(es) for each node. These are done
-with a systemd services instance launcher. For each node to be
-monitoried - `systemctl start asl-statmon@NNNNN` where NNNNN is 
-the node number. For example `systemctl start asl-statmon@50815`.
 
 5. Navigate to the website provided by the server at /allmon3/
 and hopefully stuff will Just Work(SM)
