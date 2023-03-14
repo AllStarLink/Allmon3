@@ -22,7 +22,7 @@ import urllib.request
 import uuid
 import zmq
 
-_BUILD_ID = "20230311-05"
+_BUILD_ID = "20230314-00"
 
 # Handle Signals
 def sigterm_handler(_signo, _stack_frame):
@@ -364,6 +364,9 @@ try:
 
 	if str(args.node) not in config:
 		raise Exception("No configuration stanza for node %s in %s" % (args.node, args.config))
+	
+	if "colocated_on" in config[str(args.node)]:
+		raise Exception("Trying to start a process for a colocated node; only the primary node needs an asl-statmon")
 
 	if not "ip" in config[str(args.node)]:
 		raise Exception("Missing required attribute ip= for %s in %s" % (args.node, args.config))
@@ -427,7 +430,7 @@ try:
 
 except Exception as e:
 	log.error("INI parser error: %s", e)
-	raise e
+	sys.exit(1)
 
 # Create the initial connection to the ASL Manager
 asl = asl_create_connection_fail()
