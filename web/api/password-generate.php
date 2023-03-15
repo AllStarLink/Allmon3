@@ -14,7 +14,6 @@ if(strcmp(php_sapi_name(),"cli") != 0){
 	exit;
 }
 
-print(php_sapi_name());
 if(array_key_exists(1,$argv)){
 	$user = $argv[1];
 } else {
