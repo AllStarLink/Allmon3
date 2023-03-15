@@ -15,5 +15,5 @@ $(DESTDIR)/usr/local/etc/%:	%
 
 .PHONY: web
 web:
-	test ! -d $(DESTDIR)/var/www/html/allmon3 && mkdir -p $(DESTDIR)/var/www/html/allmon3
+	-test ! -d $(DESTDIR)/var/www/html/allmon3 && mkdir -p $(DESTDIR)/var/www/html/allmon3
 	rsync -av web/* $(DESTDIR)/var/www/html/allmon3/
