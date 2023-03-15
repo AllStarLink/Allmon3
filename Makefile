@@ -11,7 +11,7 @@ install: $(ETCS_EXP) web
 	$(foreach dir, $(BUILDABLES), make -C $(dir) DESTDIR=$(realpath $(DESTDIR));)
 
 $(DESTDIR)/usr/local/etc/%:	%
-	test ! -f $(DESTDIR)/usr/local/etc/allmon3.ini && install -D -m 0755 $< $@
+	-test ! -f $(DESTDIR)/usr/local/etc/allmon3.ini && install -D -m 0755 $< $@
 
 .PHONY: web
 web:
