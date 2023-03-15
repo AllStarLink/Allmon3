@@ -122,7 +122,7 @@ look something like this:
 
 ```
 $ php password-generate.php N8EI
-cli        Password: supersecretpass
+        Password: supersecretpass
 Confirm Password: supersecretpass
 Copy the following line into passwords.php including the ending comma!
 
