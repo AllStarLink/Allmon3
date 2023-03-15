@@ -22,7 +22,7 @@ from time import sleep
 import uuid
 import zmq
 
-_BUILD_ID = "20230314-00"
+_BUILD_ID = "20230315-00"
 
 # Handle Signals
 def sigterm_handler(_signo, _stack_frame):

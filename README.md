@@ -29,15 +29,6 @@ Allmon3 requires the following:
 * Webserver configured to host PHP-based applications (Apache and Nginx supported)
 * Python3 with the Python ZMQ package
 
-## :warning: Security Warning :biohazard:
-Please note that currently the web frontend application has NOT IMPLEMENTED
-any logon security yet. If you deploy this repository as-is with
-a functioning `api/asl-cmdlink.php` you should make
-other security provisions such as enabling webserver-based HTTP authentication
-or adding IP ACLs to the `api/asl-cmdlink.php` function. Alternatively, deleting
-`api/asl-cmdlink.php` works and will not impact the rest of the application.
-
-
 ## Installation
 These are *alpha* quality installation instructions. Eventually the plan is this
 will be an installable package. At the moment, these are Debian-specific and 
@@ -116,6 +107,53 @@ a security feature to ensure that the credentials are not exposed to the Interne
 
 5. Navigate to the website provided by the server at /allmon3/
 and hopefully stuff will Just Work(SM)
+
+## Usernames / Passwords for the Site
+Usernames and passwords are stored in the `api/passwords.php` file in
+the webroot directory for Allmon3. The default-configured username
+and password combination is `user / password`. You *must* change this.
+
+Set a password and remove the default user with the following:
+
+1. Change to the API directory - `cd /var/www/html/allmon3/api`
+
+2. `php password-generate.php USERNAME` will prompt you for a username and password. It will
+look something like this:
+
+```
+$ php password-generate.php N8EI
+cli        Password: supersecretpass
+Confirm Password: supersecretpass
+Copy the following line into passwords.php including the ending comma!
+
+'N8EI' => '$argon2id$v=19$m=65536,t=4,p=1$TVpxbGpRYzJVekZ3MEYydA$QXfIeHH15UztDsbBa6tzKzFgYxwsDgt7FLx9GPfJ1Q4',
+
+```
+
+3. Copy the line specified into the file `passwords.php` and delete the row labeled `user`. For example,
+the stock file looks like this:
+
+```
+## DO NOT EDIT ANYTHING BEFORE THIS LINE!!
+
+'user' => '$argon2id$v=19$m=65536,t=4,p=1$bHhmVEI5RzduN0Z4VE9VRA$Y+KPUyBIwC3jumcSzBtVI3vFupmtCt9F4ejPtoYK6uc',
+
+## DO NOT EDIT ANYTHING AFTER THIS LINE!!
+
+```
+
+After making this change you should see something like:
+
+```
+## DO NOT EDIT ANYTHING BEFORE THIS LINE!!
+
+'N8EI' => '$argon2id$v=19$m=65536,t=4,p=1$TVpxbGpRYzJVekZ3MEYydA$QXfIeHH15UztDsbBa6tzKzFgYxwsDgt7FLx9GPfJ1Q4',
+
+## DO NOT EDIT ANYTHING AFTER THIS LINE!!
+```
+Note that the trailing comma is important!!
+
+You can add more than one user to the file by simply adding multiple lines.
 
 ## Three-Tier Structure
 Allmon3 is organized around a tierd structure: Asterisk AMI, stats monitor (asl-statmon), 
