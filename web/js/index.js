@@ -152,7 +152,7 @@ function nodeLineHeader(nodeNumber, nodeDescription){
             <span class="align-middle">${nodeNumber} - ${nodeDescription}</span>
             <div class="btn-toolbar mb-2 mb-md-0">
                 <div class="btn-group me-2">
-                    <a id="btn-bubble-${nodeNumber}" onmouseover="dispToolTip(this)" class="btn btn-sm btn-outline-secondary"
+                    <a id="btn-bubble-${nodeNumber}" class="btn btn-sm btn-outline-secondary"
 						href="http://stats.allstarlink.org/stats/${nodeNumber}/networkMap" target="_blank">
                         <svg class="bi flex-shrink-0" width="16" height="16" role="img" aria-label="Network Map ${nodeNumber}">
                             <use xlink:href="#bubble-chart"/>
@@ -165,7 +165,7 @@ function nodeLineHeader(nodeNumber, nodeDescription){
                         </svg>
                     </a>
                     <a class="btn btn-sm btn-outline-secondary"
-						href="#">
+						href="#" onclick="openCmdModal(${nodeNumber})">
                         <svg class="bi flex-shrink-0" width="16" height="16" role="img" aria-label="Manage Node ${nodeNumber}">
                             <use xlink:href="#settings"/>
                         </svg>
@@ -249,4 +249,90 @@ function changeNodeList(newNodeList){
 // Wapper for changeNodeList to take a single integer
 function changeNodeListSingle(newNode){
 	changeNodeList([newNode]);
+}
+
+//
+// Handle logins
+function doLogin(){
+	var form = new FormData(document.getElementById("loginBox"));
+	var xmlhttp = new XMLHttpRequest();
+	var url = "api/session-handler.php";
+	xmlhttp.onreadystatechange = function () {
+		if( this.readyState == 4 && this.status == 200 ){
+			doLoginDisplayUpdates(this.responseText);
+		}
+	};
+	xmlhttp.open("POST", url, true);
+	xmlhttp.send(form);
+}
+
+//
+// Updates to logon box
+//
+function doLoginDisplayUpdates(res){
+	const a = JSON.parse(res);
+	if( a["SUCCESS"] ){
+		document.getElementById("login-modal-body").innerHTML = `
+<div class="login-form-success">
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-square-fill" viewBox="0 0 16 16">
+  <path d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm10.03 4.97a.75.75 0 0 1 .011 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.75.75 0 0 1 1.08-.022z"/>
+</svg>
+Login Successful
+</div>
+`;
+		document.getElementById("login-modal-footer").innerHTML = `
+	<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+`;
+	} else {
+		document.getElementById("loginModalLabel").innerHTML = "Login Failed";
+		document.getElementById("loginModalLabel").classList.add("login-form-failure-header");
+	}	
+}
+
+//
+// Handle Logout
+//
+function doLogout(){
+	var form = new FormData(document.getElementById("logoutBox"));
+	var xmlhttp = new XMLHttpRequest();
+	var url = "api/session-handler.php";
+	xmlhttp.onreadystatechange = function () {
+		if( this.readyState == 4 && this.status == 200 ){
+			doLogoutDisplayUpdates(this.responseText);
+		}
+	};
+	xmlhttp.open("POST", url, true);
+	xmlhttp.send(form);
+}
+
+//
+// Updates to logout box
+//
+function doLogoutDisplayUpdates(res){
+	const a = JSON.parse(res);
+	if( a["SUCCESS"] ){
+		document.getElementById("logout-modal-body").innerHTML = `
+<div class="login-form-success">
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-square-fill" viewBox="0 0 16 16">
+  <path d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm10.03 4.97a.75.75 0 0 1 .011 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.75.75 0 0 1 1.08-.022z"/>
+</svg>
+Logout Successful
+</div>
+`;
+		document.getElementById("logout-modal-footer").innerHTML = `
+	<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+`;
+	} else {
+		document.getElementById("logout-modal-body").innerHTML = res;
+	}	
+}
+
+
+
+
+//
+// Command Handling
+//
+function openCmdModal(node){
+	window.open(`commands.html?n=${node}`, "_blank");
 }

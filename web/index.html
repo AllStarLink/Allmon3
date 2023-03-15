@@ -62,10 +62,64 @@
   </div>
 </header>
 
+<!-- Begin Login Modal -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel"
+	 aria-hidden="true" data-bs-backdrop="static" data-bs-target="#staticBackdrop">
+	<div class="modal-dialog">
+		<form id="loginBox">
+		<div id="login-modal-content" class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="loginModalLabel">Login</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div id="login-modal-body" class="modal-body">
+					<label for="loginUserName">Username</label>
+					<input type="text" size="20" id="user" name="user"><br>
+					<label for="loginPassword">Password</label>
+					<input type="password" size="20" id="pass" name="pass">
+					<input type="hidden" id="action" name="action" value="login">
+			</div>
+			<div id="login-modal-footer" class="modal-footer">
+				<button type="button" class="btn btn-secondary" onclick="doLogin()">Login</button>
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+			</div>
+		</div>
+		</form>
+	</div>
+</div>
+<!-- End Login Modal -->
+
+<!-- Begin Logout Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel"
+	 aria-hidden="true" data-bs-backdrop="static" data-bs-target="#staticBackdrop">
+	<div class="modal-dialog">
+		<form id="logoutBox">
+		<div id="logout-modal-content" class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="logoutModalLabel">Logout</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div id="logout-modal-body" class="modal-body">
+				Do you want to logout?
+				<input type="hidden" id="action" name="action" value="logout">
+			</div>
+			<div id="logout-modal-footer" class="modal-footer">	
+				<button type="button" class="btn btn-secondary" onclick="doLogout()">Logout</button>
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+			</div>
+		</div>
+		</form>
+	</div>
+</div>
+<!-- End Logout Modal -->
+
+
+<!-- Begin Main Page -->
 <div class="container-fluid">
 	<div class="row">
 		<nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
 			<div class="position-sticky pt-3 sidebar-sticky">
+
 				<ul class="nav flex-column">
 					<li class="nav-item">
 						<a class="nav-link" aria-current="page" href="index.html">
@@ -75,7 +129,23 @@
 					</li>
 					<div id="asl-node-navigation">
 					</div>
+
 				</ul>
+				<hr>
+				<div class="text-center">
+					<button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#loginModal">
+					Login
+					</button>
+				</div>
+				<div class="text-center mt-2">
+					<button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#logoutModal">
+					Logout
+					</button>
+				</div>
+<hr>
+				<div class="text-center text-wrap">
+					<p style="color:red"><b>DEVELOPMENT BUILD<br>20230315-00</b></p>
+				</div>
 			</div>
 		</nav>
 
@@ -86,10 +156,11 @@
 			<hr>
 			<p>Copyright &copy; 2023 AllStarLink<br>
 			Allmon3 is distributed under the terms of the <a href="https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE">AGPLv3</a></p>
-			<p style="color:red"><b>DEVELOPMENT BUILD ID: 20230311-00</b></p>
 		</footer>
 	</div>
 </div>
+<!-- End Main Page -->
+
 <script src="js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 <script src="js/functions.js" crossorigin="anonymous"></script>
 <script src="js/index.js" crossorigin="anonymous"></script>

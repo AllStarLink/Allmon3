@@ -30,6 +30,8 @@ if(strcmp($action,"login") == 0){
 			session_regenerate_id();
 			$_SESSION['user'] = $user;
 			$_SESSION['valid'] = true;
+			header('Content-Type: application/json');
+			print(getJSONSuccess("OK"));
 		} else {
 			header('Content-Type: application/json');
 			print(getJSONError("invalid username or password"));
@@ -44,6 +46,7 @@ if(strcmp($action,"login") == 0){
 
 if(strcmp($action,"logout") == 0){
 	session_destroy();
+	print(getJSONSuccess("OK"));
 	exit;
 }
 

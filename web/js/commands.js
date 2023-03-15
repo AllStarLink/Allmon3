@@ -10,6 +10,14 @@
 
 var cmdout = "";
 
+// Page Load
+window.addEventListener("load", function(){
+	const nodeParam = findGetParameter("n");
+	document.getElementById("cmd-node").value = nodeParam;
+	
+});
+
+// Send a command
 function sendCommand() {
 	var form = new FormData(document.getElementById("command"));
 	var xmlhttp = new XMLHttpRequest();

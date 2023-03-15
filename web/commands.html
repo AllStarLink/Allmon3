@@ -21,9 +21,12 @@
 </head>
 
 <body class="m-5">
+<p>This is a temporary box, it will not be permanent. Enter any Asterisk command
+in the "Command" box.</p>
+
 	<form id="command">
-		<input type="hidden" name="node" value="460182"></input>
-		<input type="text" name="cmd" size="100"></input>
+		<b>Node:</b><input type="text" id="cmd-node" name="node" size="20" readonly><br>
+		<b>Command:</b><input type="text" id="cmd-str" name="cmd" size="100">
 	</form>
 
 		<button onclick="sendCommand()">Submit</button>

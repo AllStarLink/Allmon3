@@ -126,3 +126,13 @@ body {
 .table-responsive {
 	font-size: 1em;
 }
+
+/** Modal **/
+.login-form-success {
+	color: green;
+	font-size: 1.25em;
+}
+
+.login-form-failure-header {
+	color: red;
+}
