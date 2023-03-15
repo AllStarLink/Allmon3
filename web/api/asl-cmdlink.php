@@ -7,6 +7,7 @@
 
 require_once("functions.php");
 require_once("config.php");
+require_once("session-handler.php");
 
 if(strcmp(php_sapi_name(),"cli") != 0){
 	header('Content-Type: application/json');
