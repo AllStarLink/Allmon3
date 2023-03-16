@@ -163,7 +163,10 @@ def asl_cmd(s, cmdstr):
 		if  re.match(r"^Response\:\s+Follows\s", c_response):
 			output = re.split("\r\n", c_response)
 			log.debug(output[3])
-			return output[3]
+			if not re.match(r"No such command", output[3]):
+				return "OK:\r\n{}".format(output[3])
+			
+			return "ERR:\r\n{}".format(output[3])
 
 		return "ERR: command output responded with something I didn't understand"
 
