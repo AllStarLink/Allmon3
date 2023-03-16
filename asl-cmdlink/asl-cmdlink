@@ -22,7 +22,7 @@ from time import sleep
 import uuid
 import zmq
 
-_BUILD_ID = "20230315-00"
+_BUILD_ID = "20230316-00"
 
 # Handle Signals
 def sigterm_handler(_signo, _stack_frame):
@@ -147,6 +147,7 @@ def asl_cmd(s, cmdstr):
 			output = re.search(r"^.*Output:\s+(.*)\s+\(", c_response, re.MULTILINE)
 			return "ERR: {}".format(output.group(1))
 
+		# For Asterisk 20/ASL3 we look for Output: lines
 		if  re.match(r"^Response\:\s+Success\s", c_response):
 			output = re.split("\r\n", c_response)
 			r = "OK:\r\n"
@@ -156,6 +157,13 @@ def asl_cmd(s, cmdstr):
 					log.debug(output.group(1))
 					r += output.group(1) + "\r\n"
 			return r
+
+		# For Asterisk 1.4/Classic ASL we have to assume the ordering
+		# and there's no valid command check
+		if  re.match(r"^Response\:\s+Follows\s", c_response):
+			output = re.split("\r\n", c_response)
+			log.debug(output[3])
+			return output[3]
 
 		return "ERR: command output responded with something I didn't understand"
 
