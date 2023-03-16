@@ -202,7 +202,7 @@ function nodeConnTable(conns, keyed, keyednode) {
 			if(c['SSK'] == -1){
 				var lastXmit = "Never";
 			} else {
-				t = conns[c]['SSK'];
+				t = conns[c]['SSU'];
 				if( t > -1 ){
 					const date = new Date(null);
 					date.setSeconds(t);
