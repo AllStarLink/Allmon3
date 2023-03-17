@@ -117,20 +117,22 @@ function nodeEntry(nodeid, nodeinfo){
 	const node = JSON.parse(nodeinfo);
 
 	if(node.ERROR){
-		window.alert(`SERVER ERROR: NODE=${nodeid}\n\n${node.ERROR}\n\nYou must fix the error and reload this page`);
-		window.clearInterval(updateStatusDashboardIntervalID);
+//		window.alert(`SERVER ERROR: NODE=${nodeid}\n\n${node.ERROR}\n\nYou must fix the error and reload this page`);
+//		window.clearInterval(updateStatusDashboardIntervalID);
+		dashArea.innerHTML = nodeLineHeader(nodeid, "Unavailable Node") + `<div class="alert alert-danger mx-3 py-0">Node Response Error - Node disabled; Reload page to reset</div>`;
+		monNodes.splice(monNodes.indexOf(nodeid), 1);
 		return false;
 	}
 
 	var nodeTxLine = "";
 	if(node.RXKEYED === true && node.TXKEYED === true ){	
-		nodeTxLine = "<div class=\"alert alert-danger mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
+		nodeTxLine = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
 	} else if( node.RXKEYED === true && node.TXEKEYED === false && node.TXEKEYED === false ){
-		nodeTxLine = "<div class=\"alert alert-danger mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
+		nodeTxLine = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
 	} else if( node.CONNKEYED === true && node.TXKEYED === true && node.RXKEYED === false ){
-		nodeTxLine = "<div class=\"alert alert-danger mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Network Source</div>";
+		nodeTxLine = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Network Source</div>";
 	} else if( node.TXKEYED === true && node.RXKEYED === false && node.CONNKEYED === false ){
-		 nodeTxLine = "<div class=\"alert alert-danger mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Telemetry/Playback</div>";
+		 nodeTxLine = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Telemetry/Playback</div>";
 	} else {
 		nodeTxLine = "<div class=\"alert alert-success mx-3 py-0 nodetxline nodetxline-unkeyed\">Transmit - Idle</div>";
 	}
