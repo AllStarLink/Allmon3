@@ -111,6 +111,11 @@ function updateStatusDashboard(){
 	}
 };
 
+// Re-add node to the monNodes list
+function reAddNode(n){
+	monNodes.push(n);
+}
+
 // Each node
 function nodeEntry(nodeid, nodeinfo){
 	var dashArea = document.getElementById(`asl-statmon-dashboard-${nodeid}`);
@@ -119,31 +124,29 @@ function nodeEntry(nodeid, nodeinfo){
 	if(node.ERROR){
 //		window.alert(`SERVER ERROR: NODE=${nodeid}\n\n${node.ERROR}\n\nYou must fix the error and reload this page`);
 //		window.clearInterval(updateStatusDashboardIntervalID);
-		dashArea.innerHTML = nodeLineHeader(nodeid, "Unavailable Node") + `<div class="alert alert-danger mx-3 py-0">Node Response Error - Node disabled; Reload page to reset</div>`;
-		monNodes.splice(monNodes.indexOf(nodeid), 1);
-		return false;
-	}
-
-	var nodeTxLine = "";
-	if(node.RXKEYED === true && node.TXKEYED === true ){	
-		nodeTxLine = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
-	} else if( node.RXKEYED === true && node.TXEKEYED === false && node.TXEKEYED === false ){
-		nodeTxLine = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
-	} else if( node.CONNKEYED === true && node.TXKEYED === true && node.RXKEYED === false ){
-		nodeTxLine = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Network Source</div>";
-	} else if( node.TXKEYED === true && node.RXKEYED === false && node.CONNKEYED === false ){
-		 nodeTxLine = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Telemetry/Playback</div>";
+		dashArea.innerHTML = nodeLineHeader(nodeid, "Unavailable Node") + `<div class="alert alert-danger mx-3 py-0"><b>Node Response Error - Node disabled<b> <button class="btn btn-danger" style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .5rem;" onclick="reAddNode(${nodeid})">Reload Node</button></div>`;
+		const i = monNodes.indexOf(nodeid);
+		if( i > -1 ){
+			monNodes.splice(i, 1);
+		}
 	} else {
-		nodeTxLine = "<div class=\"alert alert-success mx-3 py-0 nodetxline nodetxline-unkeyed\">Transmit - Idle</div>";
+
+		var nodeTxLine = "";
+		if(node.RXKEYED === true && node.TXKEYED === true ){	
+			nodeTxLine = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
+		} else if( node.RXKEYED === true && node.TXEKEYED === false && node.TXEKEYED === false ){
+			nodeTxLine = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
+		} else if( node.CONNKEYED === true && node.TXKEYED === true && node.RXKEYED === false ){
+			nodeTxLine = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Network Source</div>";
+		} else if( node.TXKEYED === true && node.RXKEYED === false && node.CONNKEYED === false ){
+			 nodeTxLine = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Telemetry/Playback</div>";
+		} else {
+			nodeTxLine = "<div class=\"alert alert-success mx-3 py-0 nodetxline nodetxline-unkeyed\">Transmit - Idle</div>";
+		}
+	
+		dashArea.innerHTML = nodeLineHeader(node.ME, node.DESC) + nodeTxLine + 
+			nodeConnTable(node.CONNS, node.CONNKEYED, node.CONNKEYEDNODE);
 	}
-
-	dashArea.innerHTML = nodeLineHeader(node.ME, node.DESC) + nodeTxLine + 
-		nodeConnTable(node.CONNS, node.CONNKEYED, node.CONNKEYEDNODE);
-
-	// enable the tooltips
-	// const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-	//const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
-
 };
 
 
