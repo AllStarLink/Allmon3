@@ -285,7 +285,7 @@ function nodeConnTable(conns, keyed, keyednode) {
 			}
 
 			var rowclass = "node-conn-nokey";
-			if( keyed === true && c == keyednode ){
+			if( keyed === true && x == keyednode ){
 				rowclass = "node-conn-keyed";
 				lastXmit = "00:00:00";
 			}
