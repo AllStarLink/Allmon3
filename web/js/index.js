@@ -313,6 +313,17 @@ function changeNodeList(newNodeList){
 	window.clearInterval(updateStatusDashboardIntervalID);
 	document.getElementById("asl-statmon-dashboard-area").innerHTML = "";
 	monNodes = newNodeList;
+	let nodeParam = "";
+	for(let n of monNodes){
+		if(nodeParam.length == 0){
+			nodeParam = nodeParam.concat(n);
+		} else {
+			nodeParam = nodeParam.concat("," + n);
+		}
+	}
+	let currentURL = new URL(window.location);
+	currentURL.searchParams.set("n", nodeParam);
+	window.history.pushState({}, "", currentURL);
 	updateStatusDashboardIntervalID = setInterval(updateStatusDashboard, 1000);
 }
 
