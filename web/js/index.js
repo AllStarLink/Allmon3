@@ -207,8 +207,8 @@ function nodeConnTable(conns, keyed, keyednode) {
 	<tr>
 		<th scope="col">Node</th>
 		<th scope="col">Description</th>
-		<th scope="col">Connected Time</th>
-		<th scope="col">Last Received</th>
+		<th scope="col">Last Recv</th>
+		<th scope="col">Conn Time</th>
 		<th scope="col">Direction</th>
 		<th scope="col">Connect State</th>
 		<th scope="col">Mode</th>
@@ -220,11 +220,61 @@ function nodeConnTable(conns, keyed, keyednode) {
 	var tBottom = `</tbody></table>`;
 	var row = "";
 	if(Object.keys(conns).length > 0){
-		for(var c in conns){
+
+		let nodesBySSU = [];
+		for(let x in conns){
+			nodesBySSU.push(x);
+		}
+		nodesBySSU.sort(function(a,b){
+			let a_ssk = Number(conns[a]["SSK"]);
+			let b_ssk = Number(conns[b]["SSK"]);
+
+			// If both SSKs are -1, then sort by node # asc
+			if( a_ssk == -1 && b_ssk == -1 ){
+				let a_id = Number(a);
+				let b_id = Number(b);
+
+				if(Number.isNaN(a_id)){
+					a_id = "99999999999";
+				}
+
+				if(Number.isNaN(b_id)){
+					b_id = "99999999999";
+				}
+
+				if( a_id < b_id ){
+					return -1;
+				}
+				if( a_id > b_id ){
+					return 1;
+				}
+				return 0;
+			}
+
+			// If one SSK is -1, then SSK >0 always wins
+			if( a_ssk == -1){
+				return 1;
+			}
+			if( b_ssk == -1){
+				return -1;
+			}
+	
+			// Otherwise sort by conn time asc
+			if( a_ssk < b_ssk ){
+				return -1;
+			}
+			if( a_ssk > b_ssk ){
+				return 1;
+			}
+			return 0;
+		});
+
+		for(const x of nodesBySSU){
+			let c = conns[x];
 			if(c['SSK'] == -1){
 				var lastXmit = "Never";
 			} else {
-				t = conns[c]['SSU'];
+				t = c['SSU'];
 				if( t > -1 ){
 					const date = new Date(null);
 					date.setSeconds(t);
@@ -242,13 +292,13 @@ function nodeConnTable(conns, keyed, keyednode) {
 
 			row = row.concat(`
 			<tr class="${rowclass}">
-				<th scope="row">${c}</td>
-				<td>${conns[c].DESC}</td>
-				<td>${conns[c].CTIME}</td>
+				<th scope="row">${x}</td>
+				<td>${c.DESC}</td>
 				<td>${lastXmit}</td>
-				<td>${conns[c].DIR}</td>
-				<td>${conns[c].CSTATE}</td>
-				<td>${conns[c].MODE}</td>
+				<td>${c.CTIME}</td>
+				<td>${c.DIR}</td>
+				<td>${c.CSTATE}</td>
+				<td>${c.MODE}</td>
 			</tr>`);
 		}
 	} else {
