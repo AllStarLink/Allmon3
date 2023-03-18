@@ -276,9 +276,7 @@ function nodeConnTable(conns, keyed, keyednode) {
 			} else {
 				t = c['SSU'];
 				if( t > -1 ){
-					const date = new Date(null);
-					date.setSeconds(t);
-					var lastXmit = date.toISOString().slice(11,19);
+					var lastXmit = toHMS(t);
 				} else {
 					var lastXmit = "Never";
 				}

@@ -21,3 +21,14 @@ function findGetParameter(parameterName) {
 		});
 	return result;
 }
+
+// Convert elapsed seconds to HH:MM:SS
+function toHMS(totalSeconds) {
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const zeroPad = (num) => String(num).padStart(2,'0');
+  const seconds = totalSeconds % 60;
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${zeroPad(hours)}:${zeroPad(minutes)}:${zeroPad(seconds)}`;
+}
+
