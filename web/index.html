@@ -113,6 +113,29 @@
 </div>
 <!-- End Logout Modal -->
 
+<!-- Begin Command Modal -->
+<div class="modal fade" id="commandModal" tabindex="-1" aria-labelledby="commandModalLabel"
+	 aria-hidden="true" data-bs-backdrop="static" data-bs-target="#staticBackdrop">
+	<div class="modal-dialog">
+		<form id="commandBox">
+		<div id="command-modal-content" class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="commandModalLabel">Command Dashboard</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div id="command-modal-body" class="modal-body">
+				Do you want to command?
+				<input type="hidden" id="action" name="action" value="command">
+			</div>
+			<div id="command-modal-footer" class="modal-footer">	
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+			</div>
+		</div>
+		</form>
+	</div>
+</div>
+
+<!-- End Command Modal -->
 
 <!-- Begin Main Page -->
 <div class="container-fluid">
@@ -142,7 +165,13 @@
 					Logout
 					</button>
 				</div>
-<hr>
+				<hr>
+				<div class="text-center mt-2">
+                    <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#commandModal">
+                    Command
+                    </button>
+                </div>
+				<hr>
 				<div class="text-center text-wrap">
 					<p style="color:red"><b>DEVELOPMENT BUILD<br>20230315-00</b></p>
 				</div>

@@ -85,14 +85,27 @@ function drawMenu(menuList){
 
 // Update the dashboard
 function updateStatusDashboard(){
-	var dashArea = document.getElementById("asl-statmon-dashboard-area");
-	var monNodeDivs = "";
+	const dashArea = document.getElementById("asl-statmon-dashboard-area");
 	for(const n of monNodes){
-		var daExists = document.getElementById(`asl-statmon-dashboard-${n}`);
+		let daExists = document.getElementById(`asl-statmon-dashboard-${n}`);
 		if(!daExists){
-			const newDiv = document.createElement("div");
-			newDiv.id = `asl-statmon-dashboard-${n}`;
-			dashArea.appendChild(newDiv);
+			let newNodeDiv = document.createElement("div");
+			newNodeDiv.id = `asl-statmon-dashboard-${n}`;
+
+			let newNodeDivHeader = document.createElement("div");
+			newNodeDivHeader.id = `asl-statmon-dashboard-${n}-header`;
+			newNodeDivHeader.innerHTML = nodeLineHeader(n, "")
+			newNodeDiv.appendChild(newNodeDivHeader);
+
+			let newNodeDivTxStat = document.createElement("div");
+			newNodeDivTxStat.id = `asl-statmon-dashboard-${n}-txstat`;
+			newNodeDiv.appendChild(newNodeDivTxStat);
+
+			let newNodeDivConntable = document.createElement("div");
+			newNodeDivConntable.id = `asl-statmon-dashboard-${n}-conntable`;
+			newNodeDiv.appendChild(newNodeDivConntable);
+
+			dashArea.appendChild(newNodeDiv);
 		}
 	}
 	for(const n of monNodes){
@@ -118,43 +131,48 @@ function reAddNode(n){
 
 // Each node
 function nodeEntry(nodeid, nodeinfo){
-	var dashArea = document.getElementById(`asl-statmon-dashboard-${nodeid}`);
+	const divHeader = document.getElementById(`asl-statmon-dashboard-${nodeid}-header`);
+	const headerDescSpan = document.getElementById(`asl-statmon-dashboard-${nodeid}-header-desc`);
+	const divTxStat = document.getElementById(`asl-statmon-dashboard-${nodeid}-txstat`);
+	const divConntable = document.getElementById(`asl-statmon-dashboard-${nodeid}-conntable`);
 	const node = JSON.parse(nodeinfo);
 
 	if(node.ERROR){
-//		window.alert(`SERVER ERROR: NODE=${nodeid}\n\n${node.ERROR}\n\nYou must fix the error and reload this page`);
-//		window.clearInterval(updateStatusDashboardIntervalID);
-		dashArea.innerHTML = nodeLineHeader(nodeid, "Unavailable Node") + `<div class="alert alert-danger mx-3 py-0"><b>Node Response Error - Node disabled<b> <button class="btn btn-danger" style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .5rem;" onclick="reAddNode(${nodeid})">Reload Node</button></div>`;
+		divHeader.innerHTML = nodeLineHeader(nodeid, "Unavailable Node")
+		divTxStat.innerHTML = `<div class="alert alert-danger mx-3 py-0"><b>Node Response Error - Node disabled<b> <button class="btn btn-danger" style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .5rem;" onclick="reAddNode(${nodeid})">Reload Node</button></div>`;
+		divConntable.innerHTML = "";
 		const i = monNodes.indexOf(nodeid);
 		if( i > -1 ){
 			monNodes.splice(i, 1);
 		}
 	} else {
+		// update the description line
+		headerDescSpan.innerHTML = `${nodeid} - ${node.DESC}`;	
 
-		var nodeTxLine = "";
+		// update the tx line
 		if(node.RXKEYED === true && node.TXKEYED === true ){	
-			nodeTxLine = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
+			divTxStat.innerHTML = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
 		} else if( node.RXKEYED === true && node.TXEKEYED === false && node.TXEKEYED === false ){
-			nodeTxLine = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
+			divTxStat.innerHTML = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
 		} else if( node.CONNKEYED === true && node.TXKEYED === true && node.RXKEYED === false ){
-			nodeTxLine = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Network Source</div>";
+			divTxStat.innerHTML = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Network Source</div>";
 		} else if( node.TXKEYED === true && node.RXKEYED === false && node.CONNKEYED === false ){
-			 nodeTxLine = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Telemetry/Playback</div>";
+			 divTxStat.innerHTML = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Telemetry/Playback</div>";
 		} else {
-			nodeTxLine = "<div class=\"alert alert-success mx-3 py-0 nodetxline nodetxline-unkeyed\">Transmit - Idle</div>";
+			divTxStat.innerHTML = "<div class=\"alert alert-success mx-3 py-0 nodetxline nodetxline-unkeyed\">Transmit - Idle</div>";
 		}
-	
-		dashArea.innerHTML = nodeLineHeader(node.ME, node.DESC) + nodeTxLine + 
-			nodeConnTable(node.CONNS, node.CONNKEYED, node.CONNKEYEDNODE);
+
+		// update the connection table	
+		divConntable.innerHTML = nodeConnTable(node.CONNS, node.CONNKEYED, node.CONNKEYEDNODE);
 	}
 };
 
 
 // Draw/update the header row for a node
 function nodeLineHeader(nodeNumber, nodeDescription){
-	var nodeLineHeaderStr = `
+	let nodeLineHeaderStr = `
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-1 px-2 mt-1 mb-3 border-bottom shadow nodeline-header">
-            <span class="align-middle">${nodeNumber} - ${nodeDescription}</span>
+            <span id="asl-statmon-dashboard-${nodeNumber}-header-desc" class="align-middle">${nodeNumber} - ${nodeDescription}</span>
             <div class="btn-toolbar mb-2 mb-md-0">
                 <div class="btn-group me-2">
                     <a id="btn-bubble-${nodeNumber}" class="btn btn-sm btn-outline-secondary"
@@ -169,12 +187,11 @@ function nodeLineHeader(nodeNumber, nodeDescription){
                             <use xlink:href="#details"/>
                         </svg>
                     </a>
-                    <a class="btn btn-sm btn-outline-secondary"
-						href="#" onclick="openCmdModal(${nodeNumber})">
+                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#CommandModal">
                         <svg class="bi flex-shrink-0" width="16" height="16" role="img" aria-label="Manage Node ${nodeNumber}">
                             <use xlink:href="#settings"/>
                         </svg>
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
@@ -340,5 +357,7 @@ Logout Successful
 // Command Handling
 //
 function openCmdModal(node){
-	window.open(`commands.html?n=${node}`, "_blank");
+	var cmdpage = `commands.html?n=${node}`;
+//	document.getElementById("command-modal-iframe")[0].src = cmdpage;
+
 }
