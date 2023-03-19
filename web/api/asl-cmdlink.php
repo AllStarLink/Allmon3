@@ -105,7 +105,7 @@ if($msg){
 		print(getJSONSuccess(base64_encode($output)));
 		exit(0);
 	} else {
-		print(getJSONError($msg));
+		print(getJSONError(base64_encode($msg)));
 		exit(1);
 	}
 }

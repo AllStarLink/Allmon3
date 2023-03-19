@@ -43,7 +43,7 @@ function displayCommandResults(output){
 			<pre>${out}<pre>
 		`;
 	} else {
-		let out = output["ERROR"];
+		let out = atob(output["ERROR"]);
 		res = `
 			<div class="alert alert-danger" role="alert">Command Error</div>
 			<pre>${out}<pre>
@@ -112,5 +112,8 @@ function getCommandModalForm(node){
 function executeNodeLinkCmd(node){
 	let command = document.getElementById("cmf-link-node-cmd").value;
 	let linknode = document.getElementById("cmf-link-node-num").value;
+	if(linknode === ""){
+		linknode = "0";
+	}
 	sendCommand(node, `${command} ${linknode}`);	
 }
