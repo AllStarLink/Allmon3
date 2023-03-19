@@ -143,9 +143,12 @@ def asl_cmd(s, cmdstr):
 	try:
 		cmd = "ACTION: COMMAND\r\nCOMMAND: {}\r\n".format(cmdstr)
 		c_response = asl_cmd_response(s, cmd)
+
+		# For Asterisk 20/ASL3 look for Output:
 		if  re.match(r"^Response\:\s+Error\s", c_response):
-			output = re.search(r"^.*Output:\s+(.*)\s+\(", c_response, re.MULTILINE)
-			return "ERR: {}".format(output.group(1))
+			output = re.search(r"^.*Output:\s+(.*)", c_response, re.MULTILINE)
+			if(output):
+				return "ERR: {}".format(output.group(1))
 
 		# For Asterisk 20/ASL3 we look for Output: lines
 		if  re.match(r"^Response\:\s+Success\s", c_response):
@@ -163,7 +166,7 @@ def asl_cmd(s, cmdstr):
 		if  re.match(r"^Response\:\s+Follows\s", c_response):
 			output = re.split("\r\n", c_response)
 			log.debug(output[3])
-			if not re.match(r"No such command", output[3]):
+			if not re.match(r"No such command", output[3]) and not re.match(r"Unknown action name", output[3]):
 				return "OK:\r\n{}".format(output[3])
 			
 			return "ERR:\r\n{}".format(output[3])
