@@ -114,24 +114,20 @@
 <!-- End Logout Modal -->
 
 <!-- Begin Command Modal -->
-<div class="modal fade" id="commandModal" tabindex="-1" aria-labelledby="commandModalLabel"
+<div class="modal fade" id="commandModal" tabindex="-1" aria-labelledby="commandModalTitleBox"
 	 aria-hidden="true" data-bs-backdrop="static" data-bs-target="#staticBackdrop">
-	<div class="modal-dialog">
-		<form id="commandBox">
-		<div id="command-modal-content" class="modal-content">
+	<div class="modal-dialog modal-xl">
+		<div id="command-modal-content" class="modal-content modal-dialog-scrollable">
 			<div class="modal-header">
-				<h5 class="modal-title" id="commandModalLabel">Command Dashboard</h5>
+				<h5 class="modal-title" id="commandModalTitleBox"></h5>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div id="command-modal-body" class="modal-body">
-				Do you want to command?
-				<input type="hidden" id="action" name="action" value="command">
 			</div>
 			<div id="command-modal-footer" class="modal-footer">	
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 			</div>
 		</div>
-		</form>
 	</div>
 </div>
 
@@ -166,12 +162,6 @@
 					</button>
 				</div>
 				<hr>
-				<div class="text-center mt-2">
-                    <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#commandModal">
-                    Command
-                    </button>
-                </div>
-				<hr>
 				<div class="text-center text-wrap">
 					<p style="color:red"><b>DEVELOPMENT BUILD<br>20230318-00</b></p>
 				</div>
@@ -192,6 +182,7 @@
 
 <script src="js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 <script src="js/functions.js" crossorigin="anonymous"></script>
+<script src="js/commands.js" crossorigin="anonymous"></script>
 <script src="js/index.js" crossorigin="anonymous"></script>
 </body>
 </html>

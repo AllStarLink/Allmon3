@@ -187,7 +187,7 @@ function nodeLineHeader(nodeNumber, nodeDescription){
                             <use xlink:href="#details"/>
                         </svg>
                     </a>
-                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#CommandModal">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="openCmdModal(${nodeNumber})">
                         <svg class="bi flex-shrink-0" width="16" height="16" role="img" aria-label="Manage Node ${nodeNumber}">
                             <use xlink:href="#settings"/>
                         </svg>
@@ -412,11 +412,4 @@ Logout Successful
 
 
 
-//
-// Command Handling
-//
-function openCmdModal(node){
-	var cmdpage = `commands.html?n=${node}`;
-//	document.getElementById("command-modal-iframe")[0].src = cmdpage;
 
-}
