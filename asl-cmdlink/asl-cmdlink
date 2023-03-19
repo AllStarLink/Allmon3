@@ -124,6 +124,9 @@ def asl_cmd_response(s, cmd):
 	except socket.timeout as e:
 		log.error("asl_cmd_response() socket.timeout")
 		raise e
+	except ConnectionResetError as e:
+		log.error("asl_cmd_response() ConnectionResetError")
+		raise e
 	except Exception as e:
 		log.error("asl_cmd_response() Exception: %s", e.__class__)
 		log.error("asl_cmd_response() Message: %s", e)
@@ -350,6 +353,10 @@ try:
 			except socket.timeout as e:
 				log.error("received socket.timeout; trying to reconnect")
 				inner_loop = False
+			except ConnectionResetError as e:
+				log.error("received ConnectionResetError; trying to reconnect")
+				inner_loop = False
+
 
 		# If we exited out of inner_loop without throwing an exception
 		# then something went wrong with the asl socket. Loop around
