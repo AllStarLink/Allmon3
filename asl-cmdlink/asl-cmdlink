@@ -229,8 +229,8 @@ if args.debug:
 else:
 	log.setLevel(logging.INFO)
 
-if not 1000 <= args.node <= 9999999:
-	log.error("provided node \"%s\" must be a number between 1000 and 9999999", args.node)
+if not 1 <= args.node <= 9999999:
+	log.error("provided node \"%s\" must be a number between 1 and 9999999", args.node)
 	sys.exit(1)
 else:
 	log.debug("using node %d", args.node)
