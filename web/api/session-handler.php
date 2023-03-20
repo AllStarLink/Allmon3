@@ -52,7 +52,7 @@ if(strcmp($action,"logout") == 0){
 
 if(!isset($_SESSION['valid'])){
 	header('Content-Type: application/json');
-	print(getJSONError("client is not logged in"));
+	print(getJSONSecurityEvent("client is not logged in"));
 	exit;
 }
 

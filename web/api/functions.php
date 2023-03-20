@@ -29,6 +29,11 @@ function getJSONError($errmsg) {
 	return sprintf("{ \"%s\" : \"%s\" }", "ERROR", $errmsg);
 }
 
+# Format and return a JSON security event
+function getJSONSecurityEvent($secmsg) {
+	return sprintf("{ \"%s\" : \"%s\" }", "SECURITY", $secmsg);
+}
+
 # Find and parse the configuration file
 function readConfig(){
 	if( file_exists(__DIR__ . "/allmon3.ini.php") ){
