@@ -42,6 +42,12 @@ function displayCommandResults(output){
 			<div class="alert alert-success" role="alert">Command Successful</div>
 			<pre>${out}<pre>
 		`;
+	} else if ( output["SECURITY"] ){
+		let out = output["SECURITY"];
+		res = `
+            <div class="alert alert-danger" role="alert">Security Error</div>
+            <pre>${out}<pre>
+        `;
 	} else {
 		let out = atob(output["ERROR"]);
 		res = `
@@ -56,23 +62,31 @@ function displayCommandResults(output){
 //
 // Command Handling
 //
-function openCmdModal(node){
+function openCmdModalLink(node){
 	const modal = new bootstrap.Modal(document.getElementById("commandModal"), {});
 	document.getElementById("commandModalTitleBox").innerHTML = `Execute Command on ${node}`;
-	document.getElementById("command-modal-body").innerHTML = getCommandModalForm(node);
+	document.getElementById("command-modal-body").innerHTML = getLinkCommandModalForm(node);
 	modal.show();
 }
 
+function openCmdModalCLI(node){
+	const modal = new bootstrap.Modal(document.getElementById("commandModal"), {});
+	document.getElementById("commandModalTitleBox").innerHTML = `Execute Command on ${node}`;
+	document.getElementById("command-modal-body").innerHTML = getCLICommandModalForm(node);
+	modal.show();
+}
+
+
 //
-// Command Modal Interface
+// Link Command Modal Interface
 //
-function getCommandModalForm(node){
+function getLinkCommandModalForm(node){
 	return `
 <div class="container-fluid">
 	<form id="command-modal-form">
-		<div class="row mb-2">
-			<div class="col-4">
-				<label for="cmf-link-node-cmd">Link Command</label>
+		<div class="row mb-2 align-items-center">
+			<div class="col-4 fw-bolder text-end">
+				<label for="cmf-link-node-cmd">Command</label>
 			</div>
 			<div class="col-8">
 				<select id="cmf-link-node-cmd" name="cmf-link-node-cmd" class="form-select" aria-label="Connect Disconnect command">
@@ -88,15 +102,15 @@ function getCommandModalForm(node){
 				</select>
 			</div>
 		</div>
-		<div class="row mb-2">
-			<div class="col-4">
+		<div class="row mb-2 align-items-center">
+			<div class="col-4 fw-bolder text-end">
 				<label for="cmf-link-node-num">Node #</label>
 			</div>
 			<div class="col-8">
 				<input id="cmf-link-node-num" name="cmf-link-node-num" class="form-control" type="text">
 			</div>
 		</div>
-		<div class="row mb-2">
+		<div class="row mb-2 align-middle">
 			<div class="col-4">
 			</div>
 			<div class="col-8">
@@ -116,4 +130,37 @@ function executeNodeLinkCmd(node){
 		linknode = "0";
 	}
 	sendCommand(node, `${command} ${linknode}`);	
+}
+
+//
+// CLI Command Modal Interface
+//
+function getCLICommandModalForm(node){
+	return `
+<div class="container-fluid">
+	<form id="command-modal-form">
+		<div class="row mb-2 align-items-center">
+			<div class="col-4 fw-bolder text-end">
+				<label for="cmf-cmd-node-cmd">Command</label>
+			</div>
+			<div class="col-8">
+				<input id="cmf-cmd-node-cmd" type="text" size="100" class="from-control">
+			</div>
+		</div>
+		<div class="row mb-2 align-middle">
+			<div class="col-4">
+			</div>
+			<div class="col-8">
+				<button type="button" class="btn btn-secondary" onclick="executeNodeCLICmd(${node})">Execute</button>
+			</div>
+		</div>
+	<form>
+</div>
+
+`;
+}
+
+function executeNodeCLICmd(node){
+	let command = document.getElementById("cmf-cmd-node-cmd").value;
+	sendCommand(node, `${command}`);	
 }

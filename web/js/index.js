@@ -187,11 +187,16 @@ function nodeLineHeader(nodeNumber, nodeDescription){
                             <use xlink:href="#details"/>
                         </svg>
                     </a>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="openCmdModal(${nodeNumber})">
+                   <button class="btn btn-sm btn-outline-secondary" onclick="openCmdModalLink(${nodeNumber})">
+                        <svg class="bi flex-shrink-0" width="16" height="16" role="img" aria-label="Manage Node ${nodeNumber}">
+                            <use xlink:href="#link-45"/>
+                        </svg>
+                    </button>
+                   <button class="btn btn-sm btn-outline-secondary" onclick="openCmdModalCLI(${nodeNumber})">
                         <svg class="bi flex-shrink-0" width="16" height="16" role="img" aria-label="Manage Node ${nodeNumber}">
                             <use xlink:href="#settings"/>
                         </svg>
-                    </button>
+                   </button>
                 </div>
             </div>
         </div>
