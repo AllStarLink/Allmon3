@@ -146,7 +146,7 @@ function nodeEntry(nodeid, nodeinfo){
 		} else if( node.CONNKEYED === true && node.TXKEYED === true && node.RXKEYED === false ){
 			divTxStat.innerHTML = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Network Source</div>";
 		} else if( node.TXKEYED === true && node.RXKEYED === false && node.CONNKEYED === false ){
-			 divTxStat.innerHTML = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Telemetry/Playback</div>";
+			divTxStat.innerHTML = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Telemetry/Playback</div>";
 		} else {
 			divTxStat.innerHTML = "<div class=\"alert alert-success mx-3 py-0 nodetxline nodetxline-unkeyed\">Transmit - Idle</div>";
 		}
@@ -265,14 +265,15 @@ function nodeConnTable(conns, keyed, keyednode) {
 
 		for(const x of nodesBySSU){
 			let c = conns[x];
+			let lastXmit = "";
 			if(c['SSK'] == -1){
-				var lastXmit = "Never";
+				lastXmit = "Never";
 			} else {
-				t = c['SSU'];
+				let t = c['SSU'];
 				if( t > -1 ){
-					var lastXmit = toHMS(t);
+					lastXmit = toHMS(t);
 				} else {
-					var lastXmit = "Never";
+					lastXmit = "Never";
 				}
 			}
 
