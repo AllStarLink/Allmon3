@@ -139,6 +139,24 @@ function getCLICommandModalForm(node){
 	<form id="command-modal-form">
 		<div class="row mb-2 align-items-center">
 			<div class="col-4 fw-bolder text-end">
+				<label for="cmf-cmd-node-select">Command</label>
+			</div>
+			<div class="col-8">
+				<p>Note: these don't work yet</p>
+                <select id="cmf-link-node-select" name="cmf-link-node-select"
+						class="form-select" aria-label="Connect Disconnect command">
+                    <option selected>Choose a command</option>
+                    <option value="rpt stats ${node}">Show Node Status</option>
+                    <option value="core show uptime">Show Uptime</option>
+                    <option value="iax2 show registry">Show IAX Registry</option>
+                    <option value="iax2 show channels">Show IAX Channels</option>
+                    <option value="iax2 show netstats">Show Network Status</option>
+                    <option value="rpt lstats ${node}">Show Link Status</option>
+				</select>
+			</div>
+		</div>
+		<div class="row mb-2 align-items-center">
+			<div class="col-4 fw-bolder text-end">
 				<label for="cmf-cmd-node-cmd">Command</label>
 			</div>
 			<div class="col-8">
