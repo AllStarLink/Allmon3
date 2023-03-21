@@ -34,9 +34,10 @@ function uiConfigs(){
 	XHRRequest("drawMenu", "GET", "api/uiconfig.php?e=nodelist", drawMenuJSON);
 	checkLogonStatus();
 
-};
+}
 
 // Update Customizations
+/*
 function customizeUI(customize){
 	var customElements = JSON.parse(customize);
 	document.getElementById("navbar-midbar").innerHTML = customElements.HEADER_TITLE;
@@ -45,6 +46,7 @@ function customizeUI(customize){
 		document.getElementById("navbar-custlogo").innerHTML = img;
 	}
 };
+*/
 
 // JSON wrapper for drawMenu
 function drawMenuJSON(menuListJSON){
@@ -58,7 +60,7 @@ function drawMenuJSON(menuListJSON){
 }
 // Update menu
 function drawMenu(menuList){
-	li = "";
+	let li = "";
 	for(const n of menuList){
 		li = li.concat(`<li class="nav-item">
 						<a href="#" onclick="changeNodeListSingle(${n})" class="nav-link">
@@ -109,7 +111,7 @@ function updateStatusDashboard(){
 		xmlhttp.open("GET", url, true);
 		xmlhttp.send();
 	}
-};
+}
 
 // Re-add node to the monNodes list
 function reAddNode(n){
@@ -152,7 +154,7 @@ function nodeEntry(nodeid, nodeinfo){
 		// update the connection table	
 		divConntable.innerHTML = nodeConnTable(node.CONNS, node.CONNKEYED, node.CONNKEYEDNODE);
 	}
-};
+}
 
 
 // Draw/update the header row for a node
@@ -189,7 +191,7 @@ function nodeLineHeader(nodeNumber, nodeDescription){
         </div>
 `;
 	return nodeLineHeaderStr;
-};
+}
 
 // Draw/update the node tables
 function nodeConnTable(conns, keyed, keyednode) {
@@ -296,7 +298,7 @@ function nodeConnTable(conns, keyed, keyednode) {
 	}
 
 	return tTop + row + tBottom;
-};
+}
 
 //
 // Change the list of nodes to the provided []

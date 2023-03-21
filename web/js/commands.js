@@ -8,8 +8,6 @@
  *
  */
 
-var cmdout = "";
-
 //
 // General Send Command
 //
