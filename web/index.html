@@ -52,6 +52,14 @@
 		  <path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1.002 1.002 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4.018 4.018 0 0 1-.128-1.287z"/>
 		  <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243L6.586 4.672z"/>
 	</symbol>
+	<symbol id="logon" fill="currentColor" viewBox="0 0 16 16">
+	  <path fill-rule="evenodd" d="M6 3.5a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 0-1 0v2A1.5 1.5 0 0 0 6.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-8A1.5 1.5 0 0 0 5 3.5v2a.5.5 0 0 0 1 0v-2z"/>
+	  <path fill-rule="evenodd" d="M11.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H1.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+	</symbol>
+	<symbol id="logout" fill="currentColor" viewBox="0 0 16 16">
+	  <path fill-rule="evenodd" d="M6 12.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 6.5 2h8A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 12.5v-2a.5.5 0 0 1 1 0v2z"/>
+	  <path fill-rule="evenodd" d="M.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L1.707 7.5H10.5a.5.5 0 0 1 0 1H1.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
+	</symbol>
 </svg>
 
 <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
@@ -77,15 +85,29 @@
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div id="login-modal-body" class="modal-body">
-					<label for="loginUserName">Username</label>
-					<input type="text" size="20" id="user" name="user"><br>
-					<label for="loginPassword">Password</label>
-					<input type="password" size="20" id="pass" name="pass">
-					<input type="hidden" id="action" name="action" value="login">
+				<div class="container-flex">
+					<div class="row align-items-center">
+						<div class="col-4 fw-bolder text-end">
+							<label for="loginUserName">Username</label>
+						</div>
+						<div class="col-6">
+							<input type="text" size="20" id="user" name="user"><br>
+						</div>
+					</div>
+					<div class="row align-items-center mt-2">
+						<div class="col-4 fw-bolder text-end">
+							<label for="loginPassword">Password</label>
+						</div>
+						<div class="col-6">
+							<input type="password" size="20" id="pass" name="pass">
+						</div>
+					</div> 
+				</div>
 			</div>
-			<div id="login-modal-footer" class="modal-footer">
+			<div id="login-modal-footer" class="modal-footer mt-2">
+				<input type="hidden" id="action" name="action" value="login">
 				<button type="button" class="btn btn-secondary" onclick="doLogin()">Login</button>
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-secondary" onclick="clearLogin()" data-bs-dismiss="modal">Cancel</button>
 			</div>
 		</div>
 		</form>
@@ -109,7 +131,7 @@
 			</div>
 			<div id="logout-modal-footer" class="modal-footer">	
 				<button type="button" class="btn btn-secondary" onclick="doLogout()">Logout</button>
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="clearLogout()">Cancel</button>
 			</div>
 		</div>
 		</form>
@@ -155,16 +177,7 @@
 
 				</ul>
 				<hr>
-				<div class="text-center">
-					<button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#loginModal">
-					Login
-					</button>
-				</div>
-				<div class="text-center mt-2">
-					<button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#logoutModal">
-					Logout
-					</button>
-				</div>
+				<div id="login-out-region"></div>
 				<hr>
 				<div class="text-center text-wrap">
 					<p style="color:red"><b>DEVELOPMENT BUILD<br>20230319-00</b></p>

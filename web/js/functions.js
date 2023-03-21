@@ -32,3 +32,50 @@ function toHMS(totalSeconds) {
   return `${zeroPad(hours)}:${zeroPad(minutes)}:${zeroPad(seconds)}`;
 }
 
+// Generic AJAX function
+function XHRRequest(label, method, url, action){
+	let xmlhttp = new XMLHttpRequest();
+	xmlhttp.onreadystatechange = function () {
+		if( this.readyState == 4 && this.status == 200 ){
+			action(this.responseText);
+		} else if( this.readyState == 4 && this.status != 200 ){
+			console.log("Failed to execute " + label)
+		}
+
+	}
+	xmlhttp.open(method, url, true);
+	xmlhttp.send();
+}
+
+
+// Check Logon Status
+function checkLogonStatus(){
+	XHRRequest("checkLogonStatus", "GET", "api/session-check.php", logonButtonToggle);	
+}
+
+// Draw the logon/logout buttons
+function logonButtonToggle(res){
+	let sessionStatus = JSON.parse(res);
+	let loginRegion = document.getElementById("login-out-region");
+	if(sessionStatus["SUCCESS"]){
+		loginRegion.innerHTML = `
+			<div class="d-grid gap-2 col-6 mx-auto">
+				<button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#logoutModal">
+					Logout
+				</button>
+			</div>
+		`;
+	} 
+	else if(sessionStatus["SECURITY"]){
+		loginRegion.innerHTML = `
+			<div class="d-grid gap-2 col-6 mx-auto">
+				<button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
+					Login
+				</button>	
+			</div>
+		`;
+
+	} else {
+		loginRegion.innerHTML = "ERROR";
+	}
+}

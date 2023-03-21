@@ -27,25 +27,12 @@ window.addEventListener("load", function(){
 	updateStatusDashboardIntervalID = setInterval(updateStatusDashboard, 1000);
 });
 
-// Generic AJAX function
-function XHRRequest(label, url, action){
-	var xmlhttp = new XMLHttpRequest();
-	xmlhttp.onreadystatechange = function () {
-		if( this.readyState == 4 && this.status == 200 ){
-			action(this.responseText);
-		} else if( this.readyState == 4 && this.status != 200 ){
-			console.log("Failed to execute " + label)
-		}
-
-	}
-	xmlhttp.open("GET", url, true);
-	xmlhttp.send();
-}	
 
 // Get the configs
 function uiConfigs(){
 	//XHRRequest("customizeUI", "api/uiconfig.php?e=customize", customizeUI);
-	XHRRequest("drawMenu", "api/uiconfig.php?e=nodelist", drawMenuJSON);
+	XHRRequest("drawMenu", "GET", "api/uiconfig.php?e=nodelist", drawMenuJSON);
+	checkLogonStatus();
 
 };
 
@@ -340,6 +327,10 @@ function changeNodeListSingle(newNode){
 
 //
 // Handle logins
+//
+
+var originalLoginBox = "";
+
 function doLogin(){
 	var form = new FormData(document.getElementById("loginBox"));
 	var xmlhttp = new XMLHttpRequest();
@@ -357,6 +348,7 @@ function doLogin(){
 // Updates to logon box
 //
 function doLoginDisplayUpdates(res){
+	originalLoginBox = document.getElementById("loginModal").innerHTML;
 	const a = JSON.parse(res);
 	if( a["SUCCESS"] ){
 		document.getElementById("login-modal-body").innerHTML = `
@@ -368,17 +360,31 @@ Login Successful
 </div>
 `;
 		document.getElementById("login-modal-footer").innerHTML = `
-	<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+	<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="clearLogin()">OK</button>
 `;
 	} else {
 		document.getElementById("loginModalLabel").innerHTML = "Login Failed";
 		document.getElementById("loginModalLabel").classList.add("login-form-failure-header");
 	}	
+	checkLogonStatus();
+}
+
+//
+// Reset Login Box
+//
+function clearLogin(){
+	if( ! originalLoginBox === "" ){
+		document.getElementById("loginModal").innerHTML = originalLoginBox;	
+		checkLogonStatus();
+	}
 }
 
 //
 // Handle Logout
 //
+
+var originalLogoutBox = "";
+
 function doLogout(){
 	var form = new FormData(document.getElementById("logoutBox"));
 	var xmlhttp = new XMLHttpRequest();
@@ -396,6 +402,7 @@ function doLogout(){
 // Updates to logout box
 //
 function doLogoutDisplayUpdates(res){
+	originalLogoutBox = document.getElementById("logoutModal").innerHTML;
 	const a = JSON.parse(res);
 	if( a["SUCCESS"] ){
 		document.getElementById("logout-modal-body").innerHTML = `
@@ -407,14 +414,20 @@ Logout Successful
 </div>
 `;
 		document.getElementById("logout-modal-footer").innerHTML = `
-	<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+	<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="clearLogout()">OK</button>
 `;
 	} else {
 		document.getElementById("logout-modal-body").innerHTML = res;
-	}	
+	}
+	checkLogonStatus();
 }
 
-
+function clearLogout(){
+	if( ! originalLogoutBox === "" ){
+		document.getElementById("logoutModal").innerHTML = originalLogoutBox;
+		checkLogonStatus();
+	}
+}
 
 
 
