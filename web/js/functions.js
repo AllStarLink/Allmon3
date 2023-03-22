@@ -65,6 +65,7 @@ function logonButtonToggle(res){
 				</button>
 			</div>
 		`;
+		loggedIn = true;
 	} 
 	else if(sessionStatus["SECURITY"]){
 		loginRegion.innerHTML = `
@@ -74,8 +75,9 @@ function logonButtonToggle(res){
 				</button>	
 			</div>
 		`;
-
+		loggedIn = false;
 	} else {
 		loginRegion.innerHTML = "ERROR";
+		loggedIn = false;
 	}
 }
