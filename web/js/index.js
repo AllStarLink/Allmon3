@@ -14,6 +14,7 @@
 //
 var updateStatusDashboardIntervalID = 0;	// ID for the setInterval() of the dashboard
 var monNodes = [ ];			// node(s) to monitor in Array
+var loggedIn = false;
 
 // Things to do when the page loads
 window.addEventListener("load", function(){
@@ -365,6 +366,7 @@ Login Successful
 		document.getElementById("login-modal-footer").innerHTML = `
 	<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="clearLogin()">OK</button>
 `;
+		loggedIn = true;
 	} else {
 		document.getElementById("loginModalLabel").innerHTML = "Login Failed";
 		document.getElementById("loginModalLabel").classList.add("login-form-failure-header");
@@ -419,6 +421,7 @@ Logout Successful
 		document.getElementById("logout-modal-footer").innerHTML = `
 	<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="clearLogout()">OK</button>
 `;
+		loggedIn= false;
 	} else {
 		document.getElementById("logout-modal-body").innerHTML = res;
 	}

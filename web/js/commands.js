@@ -62,15 +62,24 @@ function displayCommandResults(output){
 //
 function openCmdModalLink(node){
 	const modal = new bootstrap.Modal(document.getElementById("commandModal"), {});
-	document.getElementById("commandModalTitleBox").innerHTML = `Execute Command on ${node}`;
-	document.getElementById("command-modal-body").innerHTML = getLinkCommandModalForm(node);
+		document.getElementById("commandModalTitleBox").innerHTML = `Execute Command on ${node}`;
+	if(loggedIn){
+		document.getElementById("command-modal-body").innerHTML = getLinkCommandModalForm(node);
+	} else {
+		document.getElementById("command-modal-body").innerHTML = `<div class="alert alert-danger role="alert">Must Logon First</div>`;	
+	}
 	modal.show();
 }
 
 function openCmdModalCLI(node){
 	const modal = new bootstrap.Modal(document.getElementById("commandModal"), {});
 	document.getElementById("commandModalTitleBox").innerHTML = `Execute Command on ${node}`;
-	document.getElementById("command-modal-body").innerHTML = getCLICommandModalForm(node);
+	if(loggedIn){
+		document.getElementById("command-modal-body").innerHTML = getCLICommandModalForm(node);
+	} else {
+		document.getElementById("command-modal-body").innerHTML = `<div class="alert alert-danger role="alert">Must Logon First</div
+>`;
+	}
 	modal.show();
 }
 
