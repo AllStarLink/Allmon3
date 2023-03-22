@@ -96,7 +96,8 @@ function getLinkCommandModalForm(node){
 				<label for="cmf-link-node-cmd">Command</label>
 			</div>
 			<div class="col-8">
-				<select id="cmf-link-node-cmd" name="cmf-link-node-cmd" class="form-select" aria-label="Connect Disconnect command">
+				<select id="cmf-link-node-cmd" name="cmf-link-node-cmd" class="form-select"
+						aria-label="Connect Disconnect command">
 					<option selected>Choose a command</option>
 					<option value="rpt cmd ${node} ilink 3">Connect</option>
 					<option value="rpt cmd ${node} ilink 1">Disconnect</option>
@@ -148,12 +149,11 @@ function getCLICommandModalForm(node){
 	<form id="command-modal-form">
 		<div class="row mb-2 align-items-center">
 			<div class="col-4 fw-bolder text-end">
-				<label for="cmf-cmd-node-select">Command</label>
+				<label for="cmf-cmd-node-select">Command Template</label>
 			</div>
 			<div class="col-8">
-				<p>Note: these don't work yet</p>
-                <select id="cmf-link-node-select" name="cmf-link-node-select"
-						class="form-select" aria-label="Connect Disconnect command">
+                <select id="cmf-cmd-node-select" name="cmf-cmd-node-select"
+						class="form-select" aria-label="system command" onchange="buildCLICommandModalCmd()">
                     <option selected>Choose a command</option>
                     <option value="rpt stats ${node}">Show Node Status</option>
                     <option value="core show uptime">Show Uptime</option>
@@ -161,15 +161,16 @@ function getCLICommandModalForm(node){
                     <option value="iax2 show channels">Show IAX Channels</option>
                     <option value="iax2 show netstats">Show Network Status</option>
                     <option value="rpt lstats ${node}">Show Link Status</option>
+					<option value="custom">Custom command</option>
 				</select>
 			</div>
 		</div>
 		<div class="row mb-2 align-items-center">
 			<div class="col-4 fw-bolder text-end">
-				<label for="cmf-cmd-node-cmd">Command</label>
+				<label for="cmf-cmd-node-cmd">Custom Command</label>
 			</div>
 			<div class="col-8">
-				<input id="cmf-cmd-node-cmd" type="text" size="100" class="from-control">
+				<input id="cmf-cmd-node-cmd" type="text" size="100" class="from-control" readonly>
 			</div>
 		</div>
 		<div class="row mb-2 align-middle">
@@ -183,6 +184,18 @@ function getCLICommandModalForm(node){
 </div>
 
 `;
+}
+
+function buildCLICommandModalCmd(node){
+	let cmfSel = document.getElementById("cmf-cmd-node-select");
+	let cmfCmd = document.getElementById("cmf-cmd-node-cmd");
+	if(cmfSel.value === "custom"){
+		cmfCmd.value = "";
+		cmfCmd.readOnly = false;
+	} else {
+		cmfCmd.value = cmfSel.value;
+		cmfCmd.readOnly = true;
+	}
 }
 
 function executeNodeCLICmd(node){
