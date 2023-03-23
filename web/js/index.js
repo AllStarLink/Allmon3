@@ -15,6 +15,8 @@
 var updateStatusDashboardIntervalID = 0;	// ID for the setInterval() of the dashboard
 var monNodes = [ ];			// node(s) to monitor in Array
 var loggedIn = false;
+var tooltipTriggerList;
+var tooltipList;
 
 // Things to do when the page loads
 window.addEventListener("load", function(){
@@ -58,6 +60,8 @@ function drawMenuJSON(menuListJSON){
 		monNodes = allNodes;
 	}
 	drawMenu(allNodes);
+
+
 }
 // Update menu
 function drawMenu(menuList){
@@ -76,6 +80,7 @@ function drawMenu(menuList){
 // Update the dashboard
 function updateStatusDashboard(){
 	const dashArea = document.getElementById("asl-statmon-dashboard-area");
+	let dashUpdates = false;
 	for(const n of monNodes){
 		let daExists = document.getElementById(`asl-statmon-dashboard-${n}`);
 		if(!daExists){
@@ -96,8 +101,15 @@ function updateStatusDashboard(){
 			newNodeDiv.appendChild(newNodeDivConntable);
 
 			dashArea.appendChild(newNodeDiv);
+			dashUpdates = true;
 		}
 	}
+
+	if(dashUpdates){
+		tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+		tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+	}
+
 	for(const n of monNodes){
 		var xmlhttp = new XMLHttpRequest();
 		var url = `api/asl-statmon.php?node=${n}`;
@@ -161,28 +173,32 @@ function nodeEntry(nodeid, nodeinfo){
 // Draw/update the header row for a node
 function nodeLineHeader(nodeNumber, nodeDescription){
 	let nodeLineHeaderStr = `
-        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-1 px-2 mt-1 mb-3 border-bottom shadow nodeline-header">
+        <div id="node-line-header-${nodeNumber}" class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-1 px-2 mt-1 mb-3 border-bottom shadow nodeline-header">
             <span id="asl-statmon-dashboard-${nodeNumber}-header-desc" class="align-middle">${nodeNumber} - ${nodeDescription}</span>
             <div class="btn-toolbar mb-2 mb-md-0">
                 <div class="btn-group me-2">
                     <a id="btn-bubble-${nodeNumber}" class="btn btn-sm btn-outline-secondary"
+						data-bs-toggle="tooltip" data-bs-title="View ASL Node Map for this node" data-bs-placement="bottom"
 						href="http://stats.allstarlink.org/stats/${nodeNumber}/networkMap" target="_blank">
                         <svg class="bi flex-shrink-0" width="16" height="16" role="img" aria-label="Network Map ${nodeNumber}">
                             <use xlink:href="#bubble-chart"/>
                         </svg>
                     </a>
                     <a class="btn btn-sm btn-outline-secondary"
+					data-bs-toggle="tooltip" data-bs-title="View ASL Stats for this node" data-bs-placement="bottom"
 					href="http://stats.allstarlink.org/stats/${nodeNumber}/" target="_blank">
                         <svg class="bi flex-shrink-0" width="16" height="16" role="img" aria-label="Node Details ${nodeNumber}">
                             <use xlink:href="#details"/>
                         </svg>
                     </a>
-                   <button class="btn btn-sm btn-outline-secondary" onclick="openCmdModalLink(${nodeNumber})">
+                   <button class="btn btn-sm btn-outline-secondary" onclick="openCmdModalLink(${nodeNumber})"
+						data-bs-toggle="tooltip" data-bs-title="Execute linking commands for this node" data-bs-placement="bottom">
                         <svg class="bi flex-shrink-0" width="16" height="16" role="img" aria-label="Manage Node ${nodeNumber}">
                             <use xlink:href="#link-45"/>
                         </svg>
                     </button>
-                   <button class="btn btn-sm btn-outline-secondary" onclick="openCmdModalCLI(${nodeNumber})">
+                   <button class="btn btn-sm btn-outline-secondary" onclick="openCmdModalCLI(${nodeNumber})"
+						data-bs-toggle="tooltip" data-bs-title="Execute system commands for this node" data-bs-placement="bottom">
                         <svg class="bi flex-shrink-0" width="16" height="16" role="img" aria-label="Manage Node ${nodeNumber}">
                             <use xlink:href="#settings"/>
                         </svg>
@@ -317,6 +333,12 @@ function changeNodeList(newNodeList){
 			nodeParam = nodeParam.concat("," + n);
 		}
 	}
+
+	// refresh the tooltips
+	tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+	tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
+	// modify the browser URL/history
 	let currentURL = new URL(window.location);
 	currentURL.searchParams.set("n", nodeParam);
 	window.history.pushState({}, "", currentURL);
