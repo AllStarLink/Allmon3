@@ -162,6 +162,7 @@ function getCLICommandModalForm(node){
                     <option value="iax2 show channels">Show IAX Channels</option>
                     <option value="iax2 show netstats">Show Network Status</option>
                     <option value="rpt lstats ${node}">Show Link Status</option>
+                    <option value="rpt show registrations">Show HTTP Registrations</option>
 					<option value="custom">Custom command</option>
 				</select>
 			</div>
