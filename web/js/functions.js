@@ -77,16 +77,14 @@ async function checkLogonStatus(){
 // Generate and Draw Menus
 async function createSidebarMenu(){
 	let customMenu = await getAPIJSON("api/uiconfig.php?e=custmenu");
-	let navMenu = "";
+	let navMenu = `<div class="vstack d-grid gap-2 col-9 mx-auto">`;
 
 	if(!customMenu["ERROR"]){
-
-		navMenu = navMenu.concat(`<div class="vstack gap-2 col-md-5 mx-auto">`);
 		for(let dd of Object.keys(customMenu)){
 			if(customMenu[dd]["type"] === "menu"){
 				navMenu = navMenu.concat(`
 					<div class="btn-group">
-						<button class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">${dd}</button>
+						<button class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">${dd}</button>
 						<div class="dropdown-menu">`);
 					for(let ml of Object.keys(customMenu[dd])){
 						if( ml !== "type" ){
@@ -108,22 +106,22 @@ async function createSidebarMenu(){
 						let href = customMenu[dd][ml];
 						navMenu = navMenu.concat(`
 							<div class="btn-group">
-								<a href="${href}" class="btn btn-primary" role="button">${ml}</a>
+								<a href="${href}" class="btn btn-secondary" role="button">${ml}</a>
 							</div>`);
 					}
 				}
 			}
 		}
-		navMenu = navMenu.concat(`</div>`);
 	} else {
 		let allNodes = await getAPIJSON("api/uiconfig.php?e=nodelist");
 		for(const n of allNodes){
         navMenu = navMenu.concat(`
 			<div class="btn-group">
-				<a href="#" class="btn btn-primary" role="button" onclick="changeNodeListSingle(${n})">${n}</a>
+				<a href="#" class="btn btn-secondary" role="button" onclick="changeNodeListSingle(${n})">${n}</a>
 			</div>`);
 		}
 	}	
-
+	
+	navMenu = navMenu.concat(`</div>`); // closes vstack
 	document.getElementById("asl-node-navigation").innerHTML = navMenu;
 }
