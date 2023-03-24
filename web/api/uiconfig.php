@@ -35,9 +35,13 @@ if(! $allmon_cfg){
 
 # Process the command
 switch($CMD){
+
+	# Get the complete configured node list
 	case 'nodelist':
 		print_r(getAllNodesJSON($allmon_cfg));
 		break;
+	
+	# Get the customization variables
 	case 'customize':
 		$customize = array(
 			"HEADER_TITLE" => $CONFIG_HEADER_TITLE ,
@@ -45,6 +49,18 @@ switch($CMD){
 		);
 		print_r(json_encode($customize));
 		break;
+
+	# Get any custom menu
+	case 'custmenu':
+		if( ! file_exists(__DIR__ . "/menu.ini")){
+		    print(getJSONError("no " . __DIR__ . "/menu.ini"));
+	    	break;
+		}
+		$menu = parse_ini_file(__DIR__ . "/menu.ini", true);
+		print(json_encode($menu));
+		break;
+
+	# Otherwise error...
 	default:
 		print(getJSONError("unknown command " . $CMD));
 		break;
