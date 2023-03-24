@@ -25,6 +25,11 @@ window.addEventListener("load", function(){
 	var nodeParam = findGetParameter("n");
 	if( nodeParam ){
 		monNodes = nodeParam.split(",");
+	} else {
+		getAPIJSON("api/uiconfig.php?e=nodelist")
+			.then((result) => {
+				monNodes = result;
+			});
 	}
 	uiConfigs();
 	updateStatusDashboardIntervalID = setInterval(updateStatusDashboard, 1000);
@@ -34,7 +39,7 @@ window.addEventListener("load", function(){
 // Get the configs
 function uiConfigs(){
 	//XHRRequest("customizeUI", "api/uiconfig.php?e=customize", customizeUI);
-	XHRRequest("drawMenu", "GET", "api/uiconfig.php?e=nodelist", drawMenuJSON);
+	createSidebarMenu();
 	checkLogonStatus();
 
 }
@@ -50,32 +55,6 @@ function customizeUI(customize){
 	}
 };
 */
-
-// JSON wrapper for drawMenu
-function drawMenuJSON(menuListJSON){
-	var allNodes = JSON.parse(menuListJSON);
-
-	// set monNodes = allNodes if monNodes isn't defined
-	if( monNodes.length == 0 ){
-		monNodes = allNodes;
-	}
-	drawMenu(allNodes);
-
-
-}
-// Update menu
-function drawMenu(menuList){
-	let li = "";
-	for(const n of menuList){
-		li = li.concat(`<li class="nav-item">
-						<a href="#" onclick="changeNodeListSingle(${n})" class="nav-link">
-							<svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img"><use xlink:href="#node"/></svg>
-                           	${n} 
-						</a>
-                    </li>`);
-	}
-	document.getElementById("asl-node-navigation").innerHTML = li;
-}
 
 // Update the dashboard
 function updateStatusDashboard(){

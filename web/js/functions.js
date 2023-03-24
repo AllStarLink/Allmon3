@@ -33,29 +33,20 @@ function toHMS(totalSeconds) {
 }
 
 // Generic AJAX function
-function XHRRequest(label, method, url, action){
-	let xmlhttp = new XMLHttpRequest();
-	xmlhttp.onreadystatechange = function () {
-		if( this.readyState == 4 && this.status == 200 ){
-			action(this.responseText);
-		} else if( this.readyState == 4 && this.status != 200 ){
-			console.log("Failed to execute " + label)
-		}
-
+async function getAPIJSON(url){
+	let response = await fetch(url);
+	if(response.ok){
+		return await response.json();
+	} else {
+		console.log(`getAPIJSON error status ${response.status} ${response.statusText}`);
+		return false;
 	}
-	xmlhttp.open(method, url, true);
-	xmlhttp.send();
 }
 
 
 // Check Logon Status
-function checkLogonStatus(){
-	XHRRequest("checkLogonStatus", "GET", "api/session-check.php", logonButtonToggle);	
-}
-
-// Draw the logon/logout buttons
-function logonButtonToggle(res){
-	let sessionStatus = JSON.parse(res);
+async function checkLogonStatus(){
+	let sessionStatus = await getAPIJSON("api/session-check.php")
 	let loginRegion = document.getElementById("login-out-region");
 	if(sessionStatus["SUCCESS"]){
 		loginRegion.innerHTML = `
@@ -80,4 +71,27 @@ function logonButtonToggle(res){
 		loginRegion.innerHTML = "ERROR";
 		loggedIn = false;
 	}
+}
+
+
+// Generate and Draw Menus
+async function createSidebarMenu(){
+	let customMenu = await getAPIJSON("api/uiconfig.php?e=custmenu");
+	let navMenu = "";
+
+	if(!customMenu["ERROR"]){
+		navMenu.concat(`fart`);
+	} else {
+		let allNodes = await getAPIJSON("api/uiconfig.php?e=nodelist");
+		for(const n of allNodes){
+        navMenu = navMenu.concat(`
+			<li class="nav-item">
+				<a href="#" onclick="changeNodeListSingle(${n})" class="nav-link">
+					${n}
+				</a>
+			</li>`);
+		}
+	}	
+
+	document.getElementById("asl-node-navigation").innerHTML = navMenu;
 }
