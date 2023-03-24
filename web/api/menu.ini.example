@@ -30,6 +30,9 @@
 ;									:: specified. Any other pattern will be interpreted
 ;									:: as a full or partial URL/URI.
 ;
+; Note that the order of the nodes within a stanza is irrelevant. They will be displayed
+; as sorted alphabestically ascending according to UTF-8 (e.g. 0-9, A-Z, +).
+;
 ; Here's an example menu
 ;	[ W8WKY ]
 ;	type = menu
