@@ -105,6 +105,7 @@ function getLinkCommandModalForm(node){
 					<option value="rpt cmd ${node} ilink 2">Connect - Monitor Only</option>
 					<option value="rpt cmd ${node} ilink 13">Connect Permanent</option>
 					<option value="rpt cmd ${node} ilink 12">Connect Permanent - Monitor Only</option>
+					<option value="rpt cmd ${node} ilink 11">Disconnect Permanent</option>
 					<option value="rpt cmd ${node} ilink 8">Local Monitor</option>
 					<option value="rpt cmd ${node} ilink 18">Local Monitor Permanent</option>
 				</select>
