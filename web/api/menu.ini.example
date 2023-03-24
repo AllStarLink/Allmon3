@@ -29,21 +29,22 @@
 ;									:: the link will filter down to the TARGET node
 ;									:: specified. Any other pattern will be interpreted
 ;									:: as a full or partial URL/URI.
-
-[ W8WKY ]
-type = menu
-W8WKY = 43211
-48496 = 48496
-45839 = 45839
-
-[ N8XPK ]
-type = menu
-N8XPK = 42993
-43118 = 43118
-47987 = 47987
-
-[ Test ]
-type = single
-SARA = https://w8wky.org
-
-
+;
+; Here's an example menu
+;	[ W8WKY ]
+;	type = menu
+;	W8WKY = 43211
+;	48496 = 48496
+;	45839 = 45839
+;	
+;	[ N8XPK ]
+;	type = menu
+;	N8XPK = 42993
+;	43118 = 43118
+;	47987 = 47987
+;	
+;	[ Test ]
+;	type = single
+;	SARA = https://w8wky.org
+;	
+;	

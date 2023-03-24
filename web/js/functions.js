@@ -80,16 +80,48 @@ async function createSidebarMenu(){
 	let navMenu = "";
 
 	if(!customMenu["ERROR"]){
-		navMenu.concat(`fart`);
+
+		navMenu = navMenu.concat(`<div class="vstack gap-2 col-md-5 mx-auto">`);
+		for(let dd of Object.keys(customMenu)){
+			if(customMenu[dd]["type"] === "menu"){
+				navMenu = navMenu.concat(`
+					<div class="btn-group">
+						<button class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">${dd}</button>
+						<div class="dropdown-menu">`);
+					for(let ml of Object.keys(customMenu[dd])){
+						if( ml !== "type" ){
+							if(customMenu[dd][ml].match(/^[0-9]+$/)){
+								let nn = customMenu[dd][ml];
+								navMenu = navMenu.concat(`<a class="dropdown-item" href="#" onclick="changeNodeListSingle(${nn})">${ml}</a>`);
+							} else {
+								let href = customMenu[dd][ml];
+								navMenu = navMenu.concat(`<a class="dropdown-item" href="${href}" target="_blank">${ml}</a>`);
+							}
+						}
+					}
+				navMenu = navMenu.concat(`
+						</div>
+					</div>`);
+			} else if(customMenu[dd]["type"] === "single"){
+				for(let ml of Object.keys(customMenu[dd])){
+					if( ml !== "type" ){
+						let href = customMenu[dd][ml];
+						navMenu = navMenu.concat(`
+							<div class="btn-group">
+								<a href="${href}" class="btn btn-primary" role="button">${ml}</a>
+							</div>`);
+					}
+				}
+			}
+		}
+		navMenu = navMenu.concat(`</div>`);
 	} else {
 		let allNodes = await getAPIJSON("api/uiconfig.php?e=nodelist");
 		for(const n of allNodes){
         navMenu = navMenu.concat(`
-			<li class="nav-item">
-				<a href="#" onclick="changeNodeListSingle(${n})" class="nav-link">
-					${n}
-				</a>
-			</li>`);
+			<div class="btn-group">
+				<a href="#" class="btn btn-primary" role="button" onclick="changeNodeListSingle(${n})">${n}</a>
+			</div>`);
 		}
 	}	
 
