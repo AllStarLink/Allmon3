@@ -271,7 +271,7 @@ function nodeConnTable(conns, keyed, keyednode) {
 			}
 
 			row = row.concat(`
-			<tr class="${rowclass}">
+			<tr class="${rowclass}" onclick="nodeCmdShortcut(${x})">
 				<th scope="row">${x}</td>
 				<td>${c.DESC}</td>
 				<td>${lastXmit}</td>

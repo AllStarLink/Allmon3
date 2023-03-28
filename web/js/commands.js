@@ -9,6 +9,11 @@
  */
 
 //
+// command-specific globals
+//
+var cmdShortcut = "";
+
+//
 // General Send Command
 //
 async function sendCommand(node, cmdStr) {
@@ -100,7 +105,7 @@ function getLinkCommandModalForm(node){
 				<label for="cmf-link-node-num">Node #</label>
 			</div>
 			<div class="col-8">
-				<input id="cmf-link-node-num" name="cmf-link-node-num" class="form-control" type="text">
+				<input id="cmf-link-node-num" name="cmf-link-node-num" class="form-control" type="text" value="${cmdShortcut}">
 			</div>
 		</div>
 		<div class="row mb-2 align-middle">
@@ -187,4 +192,13 @@ function buildCLICommandModalCmd(node){
 function executeNodeCLICmd(node){
 	let command = document.getElementById("cmf-cmd-node-cmd").value;
 	sendCommand(node, `${command}`);	
+}
+
+
+//
+// Command Interface Hooks
+//
+
+function nodeCmdShortcut(node){
+	cmdShortcut = node;
 }
