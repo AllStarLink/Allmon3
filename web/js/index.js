@@ -199,10 +199,10 @@ function nodeConnTable(conns, keyed, keyednode) {
 		<th scope="col">Node</th>
 		<th scope="col">Description</th>
 		<th scope="col">Last Recv</th>
-		<th scope="col">Conn Time</th>
-		<th scope="col">Direction</th>
-		<th scope="col">Connect State</th>
-		<th scope="col">Mode</th>
+		<th scope="col" class="d-none d-md-table-cell">Conn Time</th>
+		<th scope="col" class="d-none d-md-table-cell">Direction</th>
+		<th scope="col" class="d-none d-md-table-cell">Connect State</th>
+		<th scope="col" class="d-none d-md-table-cell">Mode</th>
 	</tr>
 </thead>
 <tbody class="table-group-divider">
@@ -285,10 +285,10 @@ function nodeConnTable(conns, keyed, keyednode) {
 				<th scope="row">${x}</td>
 				<td>${c.DESC}</td>
 				<td>${lastXmit}</td>
-				<td>${c.CTIME}</td>
-				<td>${c.DIR}</td>
-				<td>${c.CSTATE}</td>
-				<td>${c.MODE}</td>
+				<td class="d-none d-md-table-cell">${c.CTIME}</td>
+				<td class="d-none d-md-table-cell">${c.DIR}</td>
+				<td class="d-none d-md-table-cell">${c.CSTATE}</td>
+				<td class="d-none d-md-table-cell">${c.MODE}</td>
 			</tr>`);
 		}
 	} else {
