@@ -152,7 +152,7 @@ function nodeEntry(nodeid, nodeinfo){
 // Draw/update the header row for a node
 function nodeLineHeader(nodeNumber, nodeDescription){
 	let nodeLineHeaderStr = `
-        <div id="node-line-header-${nodeNumber}" class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-1 px-2 mt-1 mb-3 border-bottom shadow nodeline-header">
+        <div id="node-line-header-${nodeNumber}" class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-1 px-2 mt-1 mb-1 border-bottom nodeline-header rounded">
             <span id="asl-statmon-dashboard-${nodeNumber}-header-desc" class="align-middle">${nodeNumber} - ${nodeDescription}</span>
             <div class="btn-toolbar mb-2 mb-md-0">
                 <div class="btn-group me-2">
@@ -192,6 +192,7 @@ function nodeLineHeader(nodeNumber, nodeDescription){
 // Draw/update the node tables
 function nodeConnTable(conns, keyed, keyednode) {
 	var tTop = `
+<div class="px-3">
 <table class="table table-responsive table-bordered table-hover">
 <thead class="table-dark">
 	<tr>
@@ -207,7 +208,7 @@ function nodeConnTable(conns, keyed, keyednode) {
 <tbody class="table-group-divider">
 `;
 
-	var tBottom = `</tbody></table>`;
+	var tBottom = `</tbody></table></div>`;
 	var row = "";
 	if(Object.keys(conns).length > 0){
 
