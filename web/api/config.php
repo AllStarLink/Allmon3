@@ -19,9 +19,9 @@ $CONFIG_HEADER_TITLE = "Allmon3 Monitoring Dashboard";
 # CONFIG_LOGO_IMG appears aligned right in the top-right corner
 # of the page. The max height of this image should be 50px. If
 # you do not want a logo to appear, leave this entry as an
-# empty string "". Image file is relative to the img/ subdirectory
-# of Allmon3
-$CONFIG_HEADER_LOGO = "circle.png";
+# empty string "" and the ASL logo will be display. Image 
+# file is relative to the img/ subdirectory of Allmon3
+$CONFIG_HEADER_LOGO = "";
 
 
 #####                                        #####

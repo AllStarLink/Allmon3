@@ -46,9 +46,14 @@ body {
 }
 
 .navbar-midbar {
-	color: var(--am3-navbar-color);
+	color: var(--am3-navbar-color); 
 	font-size: 1.2em;
 	font-weight: bold;
+}
+
+.header-banner-img {
+	max-height: 50px;
+	width: auto;
 }
 
 /*** Node Connections Display ***/

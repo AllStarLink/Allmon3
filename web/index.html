@@ -55,16 +55,13 @@
 	</symbol>
 </svg>
 
-<header class="navbar navbar-dark sticky-top flex-md-nowrap p-0 shadow">
-  <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6" href="#"><img src="img/asl-banner-logo.png">&nbsp;Allmon v3</a> <!--configparam name -->
+<header class="navbar navbar-dark sticky-top flex-md-nowrap p-0">
+  <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6" href="#"><img id="header-banner-img" class="header-banner-img" src="img/asl-banner-logo.png"></a> <!--configparam name -->
   <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
-  <div id="navbar-midbar" class="navbar-midbar"></div>
-  <div class="navbar-nav">
-    <div class="nav-item text-nowrap">
-    </div>
-  </div>
+  <div id="navbar-midbar" class="navbar-midbar d-none d-sm-block"></div>
+  <div id="navbar-right" class="navbar-right"></div>
 </header>
 
 <!-- Begin Login Modal -->
@@ -168,7 +165,9 @@
 				<div id="login-out-region"></div>
 				<hr>
 				<div class="text-center text-wrap">
-					<p style="color:red"><b>DEVELOPMENT BUILD<br>20230324-01</b></p>
+					<img src="img/asl-sidebar-logo.png"><br>
+					<b>Allmon v3</b><br>
+					<span style="color:red"><b>DEVELOPMENT BUILD<br>20230324-01</b></span>
 				</div>
 			</div>
 		</nav>

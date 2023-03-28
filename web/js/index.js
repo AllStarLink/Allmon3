@@ -38,23 +38,20 @@ window.addEventListener("load", function(){
 
 // Get the configs
 function uiConfigs(){
-	//XHRRequest("customizeUI", "api/uiconfig.php?e=customize", customizeUI);
+	customizeUI();
 	createSidebarMenu();
 	checkLogonStatus();
 
 }
 
 // Update Customizations
-/*
-function customizeUI(customize){
-	var customElements = JSON.parse(customize);
+async function customizeUI(customize){
+	let customElements = await getAPIJSON("api/uiconfig.php?e=customize");
 	document.getElementById("navbar-midbar").innerHTML = customElements.HEADER_TITLE;
 	if( customElements.HEADER_LOGO !== "" ){
-		img = `<img src="img/${customElements.HEADER_LOGO}">`;
-		document.getElementById("navbar-custlogo").innerHTML = img;
+		document.getElementById("header-banner-img").src = `img/${customElements.HEADER_LOGO}`;
 	}
 };
-*/
 
 // Update the dashboard
 function updateStatusDashboard(){
