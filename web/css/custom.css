@@ -1,0 +1,28 @@
+/**
+ **
+ ** Customize the colors of Allmon3
+ **
+ ** All colors use the rgba() function 
+ ** Read more at https://www.w3schools.com/cssref/func_rgba.php
+ ** on how to use rgba.
+ **
+ **/ 
+
+:root{
+
+	/* Background of the top navbar */
+	--am3-navbar-background: rgba(0, 0, 0, 1); */
+
+	/* Text/Foreground color of the top navbar */
+	--am3-navbar-color: rgba(255, 255, 255, 1);
+
+	/* Background of the node titlebar */
+	--am3-nodetitle-background: rgba(24, 92, 145, 1);
+
+	/* Text/Forground color of the node titlebar */
+	--am3-nodetitle-color: rgba(255, 255, 255, 1);
+	
+	/* Button highlight color of buttons in the node titlebar */
+	--am3-nodetitle-button-hl: rgba(145, 24, 92, 1);	
+
+}

@@ -16,6 +16,6 @@ $(DESTDIR)/usr/local/etc/%:	%
 .PHONY: web
 web:
 	-test ! -d $(DESTDIR)/var/www/html/allmon3 && mkdir -p $(DESTDIR)/var/www/html/allmon3
-	rsync -av --exclude "api/passwords.php" web/* $(DESTDIR)/var/www/html/allmon3/
+	rsync -av --exclude "api/passwords.php" --exclude "css/custom.css" web/* $(DESTDIR)/var/www/html/allmon3/
 	-test ! -f $(DESTDIR)/var/www/html/allmon3/api/passwords.php && \
 		install -m 0644 web/api/passwords.php $(DESTDIR)/var/www/html/allmon3/api/passwords.php

@@ -120,7 +120,7 @@ function nodeEntry(nodeid, nodeinfo){
 
 	if(node.ERROR){
 		divHeader.innerHTML = nodeLineHeader(nodeid, "Unavailable Node")
-		divTxStat.innerHTML = `<div class="alert alert-danger mx-3 py-0"><b>Node Response Error - Node disabled<b> <button class="btn btn-danger" style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .5rem;" onclick="reAddNode(${nodeid})">Reload Node</button></div>`;
+		divTxStat.innerHTML = `<div class="alert alert-danger am3-alert-error mx-3 py-0"><b>Node Response Error - Node disabled<b> <button class="btn btn-danger" style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .5rem;" onclick="reAddNode(${nodeid})">Reload Node</button></div>`;
 		divConntable.innerHTML = "";
 		const i = monNodes.indexOf(nodeid);
 		if( i > -1 ){
@@ -132,15 +132,15 @@ function nodeEntry(nodeid, nodeinfo){
 
 		// update the tx line
 		if(node.RXKEYED === true && node.TXKEYED === true ){	
-			divTxStat.innerHTML = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
+			divTxStat.innerHTML = "<div class=\"alert alert-warning am3-alert-keyed mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
 		} else if( node.RXKEYED === true && node.TXEKEYED === false && node.TXEKEYED === false ){
-			divTxStat.innerHTML = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
+			divTxStat.innerHTML = "<div class=\"alert alert-warning am3-alert-keyed mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
 		} else if( node.CONNKEYED === true && node.TXKEYED === true && node.RXKEYED === false ){
-			divTxStat.innerHTML = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Network Source</div>";
+			divTxStat.innerHTML = "<div class=\"alert alert-warning am3-alert-keyed mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Network Source</div>";
 		} else if( node.TXKEYED === true && node.RXKEYED === false && node.CONNKEYED === false ){
-			divTxStat.innerHTML = "<div class=\"alert alert-warning mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Telemetry/Playback</div>";
+			divTxStat.innerHTML = "<div class=\"alert alert-warning am3-alert-keyed mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Telemetry/Playback</div>";
 		} else {
-			divTxStat.innerHTML = "<div class=\"alert alert-success mx-3 py-0 nodetxline nodetxline-unkeyed\">Transmit - Idle</div>";
+			divTxStat.innerHTML = "<div class=\"alert alert-success am3-alert-idle mx-3 py-0 nodetxline nodetxline-unkeyed\">Transmit - Idle</div>";
 		}
 
 		// update the connection table	
@@ -156,29 +156,29 @@ function nodeLineHeader(nodeNumber, nodeDescription){
             <span id="asl-statmon-dashboard-${nodeNumber}-header-desc" class="align-middle">${nodeNumber} - ${nodeDescription}</span>
             <div class="btn-toolbar mb-2 mb-md-0">
                 <div class="btn-group me-2">
-                    <a id="btn-bubble-${nodeNumber}" class="btn btn-sm btn-outline-secondary"
+                    <a id="btn-bubble-${nodeNumber}" class="btn btn-sm btn-outline-secondary node-bi"
 						data-bs-toggle="tooltip" data-bs-title="View ASL Node Map for this node" data-bs-placement="bottom"
 						href="http://stats.allstarlink.org/stats/${nodeNumber}/networkMap" target="_blank">
-                        <svg class="bi flex-shrink-0" width="16" height="16" role="img" aria-label="Network Map ${nodeNumber}">
+                        <svg class="node-bi flex-shrink-0" width="16" height="16" role="img" aria-label="Network Map ${nodeNumber}">
                             <use xlink:href="#bubble-chart"/>
                         </svg>
                     </a>
-                    <a class="btn btn-sm btn-outline-secondary"
+                    <a class="btn btn-sm btn-outline-secondary node-bi"
 					data-bs-toggle="tooltip" data-bs-title="View ASL Stats for this node" data-bs-placement="bottom"
 					href="http://stats.allstarlink.org/stats/${nodeNumber}/" target="_blank">
-                        <svg class="bi flex-shrink-0" width="16" height="16" role="img" aria-label="Node Details ${nodeNumber}">
+                        <svg class="node-bi flex-shrink-0" width="16" height="16" role="img" aria-label="Node Details ${nodeNumber}">
                             <use xlink:href="#details"/>
                         </svg>
                     </a>
-                   <button class="btn btn-sm btn-outline-secondary" onclick="openCmdModalLink(${nodeNumber})"
+                   <button class="btn btn-sm btn-outline-secondary node-bi" onclick="openCmdModalLink(${nodeNumber})"
 						data-bs-toggle="tooltip" data-bs-title="Execute linking commands for this node" data-bs-placement="bottom">
-                        <svg class="bi flex-shrink-0" width="16" height="16" role="img" aria-label="Manage Node ${nodeNumber}">
+                        <svg class="node-bi flex-shrink-0" width="16" height="16" role="img" aria-label="Manage Node ${nodeNumber}">
                             <use xlink:href="#link-45"/>
                         </svg>
                     </button>
-                   <button class="btn btn-sm btn-outline-secondary" onclick="openCmdModalCLI(${nodeNumber})"
+                   <button class="btn btn-sm btn-outline-secondary node-bi" onclick="openCmdModalCLI(${nodeNumber})"
 						data-bs-toggle="tooltip" data-bs-title="Execute system commands for this node" data-bs-placement="bottom">
-                        <svg class="bi flex-shrink-0" width="16" height="16" role="img" aria-label="Manage Node ${nodeNumber}">
+                        <svg class="node-bi flex-shrink-0" width="16" height="16" role="img" aria-label="Manage Node ${nodeNumber}">
                             <use xlink:href="#settings"/>
                         </svg>
                    </button>

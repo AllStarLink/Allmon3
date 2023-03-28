@@ -10,13 +10,6 @@ body {
   height: 100%;
 }
 
-/* Header */
-.navbar-midbar {
-	color: white;
-	font-size: 1.2em;
-	font-weight: bold;
-}
-
 /*
  * Sidebar
  */
@@ -39,11 +32,12 @@ body {
 /*
 
 /***  Navbar ***/
+.navbar-dark {
+	background-color: var(--am3-navbar-background);
+}
 .navbar-brand {
   padding-top: .75rem;
   padding-bottom: .75rem;
-  background-color: rgba(0, 0, 0, .25);
-  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
 }
 
 .navbar .navbar-toggler {
@@ -51,10 +45,18 @@ body {
   right: 1rem;
 }
 
+.navbar-midbar {
+	color: var(--am3-navbar-color);
+	font-size: 1.2em;
+	font-weight: bold;
+}
+
 /*** Node Connections Display ***/
 .nodeline-header {
-  background-color: rgb(168, 198, 217);
+  background-color: var(--am3-nodetitle-background);
+  color: var(--am3-nodetitle-color);
   font-size: 1.2em;
+  font-weight: bolder;
 }
 
 .nodeline-tooltip {
@@ -70,10 +72,14 @@ body {
 	background-color: lightyellow;
 }
 
-/*** Icon ***/
-.bi {
+.node-bi {
   vertical-align: -.125em;
-  color: #000000;
+  color: var(--am3-nodetitle-color);
+  text-decoration-color: var(--am3-nodetitle-color);
+  --bs-btn-border-color: var(--am3-nodetitle-color);
+  --bs-btn-hover-bg: var(--am3-nodetitle-button-hl);
+  --bs-btn-hover-color: var(--am3-nodetitle-color);
+  --bs-btn-hover-border-color: var(--am3-nodetitle-color);
 }
 
 .table-responsive {
@@ -89,4 +95,5 @@ body {
 .login-form-failure-header {
 	color: red;
 }
+
 
