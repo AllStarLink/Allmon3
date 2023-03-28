@@ -33,6 +33,7 @@ window.addEventListener("load", function(){
 	}
 	uiConfigs();
 	updateStatusDashboardIntervalID = setInterval(updateStatusDashboard, 1000);
+	setInterval(checkLogonStatus, 900000);	// 15m
 });
 
 
