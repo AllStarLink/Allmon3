@@ -32,7 +32,7 @@ function toHMS(totalSeconds) {
   return `${zeroPad(hours)}:${zeroPad(minutes)}:${zeroPad(seconds)}`;
 }
 
-// Generic AJAX function
+// Generic AJAX functions
 async function getAPIJSON(url){
 	let response = await fetch(url);
 	if(response.ok){
@@ -41,6 +41,18 @@ async function getAPIJSON(url){
 		console.log(`getAPIJSON error status ${response.status} ${response.statusText}`);
 		return false;
 	}
+}
+
+async function postAPIForm(url, form){
+	const formData = new URLSearchParams(form);
+	let response = await fetch(url, { method: "post", body: formData });
+	if(response.ok){
+		return await response.json();
+	} else {
+		console.log(`postAPIForm error status ${response.stats} ${response.statusText}`);
+		return false;
+	}
+
 }
 
 

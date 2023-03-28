@@ -11,43 +11,27 @@
 //
 // General Send Command
 //
-function sendCommand(node, cmdStr) {
+async function sendCommand(node, cmdStr) {
 	const cmdForm = new FormData();
 	cmdForm.append('node', node);
 	cmdForm.append('cmd', cmdStr);
-	const xmlhttp = new XMLHttpRequest();
-	const url = "api/asl-cmdlink.php"
-	xmlhttp.onreadystatechange = function () {
-	if( this.readyState == 4 && this.status == 200 ){
-		const cmdout = JSON.parse(this.responseText);
-		displayCommandResults(cmdout);
-	} else if( this.readyState == 4 && this.status != 200 ){
-		console.log("HTTP error sending command");
-		}
-	};
-	xmlhttp.open("POST", url, true);
-	xmlhttp.send(cmdForm);
-}
 
-//
-// Command Results
-//
-function displayCommandResults(output){
+	let cmdout = await postAPIForm("api/asl-cmdlink.php", cmdForm);
 	let res = "";
-	if( output["SUCCESS"] ){
-		let out = atob(output["SUCCESS"]);
+	if( cmdout["SUCCESS"] ){
+		let out = atob(cmdout["SUCCESS"]);
 		res = `
 			<div class="alert alert-success" role="alert">Command Successful</div>
 			<pre>${out}<pre>
 		`;
-	} else if ( output["SECURITY"] ){
-		let out = output["SECURITY"];
+	} else if ( cmdout["SECURITY"] ){
+		let out = cmdout["SECURITY"];
 		res = `
             <div class="alert alert-danger" role="alert">Security Error</div>
             <pre>${out}<pre>
         `;
 	} else {
-		let out = atob(output["ERROR"]);
+		let out = atob(cmdout["ERROR"]);
 		res = `
 			<div class="alert alert-danger" role="alert">Command Error</div>
 			<pre>${out}<pre>

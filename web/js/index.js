@@ -87,18 +87,10 @@ function updateStatusDashboard(){
 	}
 
 	for(const n of monNodes){
-		var xmlhttp = new XMLHttpRequest();
-		var url = `api/asl-statmon.php?node=${n}`;
-		xmlhttp.onreadystatechange = function () {
-			if( this.readyState == 4 && this.status == 200 ){
-				nodeEntry(n, this.responseText);
-			} else if( this.readyState == 4 && this.status != 200 ){
-				console.log("Failed to get dashboard update")
-			}
-	
-		}
-		xmlhttp.open("GET", url, true);
-		xmlhttp.send();
+		getAPIJSON(`api/asl-statmon.php?node=${n}`)
+			.then((result) => {
+				nodeEntry(n, result);
+		});
 	}
 }
 
@@ -113,7 +105,7 @@ function nodeEntry(nodeid, nodeinfo){
 	const headerDescSpan = document.getElementById(`asl-statmon-dashboard-${nodeid}-header-desc`);
 	const divTxStat = document.getElementById(`asl-statmon-dashboard-${nodeid}-txstat`);
 	const divConntable = document.getElementById(`asl-statmon-dashboard-${nodeid}-conntable`);
-	const node = JSON.parse(nodeinfo);
+	const node = nodeinfo;
 
 	if(node.ERROR){
 		divHeader.innerHTML = nodeLineHeader(nodeid, "Unavailable Node")
@@ -334,26 +326,10 @@ function changeNodeListSingle(newNode){
 
 var originalLoginBox = "";
 
-function doLogin(){
-	var form = new FormData(document.getElementById("loginBox"));
-	var xmlhttp = new XMLHttpRequest();
-	var url = "api/session-handler.php";
-	xmlhttp.onreadystatechange = function () {
-		if( this.readyState == 4 && this.status == 200 ){
-			doLoginDisplayUpdates(this.responseText);
-		}
-	};
-	xmlhttp.open("POST", url, true);
-	xmlhttp.send(form);
-}
-
-//
-// Updates to logon box
-//
-function doLoginDisplayUpdates(res){
+async function doLogin(){
+	let loginResponse = await postAPIForm("api/session-handler.php", new FormData(document.getElementById("loginBox")));
 	originalLoginBox = document.getElementById("loginModal").innerHTML;
-	const a = JSON.parse(res);
-	if( a["SUCCESS"] ){
+	if( loginResponse["SUCCESS"] ){
 		document.getElementById("login-modal-body").innerHTML = `
 <div class="login-form-success">
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-square-fill" viewBox="0 0 16 16">
@@ -389,26 +365,10 @@ function clearLogin(){
 
 var originalLogoutBox = "";
 
-function doLogout(){
-	var form = new FormData(document.getElementById("logoutBox"));
-	var xmlhttp = new XMLHttpRequest();
-	var url = "api/session-handler.php";
-	xmlhttp.onreadystatechange = function () {
-		if( this.readyState == 4 && this.status == 200 ){
-			doLogoutDisplayUpdates(this.responseText);
-		}
-	};
-	xmlhttp.open("POST", url, true);
-	xmlhttp.send(form);
-}
-
-//
-// Updates to logout box
-//
-function doLogoutDisplayUpdates(res){
+async function doLogout(){
+    let logoutResponse = await postAPIForm("api/session-handler.php", new FormData(document.getElementById("logoutBox")));
 	originalLogoutBox = document.getElementById("logoutModal").innerHTML;
-	const a = JSON.parse(res);
-	if( a["SUCCESS"] ){
+	if( logoutResponse["SUCCESS"] ){
 		document.getElementById("logout-modal-body").innerHTML = `
 <div class="login-form-success">
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-square-fill" viewBox="0 0 16 16">
