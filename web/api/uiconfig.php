@@ -19,7 +19,7 @@ if(defined('STDIN')){
     if(array_key_exists(1,$argv)){
         $CMD = $argv[1];
     } else {
-        print "asl-statmon.php ELEMENT\n";
+        print "uiconfig.php ELEMENT [NODE]\n";
         exit(1);
     }
 } else {
@@ -40,7 +40,25 @@ switch($CMD){
 	case 'nodelist':
 		print_r(getAllNodesJSON($allmon_cfg));
 		break;
-	
+
+	case 'pollint':
+		if(defined('STDIN')){
+			if(array_key_exists(2, $argv)){
+				$NODE = $argv[2];
+			} else {
+				print "uiconfig.php pollint [NODE]\n";
+				exit(1);
+			}
+		} else {
+			$NODE = getGetVar("n");
+		}
+		if(array_key_exists("webpinterval", $allmon_cfg[$NODE])){
+			print(getJSONSuccess($allmon_cfg[$NODE]["webpinterval"]));
+		} else {
+			print(getJSONSuccess($DEFAULT_WEB_POLL_INTERVAL));
+		}
+		break;
+		
 	# Get the customization variables
 	case 'customize':
 		$customize = array(

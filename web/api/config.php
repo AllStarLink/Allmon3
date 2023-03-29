@@ -23,6 +23,7 @@ $CONFIG_HEADER_TITLE = "Allmon3 Monitoring Dashboard";
 # file is relative to the img/ subdirectory of Allmon3
 $CONFIG_HEADER_LOGO = "";
 
+$DEFAULT_WEB_POLL_INTERVAL = 1;
 
 #####                                        #####
 ##### WARNING - THESE ARE INTERNAL VARIABLES #####
