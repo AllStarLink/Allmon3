@@ -19,3 +19,6 @@ web:
 	rsync -av --exclude "api/passwords.php" --exclude "css/custom.css" web/* $(DESTDIR)/var/www/html/allmon3/
 	-test ! -f $(DESTDIR)/var/www/html/allmon3/api/passwords.php && \
 		install -m 0644 web/api/passwords.php $(DESTDIR)/var/www/html/allmon3/api/passwords.php
+	-test ! -f $(DESTDIR)/var/www/html/allmon3/css/custom.css && \
+		install -m 0644 web/css/custom.css $(DESTDIR)/var/www/html/allmon3/css/custom.css
+
