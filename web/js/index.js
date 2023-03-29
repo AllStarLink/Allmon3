@@ -12,30 +12,50 @@
 //
 // Global Variables
 //
-var updateStatusDashboardIntervalID = 0;	// ID for the setInterval() of the dashboard
 var monNodes = [ ];			// node(s) to monitor in Array
+var nodeIntervalIds = new Map();
+var nodeWebPollIntervals = new Map();
 var loggedIn = false;
 var tooltipTriggerList;
 var tooltipList;
 
-// Things to do when the page loads
-window.addEventListener("load", function(){
-
-	// was this called with n=NODELIST
-	var nodeParam = findGetParameter("n");
-	if( nodeParam ){
-		monNodes = nodeParam.split(",");
-	} else {
-		getAPIJSON("api/uiconfig.php?e=nodelist")
-			.then((result) => {
-				monNodes = result;
-			});
+// Hook on the documnet complete load
+document.onreadystatechange = () => {
+	if(document.readyState === "complete") {
+		// was this called with n=NODELIST
+		var nodeParam = findGetParameter("n");
+		if( nodeParam ){
+			monNodes = nodeParam.split(",");
+			startup();
+		} else {
+			getAPIJSON("api/uiconfig.php?e=nodelist")
+				.then((result) => {
+					monNodes = result;
+					startup();
+				});
+		}
 	}
-	uiConfigs();
-	updateStatusDashboardIntervalID = setInterval(updateStatusDashboard, 1000);
-	setInterval(checkLogonStatus, 900000);	// 15m
-});
+};
 
+// Things to do when the page loads
+function startup(){
+	uiConfigs();
+	updateDashboardAreaStructure();
+	setInterval(checkLogonStatus, 900000);
+
+	// setup the initial polling intervals
+	for(const n of monNodes){
+		pollNode(n);
+		getAPIJSON(`api/uiconfig.php?e=pollint&n=${n}`).then((result) => {
+			if(result["SUCCESS"]){
+				const interval = Number(result["SUCCESS"]) * 1000;
+				nodeWebPollIntervals.set(n, interval);
+				const i = window.setInterval(pollNode, interval, n);
+				nodeIntervalIds.set(n, i);
+			}
+		});
+	}
+}
 
 // Get the configs
 function uiConfigs(){
@@ -46,7 +66,7 @@ function uiConfigs(){
 }
 
 // Update Customizations
-async function customizeUI(customize){
+async function customizeUI(){
 	let customElements = await getAPIJSON("api/uiconfig.php?e=customize");
 	document.getElementById("navbar-midbar").innerHTML = customElements.HEADER_TITLE;
 	if( customElements.HEADER_LOGO !== "" ){
@@ -55,7 +75,7 @@ async function customizeUI(customize){
 };
 
 // Update the dashboard
-function updateStatusDashboard(){
+function updateDashboardAreaStructure(){
 	const dashArea = document.getElementById("asl-statmon-dashboard-area");
 	let dashUpdates = false;
 	for(const n of monNodes){
@@ -86,13 +106,13 @@ function updateStatusDashboard(){
 		tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
 		tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 	}
+}
 
-	for(const n of monNodes){
-		getAPIJSON(`api/asl-statmon.php?node=${n}`)
-			.then((result) => {
-				nodeEntry(n, result);
-		});
-	}
+function pollNode(n){
+	getAPIJSON(`api/asl-statmon.php?node=${n}`)
+		.then((result) => {
+			nodeEntry(n, result);
+	});
 }
 
 // Re-add node to the monNodes list
@@ -292,27 +312,38 @@ function nodeConnTable(conns, keyed, keyednode) {
 // Change the list of nodes to the provided []
 //
 function changeNodeList(newNodeList){
-	window.clearInterval(updateStatusDashboardIntervalID);
+
+	for( let [k,v] of nodeIntervalIds.entries()){
+		window.clearInterval(v);
+	}
+	nodeIntervalIds.clear();
 	document.getElementById("asl-statmon-dashboard-area").innerHTML = "";
 	monNodes = newNodeList;
+
+	// redraw the dashboard page area
+	updateDashboardAreaStructure();
+	tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+	tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
+	// modify the parameters and history
 	let nodeParam = "";
-	for(let n of monNodes){
+	for(const n of monNodes){
 		if(nodeParam.length == 0){
 			nodeParam = nodeParam.concat(n);
 		} else {
 			nodeParam = nodeParam.concat("," + n);
 		}
 	}
-
-	// refresh the tooltips
-	tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-	tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-
-	// modify the browser URL/history
 	let currentURL = new URL(window.location);
 	currentURL.searchParams.set("n", nodeParam);
 	window.history.pushState({}, "", currentURL);
-	updateStatusDashboardIntervalID = setInterval(updateStatusDashboard, 1000);
+
+    // setup the polling intervals
+    for(const n of monNodes){
+        pollNode(n);
+        const i = window.setInterval(pollNode, nodeWebPollIntervals.get(n), n);
+        nodeIntervalIds.set(n, i);
+    }
 }
 
 //
