@@ -241,9 +241,11 @@ def parse_xstat(curr_node, response):
 			for link in l.split(","):
 				link = rens.sub("", link)			
 				link = renol.sub("", link)
-				if re.match(r"^[A-Z][0-9]+", link):
-					ns = re.search(r'^([A-Z])([0-9]+)', link)
+				log.debug(link)
+				if re.match(r"^[A-Z]\S+", link):
+					ns = re.search(r'^([A-Z])(\S+)', link)
 					if ns.group(2) in node_conns:
+						log.debug(ns.group(1))
 						if ns.group(1) == "T":
 							node_conns[ns.group(2)].update( { "MODE" : "Transceive" } )
 						elif ns.group(1) == "R":
