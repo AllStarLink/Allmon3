@@ -43,7 +43,7 @@ async function sendCommand(node, cmdStr) {
 		`;
 	}
 
-	document.getElementById("command-modal-body").innerHTML = res;
+	document.getElementById("cmd-output").innerHTML = res;
 }
 
 //
@@ -78,60 +78,92 @@ function openCmdModalCLI(node){
 //
 function getLinkCommandModalForm(node){
 	return `
-<div class="container-fluid">
-	<form id="command-modal-form">
-		<div class="row mb-2 align-items-center">
-			<div class="col-4 fw-bolder text-end">
+<div id="cmd-link-cmd" class="container">
+	<form id="command-modal-form" class="needs-validation" novalidate>
+		<div class="row row-cols-3 g-3">
+			<div class="col fw-bolder">
 				<label for="cmf-link-node-cmd">Command</label>
 			</div>
-			<div class="col-8">
-				<select id="cmf-link-node-cmd" name="cmf-link-node-cmd" class="form-select"
-						aria-label="Connect Disconnect command">
-					<option selected>Choose a command</option>
-					<option value="rpt cmd ${node} ilink 3">Connect</option>
-					<option value="rpt cmd ${node} ilink 1">Disconnect</option>
-					<option value="rpt cmd ${node} ilink 2">Monitor</option>
-					<option value="rpt cmd ${node} ilink 8">Local Monitor</option>
-					<option value="rpt cmd ${node} ilink 6">Disconnect All</option>
-				</select>
-			</div>
-		</div>
-		<div class="row mb-2 align-items-center">
-			<div class="col-4 fw-bolder text-end">
-				<label for="cmf-link-perm-checkbox">Permanent</label>
-			</div>
-			<div class="col-8">
-                                <input type="checkbox" id="cmf-link-perm-checkbox" name="cmf-link-perm-checkbox">
-			</div>
-		</div>
-		<div class="row mb-2 align-items-center">
-			<div class="col-4 fw-bolder text-end">
+				<div class="col fw-bolder">
 				<label for="cmf-link-node-num">Node #</label>
 			</div>
-			<div class="col-8">
-				<input id="cmf-link-node-num" name="cmf-link-node-num" class="form-control" type="text" value="${cmdShortcut}">
+			<div class="col fw-bolder">
+				<label for="cmf-link-node-perm" class="form-check-label">Permanent</label>
 			</div>
-		</div>
-		<div class="row mb-2 align-middle">
-			<div class="col-4">
+			<div class="col">
+				<select id="cmf-link-node-cmd" name="cmf-link-node-cmd" class="form-select"
+						aria-label="Connect Disconnect command" required>
+					<option selected disabled value="">Choose a command</option>
+					<option value="3">Connect</option>
+					<option value="1">Disconnect</option>
+					<option value="2">Monitor</option>
+					<option value="8">Local Monitor</option>
+					<option value="6">Disconnect All</option>
+				</select>
+				<div class="invalid-feedback">
+					Select a command
+				</div>
 			</div>
-			<div class="col-8">
+			<div class="col">
+				<input id="cmf-link-node-num" name="cmf-link-node-num" class="form-control" 
+					type="text" value="${cmdShortcut}" required>
+				<div class="invalid-feedback">
+					Enter a node
+				</div>
+			</div>
+			<div class="col">
+				<select id="cmf-link-node-perm" name="cmf-link-node-perm" class="form-select" 
+					arial-label="permanent link" required>
+					<option value="no" selected>No</option>
+					<option value="yes" >Yes</option>
+				<select>
+			</div>
+			<div class="col">
 				<button type="button" class="btn btn-secondary" onclick="executeNodeLinkCmd(${node})">Execute</button>
 			</div>
 		</div>
 	<form>
 </div>
-
+<div id="cmd-output" class="container my-2"></div>
 `;
 }
 
 function executeNodeLinkCmd(node){
-	let command = document.getElementById("cmf-link-node-cmd").value;
-	let linknode = document.getElementById("cmf-link-node-num").value;
+	let formReady = true;
+	let cmfCmd = document.getElementById("cmf-link-node-cmd");
+	let cmfNode = document.getElementById("cmf-link-node-num");
+	let permFlag = document.getElementById("cmf-link-node-perm").value;
+	
+	if(cmfCmd.checkValidity()){
+		cmfCmd.classList.remove("is-invalid");
+		cmfCmd.classList.add("is-valid");
+	} else {
+		cmfCmd.classList.remove("is-valid");
+		cmfCmd.classList.add("is-invalid");
+		return null;
+	}
+	let command = Number(cmfCmd.value);
+
+	if( command == 1 || command == 2 || command == 3 || command == 8 ){
+		if(cmfNode.checkValidity()){
+			cmfNode.classList.remove("is-invalid");
+			cmfNode.classList.add("is-valid");
+		} else {
+			cmfNode.classList.remove("is-valid");
+			cmfNode.classList.add("is-invalid");
+			return null;
+		}
+	
+		if(permFlag === "yes")
+			command += 10;
+	}
+	let linknode = cmfNode.value;
+
 	if(linknode === ""){
 		linknode = "0";
 	}
-	sendCommand(node, `${command} ${linknode}`);	
+
+	sendCommand(node, `rpt cmd ${node} ilink ${command} ${linknode}`);	
 }
 
 //
@@ -139,16 +171,16 @@ function executeNodeLinkCmd(node){
 //
 function getCLICommandModalForm(node){
 	return `
-<div class="container-fluid">
-	<form id="command-modal-form">
-		<div class="row mb-2 align-items-center">
+<div id="cmd-exec-cmd" class="container">
+	<form id="command-modal-form" class="needs-validation" novalidate>
+		<div class="row justify-content-start d-flex align-items-center mb-2">
 			<div class="col-4 fw-bolder text-end">
 				<label for="cmf-cmd-node-select">Command Template</label>
 			</div>
 			<div class="col-8">
                 <select id="cmf-cmd-node-select" name="cmf-cmd-node-select"
-						class="form-select" aria-label="system command" onchange="buildCLICommandModalCmd()">
-                    <option selected>Choose a command</option>
+						class="form-select" aria-label="system command" onchange="buildCLICommandModalCmd()" required>
+                    <option selected disabled value="">Choose a command</option>
                     <option value="rpt stats ${node}">Show Node Status</option>
                     <option value="core show uptime">Show Uptime</option>
                     <option value="iax2 show registry">Show IAX Registry</option>
@@ -160,30 +192,29 @@ function getCLICommandModalForm(node){
 				</select>
 			</div>
 		</div>
-		<div class="row mb-2 align-items-center">
+		<div class="row justify-content-start d-flex align-items-center mb-2">
 			<div class="col-4 fw-bolder text-end">
-				<label for="cmf-cmd-node-cmd">Custom Command</label>
+				<label for="cmf-cmd-node-cmd">Command</label>
 			</div>
 			<div class="col-8">
-				<input id="cmf-cmd-node-cmd" type="text" size="100" class="from-control" readonly>
+				<input id="cmf-cmd-node-cmd" type="text" class="form-control" readonly required>
 			</div>
 		</div>
-		<div class="row mb-2 align-middle">
-			<div class="col-4">
-			</div>
-			<div class="col-8">
+		<div class="row justify-content-start">
+			<div class="col-4 text-end">
 				<button type="button" class="btn btn-secondary" onclick="executeNodeCLICmd(${node})">Execute</button>
 			</div>
 		</div>
 	<form>
 </div>
-
+<div id="cmd-output" class="container my-2"></div>
 `;
 }
 
 function buildCLICommandModalCmd(node){
 	let cmfSel = document.getElementById("cmf-cmd-node-select");
 	let cmfCmd = document.getElementById("cmf-cmd-node-cmd");
+
 	if(cmfSel.value === "custom"){
 		cmfCmd.value = "";
 		cmfCmd.readOnly = false;
@@ -194,8 +225,28 @@ function buildCLICommandModalCmd(node){
 }
 
 function executeNodeCLICmd(node){
-	let command = document.getElementById("cmf-cmd-node-cmd").value;
-	sendCommand(node, `${command}`);	
+	let cmfSel = document.getElementById("cmf-cmd-node-select");
+	let cmfCmd = document.getElementById("cmf-cmd-node-cmd");
+
+	if(cmfSel.checkValidity()){
+		cmfSel.classList.remove("is-invalid");
+		cmfSel.classList.add("is-valid");
+	} else {
+		cmfSel.classList.remove("is-valid");
+		cmfSel.classList.add("is-invalid");
+		return null;
+	}
+
+	if(cmfCmd.checkValidity()){
+		cmfCmd.classList.remove("is-invalid");
+		cmfCmd.classList.add("is-valid");
+	} else {
+		cmfCmd.classList.remove("is-valid");
+		cmfCmd.classList.add("is-invalid");
+		return null;
+	}
+
+	sendCommand(node, `${cmfCmd.value}`);	
 }
 
 
