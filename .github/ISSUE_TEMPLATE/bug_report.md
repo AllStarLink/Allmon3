@@ -24,7 +24,7 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Version Info**
-If this is a web issue, list the "Build ID" at the bottom of the main index page. If this is a backend issue, list the version of the application from the --verson command (e.g. `asl-statmon --version`) 
+If this is a web issue, list the "Version" or "Build ID" from the main page (on the left under the menu). If this is a backend issue, list the version of the application from the --verson command (e.g. `asl-statmon --version`) 
 
 **Additional context**
 Add any other context about the problem here.
