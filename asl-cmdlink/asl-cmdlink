@@ -385,10 +385,22 @@ try:
 		# re-enable the innter loop processing	
 		inner_loop = True
 
+		# Close and recreate the ZMQ listener
+		log.info("Recreating ZMQ listener after connection reset")
+		cmdqueue.close();
+		c_context = zmq.Context()
+		cmdqueue = c_context.socket(zmq.REP)
+		cmdqueue.bind("tcp://*:%d" % (ZMQ_PORT))
+
 	# return back to the top of main_loop
 
 except Exception as e:
 	log.error(e)
+	main_loop = False
+	raise e
+
+except zmq.error.ZMQError as e:
+	log.error("unable to create ZeroMQ listener: %s", e )
 	main_loop = False
 	raise e
 
