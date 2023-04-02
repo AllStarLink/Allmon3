@@ -90,14 +90,18 @@ function getLinkCommandModalForm(node){
 					<option selected>Choose a command</option>
 					<option value="rpt cmd ${node} ilink 3">Connect</option>
 					<option value="rpt cmd ${node} ilink 1">Disconnect</option>
-					<option value="rpt cmd ${node} ilink 6">Disconnect All</option>
-					<option value="rpt cmd ${node} ilink 2">Connect - Monitor Only</option>
-					<option value="rpt cmd ${node} ilink 13">Connect Permanent</option>
-					<option value="rpt cmd ${node} ilink 12">Connect Permanent - Monitor Only</option>
-					<option value="rpt cmd ${node} ilink 11">Disconnect Permanent</option>
+					<option value="rpt cmd ${node} ilink 2">Monitor</option>
 					<option value="rpt cmd ${node} ilink 8">Local Monitor</option>
-					<option value="rpt cmd ${node} ilink 18">Local Monitor Permanent</option>
+					<option value="rpt cmd ${node} ilink 6">Disconnect All</option>
 				</select>
+			</div>
+		</div>
+		<div class="row mb-2 align-items-center">
+			<div class="col-4 fw-bolder text-end">
+				<label for="cmf-link-perm-checkbox">Permanent</label>
+			</div>
+			<div class="col-8">
+                                <input type="checkbox" id="cmf-link-perm-checkbox" name="cmf-link-perm-checkbox">
 			</div>
 		</div>
 		<div class="row mb-2 align-items-center">
