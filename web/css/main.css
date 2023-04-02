@@ -91,6 +91,12 @@ body {
 	font-size: 1em;
 }
 
+.table-dark {
+	--bs-table-color: var(--am3-conntable-header-text);
+	--bs-table-bg: var(--am3-conntable-header-bg);
+	--bs-table-border-color: var(--am3-conntable-border-color);
+}
+
 /*** Modal ***/
 .login-form-success {
 	color: green;
