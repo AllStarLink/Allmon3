@@ -5,6 +5,32 @@
  **
  **/
 
+:root{
+        /* Background of the top navbar */
+        --am3-navbar-background: rgba(0, 0, 0, 1);
+
+        /* Text/Foreground color of the top navbar */
+        --am3-navbar-color: rgba(255, 255, 255, 1);
+
+        /* Background of the node titlebar */
+        --am3-nodetitle-background: rgba(24, 92, 145, 1);
+
+        /* Text/Forground color of the node titlebar */
+        --am3-nodetitle-color: rgba(255, 255, 255, 1);
+
+        /* Button highlight color of buttons in the node titlebar */
+        --am3-nodetitle-button-hl: rgba(145, 24, 92, 1);
+
+        /* Node connection table header background color */
+        --am3-conntable-header-text: rgba(255, 255, 255, 1);
+
+        /* Node connection table header text color */
+        --am3-conntable-header-bg: rgba(33, 37, 41, 1);
+
+        /* Node connection table border color */
+        --am3-conntable-border-color: rgba(55, 59, 62, 1);
+}
+
 body {
   font-size: .875rem;
   height: 100%;
