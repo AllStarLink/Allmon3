@@ -11,7 +11,7 @@ rewritten for performance, scalability, and responsiveness.
 ## Design Goals
 Allmon3 features and functionality shall be governed by the following guidelines:
 
-* Use of modern web responsive design for usability on all device form factors
+* Use of modern web responsive design for usability on all device form factors and screen sizes
 * Clear separation between long-running tasks and client-based display updates
 * Permit reduced workload on potentially slow repeater site links by cleanly supporting the ability to run only the pollers on the device controlling the repeater and run the dashaboard in the cloud; easy prevention of unnecessary web traffic, spidering, etc.
 * Prioritization of the common use cases of AllStarLink for feature enhancements
@@ -30,7 +30,7 @@ Allmon3 requires the following:
 * Python3 with the Python ZMQ package
 
 ## Installation
-These are *alpha* quality installation instructions. Eventually the plan is this
+These are *beta quality* installation instructions. Eventually the plan is this
 will be an installable package. At the moment, these are Debian-specific and 
 assume you already know how to install a webserver with PHP support.
 
@@ -42,7 +42,11 @@ make install
 ```
 
 This will install everything into `/etc`, `/usr/local/bin`, `/usr/local/etc`,
-and `/var/www/html/allmon3`. The `DESTDIR=` modifier is available if you want
+and `/var/www/html/allmon3`. Note that `/var/www/html/allmon3/api/passwords.php` 
+and `/var/www/html/allmon3/css/custom.css` **will not** be overwritten. In the
+current beta state, make sure to hand-update these two files as needed.
+
+The `DESTDIR=` modifier is available if you want
 to install monolithically into a seaprate location. For example:
 
 ```
@@ -100,10 +104,11 @@ cmdport=6852
 Note, that for the web interface a separate, distinct configuration file
 can be placed in the webroot under the api folder 
 (e.g. `/var/www/html/allmon3/api/allmon3.ini.php`)
-which will be used *in place of* the common `/usr/local/etc/allmon3.ini`. No
-configuration is need to use a web-local configuration and the .ini format
-is identical. Please note that the file in the web directory ends in `.ini.php` as 
-a security feature to ensure that the credentials are not exposed to the Internet.
+which will be used *in place of* the common `/usr/local/etc/allmon3.ini`
+for the website only. No configuration is need to use a web-local configuration 
+when the .ini configuration/contents is identical. Please note that the file
+in the web directory ends in `.ini.php` as  a security feature to ensure 
+that the AMI credentials are not exposed to the Internet.
 
 5. Navigate to the website provided by the server at /allmon3/
 and hopefully stuff will Just Work(SM)
@@ -111,7 +116,7 @@ and hopefully stuff will Just Work(SM)
 ## Usernames / Passwords for the Site
 Usernames and passwords are stored in the `api/passwords.php` file in
 the webroot directory for Allmon3. The default-configured username
-and password combination is `user / password`. You *must* change this.
+and password combination is `user / password`. **You *must* change this**.
 
 Set a password and remove the default user with the following:
 
@@ -154,6 +159,19 @@ After making this change you should see something like:
 Note that the trailing comma is important!!
 
 You can add more than one user to the file by simply adding multiple lines.
+
+## Allmon3 Web Configuration
+
+Allmon3 has two configuration files to consider. The first is `api/config.php`. This
+is where the site name and optional logo can be placed. In a future release, these
+two items will be moved to an .ini file.
+
+The second is `api/menu.ini` for creating a customized menu structure. See `api/menu.ini.example`
+for complete instructions on how to configure a menu. To enable a menu, simply
+rename `menu.ini.example` to `menu.ini` and edit to taste.
+
+Certain colors are able to be modified by editing `css/custom.css`. See the internal comments
+for directions.
 
 ## Important Web Log Performance Consideration
 
