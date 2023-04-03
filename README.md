@@ -155,6 +155,30 @@ Note that the trailing comma is important!!
 
 You can add more than one user to the file by simply adding multiple lines.
 
+## Important Web Log Performance Consideration
+
+As a "modern" web application, Allmon3 makes *extensive* use of AJAX callbacks
+to the webserver. Depending on your configuration this could results in dozens
+or hundreds of log entries per second in the Apache or NGINX access logs. While
+for a normal system (normal hard drive or a virtual machine/VPS), this is not 
+a problem. However, as many people install ASL and Allmon on a Raspberry Pi with
+an SD Card, this behavior can quickly wear out the card! In these situations, suppressing
+access logging from the `api/asl-statmon.php` URI is essential.
+
+For Apache you can take the following steps:
+
+1. For every configuration location of `AccessLog` or `CustomLog` append
+the statement `env=!nolog`.
+
+2. Add a single configuration of `SetEnvIf Request_URI "api/asl-statmon.php" nolog`
+
+For example, in a standard vhost-style configuration:
+
+```
+CustomLog ${APACHE_LOG_DIR}/access.log combined env=!nolog
+SetEnvIf Request_URI "api/asl-statmon.php" nolog
+```
+
 ## Three-Tier Structure
 Allmon3 is organized around a tierd structure: Asterisk AMI, stats monitor (asl-statmon), 
 and the website. In order to reduce webserver load see in Allmon2 (especially for systems 
@@ -166,17 +190,4 @@ polling of many nodes running on the same Asterisk server to be efficient.
 
 A generalized architecture is as follows:
 
-```
- +---------------+                     +--------------+
- |  Asterisk ASL |                     | asl-statmon  |
- |  Node 1234    | <---- TCP/5038 ---- | Node 1234    | <-            
- |  192.0.2.10   |                     | 203.0.113.20 |   \ TCP/6750  +--------------+ 
- +---------------+                     +--------------+    \          | Webserver    |
-                                                           +----------| 203.0.113.20 | --== MANY CLIENTS
- +---------------+                     +--------------+    /          | PHP + ZMQ    |
- |  Asterisk ASL |                     | asl-statmon  |   / TCP/6751  +--------------+
- |  Node 2345    | <---- TCP/5038 ---- | Node 2345    | <-
- |  192.51.100.1 |                     | 203.0.113.20 |
- +---------------+                     +--------------+
-```
 
