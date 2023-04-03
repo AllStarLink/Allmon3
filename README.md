@@ -177,8 +177,8 @@ for directions.
 
 As a "modern" web application, Allmon3 makes *extensive* use of AJAX callbacks
 to the webserver. Depending on your configuration this could results in dozens
-or hundreds of log entries per second in the Apache or NGINX access logs. While
-for a normal system (normal hard drive or a virtual machine/VPS), this is not 
+or hundreds of log entries per second in the Apache or NGINX access logs. For 
+a standard PC-type system (normal hard drive or a virtual machine/VPS), this is not 
 a problem. However, as many people install ASL and Allmon on a Raspberry Pi with
 an SD Card, this behavior can quickly wear out the card! In these situations, suppressing
 access logging from the `api/asl-statmon.php` URI is essential.
@@ -198,13 +198,16 @@ SetEnvIf Request_URI "api/asl-statmon.php" nolog
 ```
 
 ## Three-Tier Structure
-Allmon3 is organized around a tierd structure: Asterisk AMI, stats monitor (asl-statmon), 
-and the website. In order to reduce webserver load see in Allmon2 (especially for systems 
-using workers with php-fpm) and on Asterisk AMI calls, one asl-statmon process operates
-as a [0MQ Messaging Publisher](https://www.zeromq.org/) polling AMI one time and distributing
-the information to many web clients efficiently. It also allows for interesting things
-such as different views and abstractions of clusters of Asterisk servers and it permits
-polling of many nodes running on the same Asterisk server to be efficient.
+Allmon3 is organized around a tierd structure: Asterisk AMI, message poller daemons (asl-statmon
+and asl-cmdlink), and the web client. In order to reduce webserver and Asterisk AMI load experience
+in Allmon2 (especially for systems using workers with php-fpm) and on Asterisk AMI calls, 
+one asl-statmon and asl-cmdlink process oprates against each Asterisk AMI port as a 
+[0MQ Messaging Publisher](https://www.zeromq.org/) messaging bus. This results in 
+polling AMI one time per cycle and distributing the information to many web clients 
+efficiently. It also allows for interesting things such as different views and abstractions 
+of clusters of Asterisk servers and it permits polling of many nodes running on the same
+Asterisk server to be efficient. This structure results in load reductions against busy
+nodes of up to 91% in real-world testing.
 
 A generalized architecture is as follows:
 
