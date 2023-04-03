@@ -44,6 +44,11 @@ async function sendCommand(node, cmdStr) {
 	}
 
 	document.getElementById("cmd-output").innerHTML = res;
+
+    // toggle the buttons
+    document.getElementById("cmd-exec-btn").style.display = "inline-block";
+    document.getElementById("cmd-exec-spinner").style.display = "none";
+	document.getElementById("cmd-exec-close").style.display = "inline-block";
 }
 
 //
@@ -119,7 +124,12 @@ function getLinkCommandModalForm(node){
 				<select>
 			</div>
 			<div class="col">
-				<button type="button" class="btn btn-secondary" onclick="executeNodeLinkCmd(${node})">Execute</button>
+				<button id="cmd-exec-btn" type="button" class="btn btn-secondary" onclick="executeNodeLinkCmd(${node})">
+					Execute
+				</button>
+				<div id="cmd-exec-spinner" class="spinner-grow text-secondary" style="display:none" role="status">
+					<span class="visually-hidden">Executing...</span>
+				</div>
 			</div>
 		</div>
 	<form>
@@ -129,6 +139,8 @@ function getLinkCommandModalForm(node){
 }
 
 function executeNodeLinkCmd(node){
+
+	// execute the form
 	let formReady = true;
 	let cmfCmd = document.getElementById("cmf-link-node-cmd");
 	let cmfNode = document.getElementById("cmf-link-node-num");
@@ -162,6 +174,11 @@ function executeNodeLinkCmd(node){
 	if(linknode === ""){
 		linknode = "0";
 	}
+
+	// toggle the buttons
+	document.getElementById("cmd-exec-btn").style.display = "none";
+	document.getElementById("cmd-exec-spinner").style.display = "inline-block";
+	document.getElementById("cmd-exec-close").style.display = "none";
 
 	sendCommand(node, `rpt cmd ${node} ilink ${command} ${linknode}`);	
 }
@@ -202,7 +219,12 @@ function getCLICommandModalForm(node){
 		</div>
 		<div class="row justify-content-start">
 			<div class="col-4 text-end">
-				<button type="button" class="btn btn-secondary" onclick="executeNodeCLICmd(${node})">Execute</button>
+				<button id="cmd-exec-btn" type="button" class="btn btn-secondary" onclick="executeNodeCLICmd(${node})">
+					Execute
+				</button>
+				<div id="cmd-exec-spinner" class="spinner-grow text-secondary" style="display:none" role="status">
+					<span class="visually-hidden">Executing...</span>
+				</div>
 			</div>
 		</div>
 	<form>
@@ -245,6 +267,13 @@ function executeNodeCLICmd(node){
 		cmfCmd.classList.add("is-invalid");
 		return null;
 	}
+
+
+	// toggle the buttons
+	document.getElementById("cmd-exec-btn").style.display = "none";
+	document.getElementById("cmd-exec-spinner").style.display = "inline-block";
+	document.getElementById("cmd-exec-close").style.display = "none";
+
 
 	sendCommand(node, `${cmfCmd.value}`);	
 }
