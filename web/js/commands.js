@@ -36,7 +36,7 @@ async function sendCommand(node, cmdStr) {
             <pre>${out}<pre>
         `;
 	} else {
-		let out = atob(cmdout["ERROR"]);
+		let out = cmdout["ERROR"];
 		res = `
 			<div class="alert alert-danger" role="alert">Command Error</div>
 			<pre>${out}<pre>

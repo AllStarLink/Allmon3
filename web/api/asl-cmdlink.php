@@ -7,7 +7,7 @@
 
 require_once("functions.php");
 require_once("config.php");
-require_once("session-handler.php");
+#require_once("session-handler.php");
 
 if(strcmp(php_sapi_name(),"cli") != 0){
 	header('Content-Type: application/json');
@@ -80,6 +80,7 @@ $c->connect ($zmq_dsn);
 
 $retries_left = CONFIG_ZMQ_CMD_RETRIES;
 while($retries_left){
+	
 	$c->send($cmd);
 
 	$poll = new ZMQPoll();
@@ -90,14 +91,19 @@ while($retries_left){
 		$msg = $c->recv();
 		break;
 	} elseif(--$retries_left == 0) {
-		print(getJSONError("no response from server; retries exhausted"));
+		print(getJSONError("no response from server - retries exhausted"));
 	} else {
 		// try creating a new socket
 		$c = zmq_client_socket(ZMQ::SOCKET_REQ);
 		sleep(CONFIG_ZMQ_CMD_RETRY_INTERVAL);
 	}
 }
-$c->disconnect($zmq_dsn);
+
+try{
+	$c->disconnect($zmq_dsn);
+} catch( Exception $e){
+	# do nothing	
+}
 
 if($msg){
 	if(preg_match('/^OK\:/', $msg)){
