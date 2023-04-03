@@ -190,4 +190,4 @@ polling of many nodes running on the same Asterisk server to be efficient.
 
 A generalized architecture is as follows:
 
-
+![Allmon3 Diagram](https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/.github/Allmon3%20Tier.jpg)
