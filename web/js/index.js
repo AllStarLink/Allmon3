@@ -13,12 +13,13 @@
 // Global Variables
 //
 var monNodes = [ ];			// node(s) to monitor in Array
-var nodeIntervalIds = new Map();
 var nodeWebPollIntervals = new Map();
 var nodePollErrors = new Map();
 var loggedIn = false;
 var tooltipTriggerList;
 var tooltipList;
+
+const max_poll_errors = 10;
 
 // Hook on the documnet complete load
 document.onreadystatechange = () => {
@@ -51,8 +52,7 @@ function startup(){
 			if(result["SUCCESS"]){
 				const interval = Number(result["SUCCESS"]) * 1000;
 				nodeWebPollIntervals.set(n, interval);
-				const i = window.setInterval(pollNode, interval, n);
-				nodeIntervalIds.set(n, i);
+				pollNode(n);
 				nodePollErrors[n] = 0;
 			}
 		});
@@ -110,62 +110,78 @@ function updateDashboardAreaStructure(){
 	}
 }
 
-function pollNode(n){
-	getAPIJSON(`api/asl-statmon.php?node=${n}`)
-		.then((result) => {
+async function pollNode(n){
+	let response = await fetch(`api/asl-statmon.php?node=${n}`);
+	if(response.ok){
+		const result = await response.json();
+		if(result["ERROR"]){
+			console.log(result["ERROR"]);
+			nodePollErrors[n] =  nodePollErrors[n] + 1;
+		} else {
+			nodePollErrors[n] = 0;
 			nodeEntry(n, result);
-	});
+		}
+	} else {
+		console.log(response);
+		nodePollErrors[n] =  nodePollErrors[n] + 1;
+	}
+
+	if( nodePollErrors[n] < max_poll_errors ){
+		const interval = nodeWebPollIntervals[n];
+		setTimeout(pollNode, interval, n);
+	} else {
+		nodeEntrySetError(n);
+	}
 }
 
 // Re-add node to the monNodes list
 function reAddNode(n){
+	nodePollErrors[n] = 0;
 	monNodes.push(n);
+	pollNode(n);
 }
 
 // Each node
 function nodeEntry(nodeid, nodeinfo){
+	const node = nodeinfo;
+	const divTxStat = document.getElementById(`asl-statmon-dashboard-${nodeid}-txstat`);
+	const divConntable = document.getElementById(`asl-statmon-dashboard-${nodeid}-conntable`);
+	const headerDescSpan = document.getElementById(`asl-statmon-dashboard-${nodeid}-header-desc`);
+
+	// update the description line
+	headerDescSpan.innerHTML = `${nodeid} - ${node.DESC}`;	
+
+	// update the tx line
+	if(node.RXKEYED === true && node.TXKEYED === true ){	
+		divTxStat.innerHTML = "<div class=\"alert alert-warning am3-alert-keyed mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
+	} else if( node.RXKEYED === true && node.TXEKEYED === false && node.TXEKEYED === false ){
+		divTxStat.innerHTML = "<div class=\"alert alert-warning am3-alert-keyed mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
+	} else if( node.CONNKEYED === true && node.TXKEYED === true && node.RXKEYED === false ){
+		divTxStat.innerHTML = "<div class=\"alert alert-warning am3-alert-keyed mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Network Source</div>";
+	} else if( node.TXKEYED === true && node.RXKEYED === false && node.CONNKEYED === false ){
+		divTxStat.innerHTML = "<div class=\"alert alert-warning am3-alert-keyed mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Telemetry/Playback</div>";
+	} else {
+		divTxStat.innerHTML = "<div class=\"alert alert-success am3-alert-idle mx-3 py-0 nodetxline nodetxline-unkeyed\">Transmit - Idle</div>";
+	}
+
+	// update the connection table	
+	divConntable.innerHTML = nodeConnTable(node.CONNS, node.CONNKEYED, node.CONNKEYEDNODE);
+}
+
+function nodeEntrySetError(nodeid){
 	const divHeader = document.getElementById(`asl-statmon-dashboard-${nodeid}-header`);
 	const divTxStat = document.getElementById(`asl-statmon-dashboard-${nodeid}-txstat`);
 	const divConntable = document.getElementById(`asl-statmon-dashboard-${nodeid}-conntable`);
-	const node = nodeinfo;
 
-	if(node.ERROR){
-		if( nodePollErrors[nodeid] > 10 ){
-			divHeader.innerHTML = nodeLineHeader(nodeid, "Unavailable Node")
-			divTxStat.innerHTML = `<div class="alert alert-danger am3-alert-error mx-3 py-0"><b>Node Response Error - Node disabled<b> <button class="btn btn-danger" style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .5rem;" onclick="reAddNode(${nodeid})">Reload Node</button></div>`;
-			divConntable.innerHTML = "";
-			const i = monNodes.indexOf(nodeid);
-			if( i > -1 ){
-				monNodes.splice(i, 1);
-			}
-		} else {
-			nodePollErrors[nodeid] = nodePollErrors[nodeid] + 1;
-		}
-	} else {
-		nodePollErrors[nodeid] = 0;
-		const headerDescSpan = document.getElementById(`asl-statmon-dashboard-${nodeid}-header-desc`);
+	divHeader.innerHTML = nodeLineHeader(nodeid, "Unavailable Node")
+	divTxStat.innerHTML = `<div class="alert alert-danger am3-alert-error mx-3 py-0"><b>Node Response Error - Node disabled<b> <button class="btn btn-danger" style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .5rem;" onclick="reAddNode(${nodeid})">Reload Node</button></div>`;
+	divConntable.innerHTML = "";
 
-		// update the description line
-		headerDescSpan.innerHTML = `${nodeid} - ${node.DESC}`;	
-
-		// update the tx line
-		if(node.RXKEYED === true && node.TXKEYED === true ){	
-			divTxStat.innerHTML = "<div class=\"alert alert-warning am3-alert-keyed mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
-		} else if( node.RXKEYED === true && node.TXEKEYED === false && node.TXEKEYED === false ){
-			divTxStat.innerHTML = "<div class=\"alert alert-warning am3-alert-keyed mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
-		} else if( node.CONNKEYED === true && node.TXKEYED === true && node.RXKEYED === false ){
-			divTxStat.innerHTML = "<div class=\"alert alert-warning am3-alert-keyed mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Network Source</div>";
-		} else if( node.TXKEYED === true && node.RXKEYED === false && node.CONNKEYED === false ){
-			divTxStat.innerHTML = "<div class=\"alert alert-warning am3-alert-keyed mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Telemetry/Playback</div>";
-		} else {
-			divTxStat.innerHTML = "<div class=\"alert alert-success am3-alert-idle mx-3 py-0 nodetxline nodetxline-unkeyed\">Transmit - Idle</div>";
-		}
-
-		// update the connection table	
-		divConntable.innerHTML = nodeConnTable(node.CONNS, node.CONNKEYED, node.CONNKEYEDNODE);
+	const i = monNodes.indexOf(nodeid);
+	if( i > -1 ){
+		monNodes.splice(i, 1);
 	}
 }
-
 
 // Draw/update the header row for a node
 function nodeLineHeader(nodeNumber, nodeDescription){
@@ -320,11 +336,6 @@ function nodeConnTable(conns, keyed, keyednode) {
 // Change the list of nodes to the provided []
 //
 function changeNodeList(newNodeList){
-
-	for( let [k,v] of nodeIntervalIds.entries()){
-		window.clearInterval(v);
-	}
-	nodeIntervalIds.clear();
 	document.getElementById("asl-statmon-dashboard-area").innerHTML = "";
 	monNodes = newNodeList;
 
@@ -349,8 +360,6 @@ function changeNodeList(newNodeList){
     // setup the polling intervals
     for(const n of monNodes){
         pollNode(n);
-        const i = window.setInterval(pollNode, nodeWebPollIntervals.get(n), n);
-        nodeIntervalIds.set(n, i);
     }
 }
 
