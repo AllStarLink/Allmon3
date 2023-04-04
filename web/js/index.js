@@ -15,6 +15,7 @@
 var monNodes = [ ];			// node(s) to monitor in Array
 var nodeIntervalIds = new Map();
 var nodeWebPollIntervals = new Map();
+var nodePollErrors = new Map();
 var loggedIn = false;
 var tooltipTriggerList;
 var tooltipList;
@@ -52,6 +53,7 @@ function startup(){
 				nodeWebPollIntervals.set(n, interval);
 				const i = window.setInterval(pollNode, interval, n);
 				nodeIntervalIds.set(n, i);
+				nodePollErrors[n] = 0;
 			}
 		});
 	}
@@ -123,20 +125,26 @@ function reAddNode(n){
 // Each node
 function nodeEntry(nodeid, nodeinfo){
 	const divHeader = document.getElementById(`asl-statmon-dashboard-${nodeid}-header`);
-	const headerDescSpan = document.getElementById(`asl-statmon-dashboard-${nodeid}-header-desc`);
 	const divTxStat = document.getElementById(`asl-statmon-dashboard-${nodeid}-txstat`);
 	const divConntable = document.getElementById(`asl-statmon-dashboard-${nodeid}-conntable`);
 	const node = nodeinfo;
 
 	if(node.ERROR){
-		divHeader.innerHTML = nodeLineHeader(nodeid, "Unavailable Node")
-		divTxStat.innerHTML = `<div class="alert alert-danger am3-alert-error mx-3 py-0"><b>Node Response Error - Node disabled<b> <button class="btn btn-danger" style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .5rem;" onclick="reAddNode(${nodeid})">Reload Node</button></div>`;
-		divConntable.innerHTML = "";
-		const i = monNodes.indexOf(nodeid);
-		if( i > -1 ){
-			monNodes.splice(i, 1);
+		if( nodePollErrors[nodeid] > 10 ){
+			divHeader.innerHTML = nodeLineHeader(nodeid, "Unavailable Node")
+			divTxStat.innerHTML = `<div class="alert alert-danger am3-alert-error mx-3 py-0"><b>Node Response Error - Node disabled<b> <button class="btn btn-danger" style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .5rem;" onclick="reAddNode(${nodeid})">Reload Node</button></div>`;
+			divConntable.innerHTML = "";
+			const i = monNodes.indexOf(nodeid);
+			if( i > -1 ){
+				monNodes.splice(i, 1);
+			}
+		} else {
+			nodePollErrors[nodeid] = nodePollErrors[nodeid] + 1;
 		}
 	} else {
+		nodePollErrors[nodeid] = 0;
+		const headerDescSpan = document.getElementById(`asl-statmon-dashboard-${nodeid}-header-desc`);
+
 		// update the description line
 		headerDescSpan.innerHTML = `${nodeid} - ${node.DESC}`;	
 
