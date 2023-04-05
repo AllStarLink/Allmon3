@@ -7,7 +7,7 @@
 
 require_once("functions.php");
 require_once("config.php");
-require_once("session-handler.php");
+//require_once("session-handler.php");
 
 if(strcmp(php_sapi_name(),"cli") != 0){
 	header('Content-Type: application/json');
@@ -50,23 +50,24 @@ if(! $allmon_cfg){
 	exit;
 }
 
-$z_port = getINIConfigVal($allmon_cfg, $ASL_NODE, "cmdport");
-if( $z_port == "" ){
-	$colocated = getINIConfigVal($allmon_cfg, $ASL_NODE, "colocated_on");
-	if( $colocated == "" ){
-		print(getJSONError("could not find cmdport= or colocated_on= for node " . $ASL_NODE));
-		exit;
-	} else {
-		$z_port = getINIConfigVal($allmon_cfg, $colocated, "cmdport");
+
+$colocated = getINIConfigVal($allmon_cfg, $ASL_NODE, "colocated_on");
+if($colocated == ""){
+	$z_host = getINIConfigVal($allmon_cfg, $ASL_NODE, "cmdip");
+	if( $z_host == "" ){
+		$z_host = "127.0.0.1";
 	}
+	$z_port = getINIConfigVal($allmon_cfg, $ASL_NODE, "cmdport");
+	$ASL_PASS = getINIConfigVal($allmon_cfg, $ASL_NODE, "pass");
+} else {
+    $z_host = getINIConfigVal($allmon_cfg, $colocated, "cmdip");
+    if( $z_host == "" ){
+        $z_host = "127.0.0.1";
+    }
+	 $z_port = getINIConfigVal($allmon_cfg, $colocated, "cmdport");
+	$ASL_PASS = getINIConfigVal($allmon_cfg, $colocated, "pass");
 }
 
-$z_host = getINIConfigVal($allmon_cfg, $ASL_NODE, "cmdip");
-if( $z_host == "" ){
-	$z_host = "127.0.0.1";
-}
-
-$ASL_PASS = getINIConfigVal($allmon_cfg, $ASL_NODE, "pass");
 if(!$ASL_PASS){
 	print(getJSONError("no pass= for node $ASLNODE"));
 	exit;
