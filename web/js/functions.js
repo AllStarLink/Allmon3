@@ -105,7 +105,7 @@ async function createSidebarMenu(){
 								navMenu = navMenu.concat(`<a class="dropdown-item" href="#" onclick="changeNodeListSingle(${nn})">${ml}</a>`);
 							} else {
 								let href = customMenu[dd][ml];
-								navMenu = navMenu.concat(`<a class="dropdown-item" href="${href}" target="_blank">${ml}</a>`);
+								navMenu = navMenu.concat(`<a class="dropdown-item" href="${href}">${ml}</a>`);
 							}
 						}
 					}
