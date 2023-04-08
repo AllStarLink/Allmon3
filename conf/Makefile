@@ -1,6 +1,6 @@
 sysconfdir ?= $(DESTDIR)/etc/allmon3
 
-CONF_FILES = $(wildcard *)
+CONF_FILES = $(filter-out Makefile, $(wildcard *))
 CONF_INSTALLABLES = $(patsubst %, $(sysconfdir)/%, $(CONF_FILES))
 
 INSTALLABLES = $(CONF_INSTALLABLES)
