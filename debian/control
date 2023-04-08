@@ -11,7 +11,7 @@ Rules-Requires-Root: no
 
 Package: allmon3
 Architecture: all
-Depends: apache2, python3-zmq, php-zmq
+Depends: apache2, python3-zmq, php-zmq, python3-argon2
 Description: Web monitoring interface for AllStarLink
   Allmon is the standard web-based montitoring 
   and management for the AllStarLink application.
