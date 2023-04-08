@@ -35,8 +35,20 @@ packaging and documentation assumes Apache.
 ## Installation
 
 ### Installation for Packages
+The following directions can be used to install with the Debian package
 
-TODO
+1. Install the prerequisites
+
+```
+apt install -y apache2 php7.4-fpm php-zmq python3-zmq make
+```
+
+2. Install Allmon3's deb file (use the correct .deb file name)
+```
+deb -i allmon3_0.9.2-1_all.deb
+```
+
+3. Skip the next section and resume directions at **Configuration**
 
 ### Installation from Git
 The following directions can be used to install from the Git sources.
@@ -101,27 +113,9 @@ For example:
 make install destdir=/path/to/temp/location
 ```
 
-3. Enable and start the services
-```
-systemctl daemon-reload
-systemctl enable asl-statmon@NODE
-systemctl enable asl-cmdlink@NODE
-systemctl start asl-statmon@NODE
-systemctl start asl-cmdlink@NODE
-```
+## Configuration
 
-In the above, replace "NODE" with your ASL node ID - for example:
-
-```
-systemctl enable asl-statmon@1999
-systemctl enable asl-cmdlink@1999
-systemctl start asl-statmon@1999
-systemctl start asl-cmdlink@1999
-```
-
-If you have multiple nodes, you need one each of `asl-statmon@NODE` and `asl-cmdlink@NODE` per node. Multiple nodes on the same syste should use the `multinodes=/colocated_on=` structure described in `allmon3.ini`.
-
-4. Edit `/etc/allmon3/allmon3.ini` for at least one ASL AMI interface. Each node
+Edit `/etc/allmon3/allmon3.ini` for at least one ASL AMI interface. Each node
 must have a separately-numbered `monport=` and `cmdport=` value. It's recommended
 to start with port 6750 for `monport` and 6850 for `cmdport`
  and count up from there for each node configured in the .ini file. 
@@ -150,15 +144,32 @@ monport=6752
 cmdport=6852
 ```
 
+Enable and start the services
+```
+systemctl daemon-reload
+systemctl enable asl-statmon@NODE
+systemctl enable asl-cmdlink@NODE
+systemctl start asl-statmon@NODE
+systemctl start asl-cmdlink@NODE
+```
+
+In the above, replace "NODE" with your ASL node ID - for example:
+
+```
+systemctl enable asl-statmon@1999
+systemctl enable asl-cmdlink@1999
+systemctl start asl-statmon@1999
+systemctl start asl-cmdlink@1999
+```
+
+If you have multiple nodes, you need one each of `asl-statmon@NODE` and `asl-cmdlink@NODE` per node. Multiple nodes on the same syste should use the `multinodes=/colocated_on=` structure described in `allmon3.ini`.
+
 Note, that for the web interface a separate, distinct configuration file
 can be placed in `/etc/allmon3/allmon3-web.ini`
 which will be used **in place of** the common `/etc/allmon3/allmon3.ini`
 for the website only. No configuration is need to use a web-specific
 configuration when `/etc/allmon3/allmon3.ini` and `/etc/allmon3/allmon3-web.ini`
 would have identical contents.
-
-5. Navigate to the website provided by the server at /allmon3/
-and hopefully stuff will Just Work(SM)
 
 ## Usernames / Passwords for the Site
 Usernames and passwords are stored in the `api/passwords.php` file in
@@ -223,8 +234,74 @@ for directions.
 ## Configuring Apache 
 
 ### Basic Application Configuration
+For best results, Apache should be configure according to these directions not based
+on historical configurations from Allmon3, Supermon, etc. These directions are for
+Debian-based systems. Due to widely varying web server configurations, the Debian
+package of allmon3 does not (yet?) try to enable itself within the webserver
+configuration.
 
-TODO
+1. If Apache2 is already installed, remove any Apache configuration for mod_php:
+
+```
+a2dismod php7.4
+a2dismodapt mpm_prefork
+a2enmod mpm_event
+apt remove libapache2-mod-php libapache2-mod-php7.4
+apt install apache2
+apt autoremove
+```
+
+Note that the extra `apt install apache2` fixes apache2 as a requested package
+which may not be the case depending on how it was already installed.
+
+2. Ensure that PHP-FPM is installed. On Debian-based systems do `apt install php7.4-fpm`
+(or use the correct version for your system, php7.4-fpm is for stock Debian 11).
+
+3. Enable PHP-FPM as the handler for PHP in apache with `a2enconf php7.4-fpm`
+
+4. Enable the proxy_fcgi module to hand off to PHP-FOM with `a2enmod proxy_fcgi`
+
+5. Edit `/etc/php/7.4/fpm/pool.d/www.conf` and set the following values:
+```
+pm = dynamic
+pm.max_children = 25
+pm.start_servers = 5
+pm.min_spare_servers = 5
+pm.max_spare_servers = 10
+pm.max_requests = 1000
+```
+
+6. Restart php-fpm with `systemctl restart php7.4-fpm`
+
+7. Edit `/etc/apache2/sites-available/000-default.conf` to look like the following:
+```
+<VirtualHost *:80>
+	ServerAdmin YOUREMAIL@ADDRESS
+	DocumentRoot /var/www/html
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+	CustomLog ${APACHE_LOG_DIR}/access.log combined env=!nolog
+	SetEnvIf Request_URI "api/asl-statmon.php" nolog
+</VirtualHost>
+```
+
+8. Execute `cp /etc/allmon3/apache.conf /etc/apache2/conf-available/allmon3.conf`
+
+9. Enable the Apache Allmon3 configuration: `a2enconf allmon3`
+
+10. Restart Apache: `systemctl restart apache2`
+
+11. If there is no other content at the root of the webserver Allmon3 is installed
+on, create `/var/www/html/index.html` with the following contents:
+
+```
+<html>
+	<head>
+		<meta http-equiv="Refresh" content="0; URL=/allmon3/" />
+	</head>
+</html>
+```
+
+This will direct people to the Allmon3 index directly.
 
 ### Important Web Log Performance Consideration
 
