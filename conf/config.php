@@ -23,7 +23,11 @@ $CONFIG_HEADER_TITLE = "Allmon3 Monitoring Dashboard";
 # file is relative to the img/ subdirectory of Allmon3
 $CONFIG_HEADER_LOGO = "";
 
+# Default time in seconds to poll
 $DEFAULT_WEB_POLL_INTERVAL = 1;
+
+# Location of the password table
+$USERS_TABLE_LOCATION = "/etc/allmon3/users";
 
 #####                                        #####
 ##### WARNING - THESE ARE INTERNAL VARIABLES #####
