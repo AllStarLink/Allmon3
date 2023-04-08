@@ -6,14 +6,15 @@ SYSDS = \
 	asl-cmdlink@.service 
 
 exec_prefix ?= /usr
+sysd_service ?= /lib/systemd/system
 	
 BINS_EXP = $(patsubst %, $(DESTDIR)$(exec_prefix)/bin/%, $(BINS))
-SYSDS_EXP = $(patsubst %, $(DESTDIR)/lib/systemd/system/%, $(SYSDS))
+SYSDS_EXP = $(patsubst %, $(DESTDIR)$(sysd_service)/%, $(SYSDS))
 
 install: $(BINS_EXP) $(SYSDS_EXP)
 
 $(DESTDIR)$(exec_prefix)/bin/%:	%
 	install -D -m 0755 $< $@
 
-$(DESTDIR)/lib/systemd/system/%:	%
+$(DESTDIR)$(sysd_service)/%:	%
 	install -D -m 0644 $< $@
