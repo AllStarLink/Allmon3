@@ -1,17 +1,19 @@
 BINS = \
 	asl-cmdlink \
-	asl-cmdlink-cli.py \
+	asl-cmdlink-cli \
 
 SYSDS = \
 	asl-cmdlink@.service 
+
+exec_prefix ?= /usr
 	
-BINS_EXP = $(patsubst %, $(DESTDIR)/usr/local/bin/%, $(BINS))
-SYSDS_EXP = $(patsubst %, $(DESTDIR)/etc/systemd/system/%, $(SYSDS))
+BINS_EXP = $(patsubst %, $(DESTDIR)$(exec_prefix)/bin/%, $(BINS))
+SYSDS_EXP = $(patsubst %, $(DESTDIR)/lib/systemd/system/%, $(SYSDS))
 
 install: $(BINS_EXP) $(SYSDS_EXP)
 
-$(DESTDIR)/usr/local/bin/%:	%
+$(DESTDIR)$(exec_prefix)/bin/%:	%
 	install -D -m 0755 $< $@
 
-$(DESTDIR)/etc/systemd/system/%:	%
+$(DESTDIR)/lib/systemd/system/%:	%
 	install -D -m 0644 $< $@
