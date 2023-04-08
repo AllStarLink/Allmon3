@@ -1,17 +1,20 @@
 BINS = \
 	asl-statmon \
-	asl-statmon-test-client.py \
+	asl-statmon-client \
 
 SYSDS = \
 	asl-statmon@.service 
+
+exec_prefix ?= /usr
+sysd_service ?= /lib/systemd/system
 	
-BINS_EXP = $(patsubst %, $(DESTDIR)/usr/local/bin/%, $(BINS))
-SYSDS_EXP = $(patsubst %, $(DESTDIR)/etc/systemd/system/%, $(SYSDS))
+BINS_EXP = $(patsubst %, $(DESTDIR)$(exec_prefix)/bin/%, $(BINS))
+SYSDS_EXP = $(patsubst %, $(DESTDIR)$(sysd_service)/%, $(SYSDS))
 
 install: $(BINS_EXP) $(SYSDS_EXP)
 
-$(DESTDIR)/usr/local/bin/%:	%
+$(DESTDIR)$(exec_prefix)/bin/%:	%
 	install -D -m 0755 $< $@
 
-$(DESTDIR)/etc/systemd/system/%:	%
+$(DESTDIR)$(sysd_service)/%:	%
 	install -D -m 0644 $< $@
