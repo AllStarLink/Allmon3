@@ -1,7 +1,6 @@
 BUILDABLES = \
-	asl-statmon \
-	asl-cmdlink \
 	doc \
+	src \
 	web
 
 instconf ?= yes
