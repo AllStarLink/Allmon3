@@ -1,24 +1,15 @@
 BUILDABLES = \
 	asl-statmon \
-	asl-cmdlink
+	asl-cmdlink \
+	web
 
 ETCS = \
 	allmon3.ini
 
-ETCS_EXP = $(patsubst %, $(DESTDIR)/usr/local/etc/%, $(ETCS))
+ETCS_EXP = $(patsubst %, $(DESTDIR)/etc/allmon3/%, $(ETCS))
 
-install: $(ETCS_EXP) web
-	$(foreach dir, $(BUILDABLES), make -C $(dir) DESTDIR=$(realpath $(DESTDIR));)
+install: $(ETCS_EXP)
+	$(foreach dir, $(BUILDABLES), $(MAKE) -C $(dir);)
 
-$(DESTDIR)/usr/local/etc/%:	%
-	-test ! -f $(DESTDIR)/usr/local/etc/allmon3.ini && install -D -m 0755 $< $@
-
-.PHONY: web
-web:
-	-test ! -d $(DESTDIR)/var/www/html/allmon3 && mkdir -p $(DESTDIR)/var/www/html/allmon3
-	rsync -av --exclude "api/passwords.php" --exclude "css/custom.css" web/* $(DESTDIR)/var/www/html/allmon3/
-	-test ! -f $(DESTDIR)/var/www/html/allmon3/api/passwords.php && \
-		install -m 0644 web/api/passwords.php $(DESTDIR)/var/www/html/allmon3/api/passwords.php
-	-test ! -f $(DESTDIR)/var/www/html/allmon3/css/custom.css && \
-		install -m 0644 web/css/custom.css $(DESTDIR)/var/www/html/allmon3/css/custom.css
-
+$(DESTDIR)/etc/allmon3/%:	%
+	install -D -m 0644 $< $@
