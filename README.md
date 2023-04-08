@@ -276,6 +276,7 @@ pm.max_requests = 1000
 7. Edit `/etc/apache2/sites-available/000-default.conf` to look like the following:
 ```
 <VirtualHost *:80>
+    Protocols h2 http/1.1
 	ServerAdmin YOUREMAIL@ADDRESS
 	DocumentRoot /var/www/html
 	ErrorLog ${APACHE_LOG_DIR}/error.log
