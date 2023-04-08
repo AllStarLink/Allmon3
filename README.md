@@ -26,32 +26,81 @@ ASL communities.
 Allmon3 requires the following:
 
 * PHP with the PHP-ZMQ package
-* Webserver configured to host PHP-based applications (Apache and Nginx supported)
+* Apache 2.4 configured to host PHP-based applications
 * Python3 with the Python ZMQ package
 
-## Installation
-These are *beta quality* installation instructions. Eventually the plan is this
-will be an installable package. At the moment, these are Debian-specific and 
-assume you already know how to install a webserver with PHP support.
+Note: Using Nginx is possible as an alternative to Apache but
+packaging and documentation assumes Apache.
 
-1. Install dependencies `apt install -y php-zmq python3-zmq make rsync`
+## Installation
+
+### Installation for Packages
+
+TODO
+
+### Installation from Git
+The following directions can be used to install from the Git sources.
+
+1. Allmon3 requires Python, the Python ZMQ module, Apache, PHP 7 or 8,
+and the PHP ZMQ module. On Debian-based systems this can be installed
+as followed (example uses Debian 11).
+```
+apt install -y apache2 php7.4-fpm php-zmq python3-zmq make
+```
+
+Note that is is **strongly** recommended to use the PHP-FPM FastCGI
+style of PHP invocation rather than the old mod_php methods. This
+allows Apache to be operated in the efficient mpm_workers mode to 
+support HTTP/2 and offloads PHP execution to the more-efficient
+php-fpm daemon. See "Configuring Apache" below for more information.
 
 2. Install the application using make
 ```
 make install
 ```
 
-This will install everything into `/etc`, `/usr/local/bin`, `/usr/local/etc`,
-and `/var/www/html/allmon3`. Note that `/var/www/html/allmon3/api/passwords.php` 
-and `/var/www/html/allmon3/css/custom.css` **will not** be overwritten. In the
-current beta state, make sure to hand-update these two files as needed.
+This will install everything into `/usr`, `/etc`, and `/lib`. 
+The applications will install in `/usr/bin`.
+Configuration will be stored in `/etc/allmon3`.
+The web files will be in `/usr/share/allmon3` while examples and
+other (future) documentation will be in `/usr/share/doc/allmon3`.
+Systemd service files will be installed in `/lib/systemd/system`.
 
-The `DESTDIR=` modifier is available if you want
-to install monolithically into a seaprate location. For example:
+Installation is relocatable using the following make(1) parameters:
+
+* `prefix=` will alter the core prefix of `/usr` files and is most
+commonly used to install into `/usr/local`. This is recommended
+when you care about distro/FHS/packaging fidelity. This relocates
+items installed `/usr/bin` and `/usr/share` to, for example,
+`/usr/local/bin` and `/usr/local/share`.
+
+* `sysconfdir=` will alter the location of the configuration files to 
+`$sysconfdir/allmon3`.
+
+* `sysd_service=` will alter the location of the systemd service files.
+The only practical alternative to `/lib/systemd/system` is `/etc/systemd/system`.
+
+* `datadir=` will relocate the web application portion of Allmon3
+to `$datadir/allmon3`.
+
+* `docdir=` will relocate the documentation and examples to `$docdir/allmon3`.
+
+For example:
 
 ```
-make install DESTDIR=/path/to/temp/location
+make install prefix=/usr/local sysconfdir=/usr/local/etc datadir=/var/www/html sysd_service=/etc/systemd/system
 ```
+
+All the above variables are also modified further by the `destdir=` variable
+which will install the complete system in an alternative location. This is
+only really useful for testing in development.
+
+For example:
+
+```
+make install destdir=/path/to/temp/location
+```
+
 3. Enable and start the services
 ```
 systemctl daemon-reload
@@ -72,7 +121,7 @@ systemctl start asl-cmdlink@1999
 
 If you have multiple nodes, you need one each of `asl-statmon@NODE` and `asl-cmdlink@NODE` per node. Multiple nodes on the same syste should use the `multinodes=/colocated_on=` structure described in `allmon3.ini`.
 
-4. Edit `/usr/local/etc/allmon3.ini` for at least one ASL AMI interface. Each node
+4. Edit `/etc/allmon3/allmon3.ini` for at least one ASL AMI interface. Each node
 must have a separately-numbered `monport=` and `cmdport=` value. It's recommended
 to start with port 6750 for `monport` and 6850 for `cmdport`
  and count up from there for each node configured in the .ini file. 
@@ -102,13 +151,11 @@ cmdport=6852
 ```
 
 Note, that for the web interface a separate, distinct configuration file
-can be placed in the webroot under the api folder 
-(e.g. `/var/www/html/allmon3/api/allmon3.ini.php`)
-which will be used *in place of* the common `/usr/local/etc/allmon3.ini`
-for the website only. No configuration is need to use a web-local configuration 
-when the .ini configuration/contents is identical. Please note that the file
-in the web directory ends in `.ini.php` as  a security feature to ensure 
-that the AMI credentials are not exposed to the Internet.
+can be placed in `/etc/allmon3/allmon3-web.ini`
+which will be used **in place of** the common `/etc/allmon3/allmon3.ini`
+for the website only. No configuration is need to use a web-specific
+configuration when `/etc/allmon3/allmon3.ini` and `/etc/allmon3/allmon3-web.ini`
+would have identical contents.
 
 5. Navigate to the website provided by the server at /allmon3/
 and hopefully stuff will Just Work(SM)
@@ -120,7 +167,7 @@ and password combination is `user / password`. **You *must* change this**.
 
 Set a password and remove the default user with the following:
 
-1. Change to the API directory - `cd /var/www/html/allmon3/api`
+1. Change to the API directory - `cd /usr/share/allmon3/api`
 
 2. `php password-generate.php USERNAME` will prompt you for a username and password. It will
 look something like this:
@@ -162,18 +209,24 @@ You can add more than one user to the file by simply adding multiple lines.
 
 ## Allmon3 Web Configuration
 
-Allmon3 has two configuration files to consider. The first is `api/config.php`. This
+Allmon3 has two configuration files to consider. The first is `/etc/allmon3/config.php`. This
 is where the site name and optional logo can be placed. In a future release, these
 two items will be moved to an .ini file.
 
-The second is `api/menu.ini` for creating a customized menu structure. See `api/menu.ini.example`
+The second is `/etc/allmon3/menu.ini` for creating a customized menu structure. See `api/menu.ini.example`
 for complete instructions on how to configure a menu. To enable a menu, simply
 rename `menu.ini.example` to `menu.ini` and edit to taste.
 
-Certain colors are able to be modified by editing `css/custom.css`. See the internal comments
+Certain colors are able to be modified by editing `/usr/share/allmon3/css/custom.css`. See the internal comments
 for directions.
 
-## Important Web Log Performance Consideration
+## Configuring Apache 
+
+### Basic Application Configuration
+
+TODO
+
+### Important Web Log Performance Consideration
 
 As a "modern" web application, Allmon3 makes *extensive* use of AJAX callbacks
 to the webserver. Depending on your configuration this could results in dozens
