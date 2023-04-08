@@ -1,1 +1,6 @@
 .*.swp
+debian/.debhelper/
+debian/allmon3.substvars
+debian/allmon3/
+debian/debhelper-build-stamp
+debian/files
