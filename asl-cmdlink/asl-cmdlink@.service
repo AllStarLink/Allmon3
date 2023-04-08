@@ -5,7 +5,8 @@ After=asl-asterisk asterisk
 [Service]
 Type=exec
 User=nobody
-ExecStart=/usr/local/bin/asl-cmdlink %i /usr/local/etc/allmon3.ini
+Environment="PATH=/usr/bin:/bin:/usr/sbin:/sbin"
+ExecStart=asl-cmdlink %i /etc/allmon3/allmon3.ini
 
 [Install]
 WantedBy=multi-user.target
