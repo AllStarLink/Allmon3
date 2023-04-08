@@ -6,7 +6,8 @@ After=asl-asterisk asterisk
 Type=exec
 User=nobody
 Group=nogroup
-ExecStart=/usr/local/bin/asl-statmon %i /usr/local/etc/allmon3.ini
+Environment="PATH=/usr/bin:/bin:/usr/sbin:/sbin"
+ExecStart=asl-statmon %i /etc/allmon3/allmon3.ini
 
 [Install]
 WantedBy=multi-user.target
