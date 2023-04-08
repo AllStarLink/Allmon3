@@ -8,13 +8,13 @@ SYSDS = \
 exec_prefix ?= /usr
 sysd_service ?= /lib/systemd/system
 	
-BINS_EXP = $(patsubst %, $(DESTDIR)$(exec_prefix)/bin/%, $(BINS))
-SYSDS_EXP = $(patsubst %, $(DESTDIR)$(sysd_service)/%, $(SYSDS))
+BINS_EXP = $(patsubst %, $(destdir)$(exec_prefix)/bin/%, $(BINS))
+SYSDS_EXP = $(patsubst %, $(destdir)$(sysd_service)/%, $(SYSDS))
 
 install: $(BINS_EXP) $(SYSDS_EXP)
 
-$(DESTDIR)$(exec_prefix)/bin/%:	%
+$(destdir)$(exec_prefix)/bin/%:	%
 	install -D -m 0755 $< $@
 
-$(DESTDIR)$(sysd_service)/%:	%
+$(destdir)$(sysd_service)/%:	%
 	install -D -m 0644 $< $@
