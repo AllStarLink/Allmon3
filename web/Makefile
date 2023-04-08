@@ -1,4 +1,6 @@
-WEBROOT = $(DESTDIR)/var/www/html/allmon3
+prefix ?= /usr
+data_dir ?= $(prefix)/share
+WEBROOT ?= $(DESTDIR)$(data_dir)/allmon3
 API_DIR = api
 CSS_DIR = css
 IMG_DIR = img
