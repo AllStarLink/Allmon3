@@ -1,8 +1,9 @@
 BINS = \
+	allmon3-passwd \
 	asl-statmon \
 	asl-statmon-client \
 	asl-cmdlink \
-	asl-cmdlink-cli \
+	asl-cmdlink-cli
 
 SYSDS = \
 	asl-statmon@.service \
