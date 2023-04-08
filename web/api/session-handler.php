@@ -24,9 +24,15 @@ if(strcmp($action,"login") == 0){
 		exit;
 	}
 
-	require_once("passwords.php");
-	if(isset($_AUTH_TABLE[$user])){
-		if(password_verify($pass, $_AUTH_TABLE[$user])){
+	$users = array_map("userscsv", file($USERS_TABLE_LOCATION));
+	$header = array_shift($users);
+	array_walk($users, '_combine_array', $header);
+	$uk = array_search("allmon3", array_column($users, "user"));
+
+
+	if(isset($uk)){
+		$comppass = $users[$uk]["pass"];
+		if(password_verify($pass, $comppass)){
 			session_regenerate_id();
 			$_SESSION['user'] = $user;
 			$_SESSION['valid'] = true;

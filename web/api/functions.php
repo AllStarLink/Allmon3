@@ -48,6 +48,15 @@ function readConfig(){
 	exit;
 }
 
+#
+function userscsv($csv){
+	return str_getcsv($csv, "|");
+}
+
+function _combine_array(&$row, $key, $header){
+	$row = array_combine($header, $row);
+}
+
 # Return the value from an .ini-sourced file
 # $ini - INI Array, $section - [SECTION], $key = field
 # returns the value or false
