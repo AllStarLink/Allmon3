@@ -1,0 +1,73 @@
+#!/usr/bin/python3
+# allmon3-passwd - Password manager for Allmon3
+#
+# Copyright(C) 2023 AllStarLink
+# Allmon3 and all components are Licensed under the AGPLv3
+# see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
+#
+
+import argon2
+import argparse
+import csv
+import logging
+import sys
+
+_BUILD_ID = "0.9.2 Beta"
+
+# Args and Log Setup
+ap = argparse.ArgumentParser(description="Manage Allmon3 password file")
+ap.add_argument("user", help="username to create/modify")
+ap.add_argument("--delete", help="delete the user specified by 'user'", action="store_true")
+ap.add_argument("--debug", help="enable debug-level logging output", action="store_true")
+ap.add_argument("--file", help="alternate file to edit; default /etc/allmon3/users")
+ap.add_argument("--version", help="get the version of the software", action="version",
+    version='%(prog)s {}'.format(_BUILD_ID))
+args = ap.parse_args()
+
+log = logging.getLogger("allmon3-passwd")
+lh = logging.StreamHandler()
+lf = logging.Formatter(fmt="%(name)s: %(levelname)s: %(message)s")
+lh.setFormatter(lf)
+log.addHandler(lh)
+
+if args.debug:
+    log.setLevel(logging.DEBUG)
+else:
+    log.setLevel(logging.INFO)
+
+if args.file:
+	user_filename = args.file
+else:
+	user_filename = "/etc/allmon3/users"
+
+userfields = [ 'user' , 'pass' ]
+userdb = []
+
+with open(user_filename, newline="") as user_file:
+	users = csv.DictReader(user_file, delimiter="|")
+	for row in users:
+		userdb.append({ "user" : row["user"] , "pass" : row["pass"] })
+
+if args.delete:
+	userdb = list(filter(lambda u: u["user"] == args.user , userdb))
+else:
+	pass_a = input("Enter the password for {}: ".format(args.user))
+	pass_b = input("Confirm the password for {}: ".format(args.user))
+
+	if(pass_a != pass_b):
+		log.error("passwords do not match")
+		sys.exit(-1)
+
+	ph = argon2.PasswordHasher(type=argon2.Type.ID)
+	hash_pass = ph.hash(pass_a)
+	if not any(u["user"] == args.user for u in userdb):
+		userdb.append({ "user" : args.user , "pass" : hash_pass })
+	else:
+		update = { "user" : args.user , "pass" : hash_pass }
+		userdb = [{**u, **update} for u in userdb]
+
+with open(user_filename, "w", newline="") as user_file:
+	user_writer = csv.DictWriter(user_file, fieldnames = userfields, delimiter="|")
+	user_writer.writeheader()
+	user_writer.writerows(userdb)
+

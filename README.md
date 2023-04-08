@@ -172,51 +172,29 @@ configuration when `/etc/allmon3/allmon3.ini` and `/etc/allmon3/allmon3-web.ini`
 would have identical contents.
 
 ## Usernames / Passwords for the Site
-Usernames and passwords are stored in the `api/passwords.php` file in
-the webroot directory for Allmon3. The default-configured username
-and password combination is `user / password`. **You *must* change this**.
+Usernames and passwords are stored in `/etc/allmon3/users`.
+The default-configured username and password combination is `allmon3 / password`. 
+**You *must* change this**.
 
-Set a password and remove the default user with the following:
-
-1. Change to the API directory - `cd /usr/share/allmon3/api`
-
-2. `php password-generate.php USERNAME` will prompt you for a username and password. It will
-look something like this:
-
+Allmon3's user database is managed by `allmon3-passwd`. Adding a new user
+or editing an existing user is the same command. If the user does not exist,
+it will be added. If the user does exist, the password will be updated. 
+To add or edit a user's password:
 ```
-$ php password-generate.php N8EI
-        Password: supersecretpass
-Confirm Password: supersecretpass
-Copy the following line into passwords.php including the ending comma!
-
-'N8EI' => '$argon2id$v=19$m=65536,t=4,p=1$TVpxbGpRYzJVekZ3MEYydA$QXfIeHH15UztDsbBa6tzKzFgYxwsDgt7FLx9GPfJ1Q4',
-
+$ allmon3-passwd allmon3
+Enter the password for allmon3: password
+Confirm the password for allmon3: password
+$
 ```
 
-3. Copy the line specified into the file `passwords.php` and delete the row labeled `user`. For example,
-the stock file looks like this:
+That's all there is to it. The `/etc/allmon3/users` file is readable to see that the
+Argon2 hash changed for the user.
+
+Deleting a user is simply adding the `--delete` flag to the command:
 
 ```
-## DO NOT EDIT ANYTHING BEFORE THIS LINE!!
-
-'user' => '$argon2id$v=19$m=65536,t=4,p=1$bHhmVEI5RzduN0Z4VE9VRA$Y+KPUyBIwC3jumcSzBtVI3vFupmtCt9F4ejPtoYK6uc',
-
-## DO NOT EDIT ANYTHING AFTER THIS LINE!!
-
+$ allmon3-passwd --delete allmon3
 ```
-
-After making this change you should see something like:
-
-```
-## DO NOT EDIT ANYTHING BEFORE THIS LINE!!
-
-'N8EI' => '$argon2id$v=19$m=65536,t=4,p=1$TVpxbGpRYzJVekZ3MEYydA$QXfIeHH15UztDsbBa6tzKzFgYxwsDgt7FLx9GPfJ1Q4',
-
-## DO NOT EDIT ANYTHING AFTER THIS LINE!!
-```
-Note that the trailing comma is important!!
-
-You can add more than one user to the file by simply adding multiple lines.
 
 ## Allmon3 Web Configuration
 
