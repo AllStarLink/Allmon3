@@ -9,4 +9,4 @@ INSTALLABLES = $(CONF_INSTALLABLES)
 install:	$(INSTALLABLES)
 
 $(DESTDIR)$(sysconfdir)/%: %
-	install -D -m 0644 -o 0 -g 0 $< $@
+	install -D -m 0644  $< $@
