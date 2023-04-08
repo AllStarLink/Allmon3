@@ -29,19 +29,19 @@ INSTALLABLES = $(API_INSTALLABLES) $(CSS_INSTALLABLES) $(IMG_INSTALLABLES) \
 install:	$(INSTALLABLES)
 
 $(WEBROOT)/api/%: $(API_DIR)/%
-	install -D -m 0644 -o 0 -g 0 $< $@
+	install -D -m 0644  $< $@
 
 $(WEBROOT)/css/%: $(CSS_DIR)/%
-	install -D -m 0644 -o 0 -g 0 $< $@
+	install -D -m 0644  $< $@
 
 $(WEBROOT)/img/%: $(IMG_DIR)/%
-	install -D -m 0644 -o 0 -g 0 $< $@
+	install -D -m 0644  $< $@
 
 $(WEBROOT)/img/favicons/%: $(IMG_DIR)/favicons/%
-	install -D -m 0644 -o 0 -g 0 $< $@
+	install -D -m 0644  $< $@
 
 $(WEBROOT)/JS/%: $(JS_DIR)/%
-	install -D -m 0644 -o 0 -g 0 $< $@
+	install -D -m 0644  $< $@
 
 $(WEBROOT)/%:	%
-	install -D -m 0644 -o 0 -g 0 $< $@
+	install -D -m 0644  $< $@
