@@ -70,11 +70,11 @@ switch($CMD){
 
 	# Get any custom menu
 	case 'custmenu':
-		if( ! file_exists(__DIR__ . "/menu.ini")){
-		    print(getJSONError("no " . __DIR__ . "/menu.ini"));
+		if( ! file_exists("/etc/allmon3/menu.ini")){
+		    print(getJSONError("no /etc/allmon3/menu.ini"));
 	    	break;
 		}
-		$menu = parse_ini_file(__DIR__ . "/menu.ini", true);
+		$menu = parse_ini_file("/etc/allmon3/menu.ini", true);
 		print(json_encode($menu));
 		break;
 

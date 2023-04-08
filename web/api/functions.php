@@ -36,15 +36,15 @@ function getJSONSecurityEvent($secmsg) {
 
 # Find and parse the configuration file
 function readConfig(){
-	if( file_exists(__DIR__ . "/allmon3.ini.php") ){
-		return parse_ini_file(__DIR__ . "/allmon3.ini.php", true);
+	if( file_exists("/etc/allmon3/allmon3-web.ini") ){
+		return parse_ini_file("/etc/allmon3/allmon3-web.ini", true);
 	}
 
-	if( file_exists("/usr/local/etc/allmon3.ini") ){
-		return parse_ini_file("/usr/local/etc/allmon3.ini", true);
+	if( file_exists("/etc/allmon3/allmon3.ini") ){
+		return parse_ini_file("/etc/allmon3/allmon3.ini", true);
 	}
 
-	print(getJSONError("no config found at /usr/local/etc/allmon3.ini or " . __DIR__ . "/allmon3.ini"));
+	print(getJSONError("no config found at /etc/allmon3/allmon3.ini or /etc/allmon3/allmon3-web.ini"));
 	exit;
 }
 
