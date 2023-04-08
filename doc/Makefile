@@ -1,4 +1,5 @@
-docdir ?= $(DESTDIR)/usr/share/doc/allmon3
+prefix ?= /usr
+docdir ?= $(DESTDIR)$(prefix)/share/doc/allmon3
 
 DOC_FILES = $(filter-out Makefile, $(wildcard *))
 DOC_INSTALLABLES = $(patsubst %, $(docdir)/%, $(DOC_FILES))
