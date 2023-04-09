@@ -1,0 +1,123 @@
+#!/usr/bin/python3
+# allmon3-procmgr - Manage asl-cmdlink/asl-statmon processes and systemds
+#
+# Copyright(C) 2023 AllStarLink
+# Allmon3 and all components are Licensed under the AGPLv3
+# see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
+#
+
+
+import argparse
+import configparser
+import logging
+import logging.handlers
+import os
+import re
+import subprocess
+import sys
+
+_BUILD_ID = "0.9.3"
+
+######## MAIN PROGRAM ########
+
+# Args and Log Setup
+ap = argparse.ArgumentParser(description="Managed all systemd services in one block")
+ap.add_argument("command", help="command to execute: start, stop, restart, enable, disable, purge")
+ap.add_argument("--config", help="path to INI configuration for the node(s); default /etc/allmon3/allmon3.ini")
+ap.add_argument("--debug", help="enable debug-level logging output", action="store_true")
+ap.add_argument("--version", help="get the version of the software", action="version",
+	version='%(prog)s {}'.format(_BUILD_ID))
+args = ap.parse_args()
+
+log = logging.getLogger("allmon3-procmgr")
+lh = logging.StreamHandler()
+lf = logging.Formatter(fmt="%(name)s: %(levelname)s: %(message)s")
+lh.setFormatter(lf)
+log.addHandler(lh)
+
+if args.debug:
+	log.setLevel(logging.DEBUG)
+else:
+	log.setLevel(logging.INFO)
+
+if args.config:
+	conf_file = args.config
+else:
+	conf_file = "/etc/allmon3/allmon3.ini"
+
+# Parse configuration
+
+nodelist = [];
+
+try:
+	if not os.path.exists(conf_file):
+		raise Exception("file not found: %s" % (conf_file))
+	log.debug("config file is %s", conf_file)
+	config = configparser.ConfigParser()
+	config.read(conf_file)
+	log.debug(config.sections())
+	for node in config.sections():
+		if "colocated_on" not in config[node]:
+			nodelist.append(node)
+	log.debug(nodelist)
+
+except Exception as e:
+	log.error("INI parser error: %s", e)
+	sys.exit(1)
+
+if args.command == "start":
+	log.debug("command: start")
+	for node in nodelist:
+		subprocess.run(["systemctl", "start", "asl-statmon@{}".format(node)])
+		subprocess.run(["systemctl", "start", "asl-cmdlink@{}".format(node)])
+
+elif args.command == "stop":
+	log.debug("command: stop")
+	for node in nodelist:
+		subprocess.run(["systemctl", "stop", "asl-statmon@{}".format(node)])
+		subprocess.run(["systemctl", "stop", "asl-cmdlink@{}".format(node)])
+
+elif args.command == "restart":
+	log.debug("command: restart")
+	for node in nodelist:
+		subprocess.run(["systemctl", "stop", "asl-statmon@{}".format(node)])
+		subprocess.run(["systemctl", "start", "asl-statmon@{}".format(node)])
+		subprocess.run(["systemctl", "stop", "asl-cmdlink@{}".format(node)])
+		subprocess.run(["systemctl", "start", "asl-cmdlink@{}".format(node)])
+
+
+elif args.command == "enable":
+	log.debug("command: enable")
+	for node in nodelist:
+		subprocess.run(["systemctl", "enable", "asl-statmon@{}".format(node)])
+		subprocess.run(["systemctl", "enable", "asl-cmdlink@{}".format(node)])
+
+elif args.command == "disable":
+	log.debug("command: disable")
+	for node in nodelist:
+		subprocess.run(["systemctl", "disable", "asl-statmon@{}".format(node)])
+		subprocess.run(["systemctl", "disable", "asl-cmdlink@{}".format(node)])
+
+elif args.command == "purge":
+	log.debug("command: purge")
+	cmd = ["systemctl","--type=loaded","--plain","--no-pager","list-units", "asl-*"]
+	log.debug(cmd)
+	sysd_output = subprocess.run(cmd, stdout=subprocess.PIPE)
+	log.debug(sysd_output.stdout)
+	sysd_line = re.split(r'[\n]+', sysd_output.stdout.decode("UTF-8"))
+	if sysd_line:
+		for line in sysd_line:
+			if re.match(r"^asl\-", line):
+				unit = re.split(r"\s+", line)
+				log.debug("purging {}".format(unit[0]))
+				subprocess.run(["systemctl", "disable", unit[0]])
+				subprocess.run(["systemctl", "stop", unit[0]])
+				subprocess.run(["systemctl", "reset-failed", unit[0]])
+
+
+
+else:
+	log.error("COMMAND must be one of start, stop, restart, enable, disable, purge")
+	sys.exit(1)
+
+sys.exit(0)
