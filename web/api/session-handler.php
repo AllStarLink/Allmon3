@@ -10,9 +10,10 @@ require_once("/etc/allmon3/config.php");
 
 session_start();
 
+$action = null;
 if( sizeof($_POST) > 0 ){
 	$action = getPostVar("action");
-}
+} 
 
 if(strcmp($action,"login") == 0){
 	$user = getPostVar("user");
