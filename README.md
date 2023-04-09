@@ -113,7 +113,7 @@ For example:
 make install destdir=/path/to/temp/location
 ```
 
-## Configuration
+## Node and Daemon Configuration
 
 Edit `/etc/allmon3/allmon3.ini` for at least one ASL AMI interface. Each node
 must have a separately-numbered `monport=` and `cmdport=` value. It's recommended
@@ -144,34 +144,29 @@ monport=6752
 cmdport=6852
 ```
 
-Enable and start the services
+Allmon3 uses systemd service units with the "instances" concept. In general
+this uses the format `asl-statmon@NODE` and `asl-cmdlink@NODE` for the 
+individual names to stop and start. For example, following the above, the node
+5018 needs to enable and start two unit instances - `asl-statmon@50815` and
+`asl-cmdlink@50815`. 
+
+However, most users will want to use the `allmon3-procmgr` wrapper to
+enable, start, stop, and restart all of the units. After modifying
+`allmon3.ini`, enable and start all the services as the root user:
 ```
-systemctl daemon-reload
-systemctl enable asl-statmon@NODE
-systemctl enable asl-cmdlink@NODE
-systemctl start asl-statmon@NODE
-systemctl start asl-cmdlink@NODE
+# allmon3-procmgr enable
+Created symlink /etc/systemd/system/multi-user.target.wants/asl-statmon@50815.service → /lib/systemd/system/asl-statmon@.service.
+Created symlink /etc/systemd/system/multi-user.target.wants/asl-cmdlink@50815.service → /lib/systemd/system/asl-cmdlink@.service.
+Created symlink /etc/systemd/system/multi-user.target.wants/asl-statmon@460180.service → /lib/systemd/system/asl-statmon@.service.
+Created symlink /etc/systemd/system/multi-user.target.wants/asl-cmdlink@460180.service → /lib/systemd/system/asl-cmdlink@.service.
+Created symlink /etc/systemd/system/multi-user.target.wants/asl-statmon@48496.service → /lib/systemd/system/asl-statmon@.service.
+Created symlink /etc/systemd/system/multi-user.target.wants/asl-cmdlink@48496.service → /lib/systemd/system/asl-cmdlink@.service.
+# ./allmon3-procmgr start
 ```
 
-In the above, replace "NODE" with your ASL node ID - for example:
+## Website Specific Configuration
 
-```
-systemctl enable asl-statmon@1999
-systemctl enable asl-cmdlink@1999
-systemctl start asl-statmon@1999
-systemctl start asl-cmdlink@1999
-```
-
-If you have multiple nodes, you need one each of `asl-statmon@NODE` and `asl-cmdlink@NODE` per node. Multiple nodes on the same syste should use the `multinodes=/colocated_on=` structure described in `allmon3.ini`.
-
-Note, that for the web interface a separate, distinct configuration file
-can be placed in `/etc/allmon3/allmon3-web.ini`
-which will be used **in place of** the common `/etc/allmon3/allmon3.ini`
-for the website only. No configuration is need to use a web-specific
-configuration when `/etc/allmon3/allmon3.ini` and `/etc/allmon3/allmon3-web.ini`
-would have identical contents.
-
-## Usernames / Passwords for the Site
+### Usernames / Passwords for the Site
 Usernames and passwords are stored in `/etc/allmon3/users`.
 The default-configured username and password combination is `allmon3 / password`. 
 **You *must* change this**.
@@ -196,7 +191,15 @@ Deleting a user is simply adding the `--delete` flag to the command:
 $ allmon3-passwd --delete allmon3
 ```
 
-## Allmon3 Web Configuration
+### Alternative Node Configuration for the Web Interface
+Note, that for the web interface a separate, distinct configuration file
+can be placed in `/etc/allmon3/allmon3-web.ini`
+which will be used **in place of** the common `/etc/allmon3/allmon3.ini`
+for the website only. No configuration is need to use a web-specific
+configuration when `/etc/allmon3/allmon3.ini` and `/etc/allmon3/allmon3-web.ini`
+would have identical contents.
+
+### Website Customization
 
 Allmon3 has two configuration files to consider. The first is `/etc/allmon3/config.php`. This
 is where the site name and optional logo can be placed. In a future release, these
