@@ -24,10 +24,10 @@ const max_poll_errors = 10;
 // Hook on the documnet complete load
 document.onreadystatechange = () => {
 	if(document.readyState === "complete") {
-		// was this called with n=NODELIST
-		var nodeParam = findGetParameter("n");
-		if( nodeParam ){
-			monNodes = nodeParam.split(",");
+		// was this called with #node[,node,node]
+		if( location.hash !== "" ){
+			nodeHash = location.hash.replace("#","");
+			monNodes = nodeHash.split(",");
 			startup();
 		} else {
 			getAPIJSON("api/uiconfig.php?e=nodelist")
@@ -335,29 +335,28 @@ function nodeConnTable(conns, keyed, keyednode) {
 }
 
 //
-// Change the list of nodes to the provided []
+// Monitor and Address Hash/Navagation elements
 //
-function changeNodeList(newNodeList){
+function changedLocationHash(){
 	document.getElementById("asl-statmon-dashboard-area").innerHTML = "";
-	monNodes = newNodeList;
 
+	if( location.hash === "" || location.hash === "#" ){
+		getAPIJSON("api/uiconfig.php?e=nodelist")
+		.then((result) => {
+			changeNodeList(result);
+		});
+	} else {
+		nodeHash = location.hash.replace("#","");
+		changeNodeList(nodeHash.split(","));
+	}
+}
+
+function changeNodeList(nodeList){
+	monNodes = nodeList;
 	// redraw the dashboard page area
 	updateDashboardAreaStructure();
 	tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
 	tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-
-	// modify the parameters and history
-	let nodeParam = "";
-	for(const n of monNodes){
-		if(nodeParam.length == 0){
-			nodeParam = nodeParam.concat(n);
-		} else {
-			nodeParam = nodeParam.concat("," + n);
-		}
-	}
-	let currentURL = new URL(window.location);
-	currentURL.searchParams.set("n", nodeParam);
-	window.history.pushState({}, "", currentURL);
 
     // setup the polling intervals
     for(const n of monNodes){
@@ -365,11 +364,7 @@ function changeNodeList(newNodeList){
     }
 }
 
-//
-// Wapper for changeNodeList to take a single integer
-function changeNodeListSingle(newNode){
-	changeNodeList([newNode]);
-}
+window.onhashchange = changedLocationHash;
 
 //
 // Handle logins

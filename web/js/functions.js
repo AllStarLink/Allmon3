@@ -102,7 +102,7 @@ async function createSidebarMenu(){
 						if( ml !== "type" ){
 							if(customMenu[dd][ml].match(/^[0-9]+$/)){
 								let nn = customMenu[dd][ml];
-								navMenu = navMenu.concat(`<a class="dropdown-item" href="#" onclick="changeNodeListSingle(${nn})">${ml}</a>`);
+								navMenu = navMenu.concat(`<a class="dropdown-item" href="#${nn}">${ml}</a>`);
 							} else {
 								let href = customMenu[dd][ml];
 								navMenu = navMenu.concat(`<a class="dropdown-item" href="${href}">${ml}</a>`);
