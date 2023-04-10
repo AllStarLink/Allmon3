@@ -1,5 +1,6 @@
 BINS = \
 	allmon3-passwd \
+	allmon3-procman \
 	asl-statmon \
 	asl-statmon-client \
 	asl-cmdlink \
