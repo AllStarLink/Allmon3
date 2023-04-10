@@ -49,7 +49,10 @@ with open(user_filename, newline="") as user_file:
 		userdb.append({ "user" : row["user"] , "pass" : row["pass"] })
 
 if args.delete:
-	userdb = list(filter(lambda u: u["user"] == args.user , userdb))
+	for i in range(0, len(userdb)):
+		u = userdb[i]
+		if(u["user"] == args.user):
+			del userdb[i]
 else:
 	pass_a = input("Enter the password for {}: ".format(args.user))
 	pass_b = input("Confirm the password for {}: ".format(args.user))

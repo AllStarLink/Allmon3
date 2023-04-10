@@ -28,7 +28,7 @@ if(strcmp($action,"login") == 0){
 	$users = array_map("userscsv", file($USERS_TABLE_LOCATION));
 	$header = array_shift($users);
 	array_walk($users, '_combine_array', $header);
-	$uk = array_search("allmon3", array_column($users, "user"));
+	$uk = array_search($user, array_column($users, "user"));
 
 
 	if(isset($uk)){
