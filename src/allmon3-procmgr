@@ -16,7 +16,7 @@ import re
 import subprocess
 import sys
 
-_BUILD_ID = "0.9.3"
+_BUILD_ID = "@@HEAD-DEVELOP@@"
 
 ######## MAIN PROGRAM ########
 
