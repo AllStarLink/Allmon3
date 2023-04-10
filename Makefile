@@ -26,10 +26,10 @@ install:
 	@echo DESTDIR=$(DESTDIR)
 	$(foreach dir, $(BUILDABLES), $(MAKE) -C $(dir);)
 
-deb:
-	dpkg-buildpackage -g
+deb:	debclean debprep
+	debuild
 
-debprep:
+debprep:	debclean
 	(cd .. && \
 		rm -f allmon3-$(RELVER) && \
 		rm -f allmon3-$(RELVER).tar.gz && \
