@@ -11,12 +11,20 @@
 
 # Sanitize and return a GET parameter
 function getGetVar($id) {
-    return filter_var(trim($_GET[$id]), FILTER_SANITIZE_STRING);
+	if(array_key_exists($id, $_GET)){
+	    return filter_var(trim($_GET[$id]), FILTER_SANITIZE_STRING);
+	} else {
+		return false;
+	}
 }
 
 # Sanitize and return a POST parameter
 function getPostVar($id) {
-    return filter_var(trim($_POST[$id]), FILTER_SANITIZE_STRING);
+	if(array_key_exists($id, $_POST)){
+	    return filter_var(trim($_POST[$id]), FILTER_SANITIZE_STRING);
+	} else {
+		return false;
+	}
 }
 
 # Format and return a JSON SUCCESS
