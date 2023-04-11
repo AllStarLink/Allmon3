@@ -32,7 +32,6 @@ define("CONFIG_ZMQ_CMD_POLL_TIMEO", 3000);
 #
 #
 # Load in web.ini
-header('Content-Type: application/json');
 if( file_exists("/etc/allmon3/web.ini") ){
 	$config_ini = parse_ini_file("/etc/allmon3/web.ini", true);
 	$CONFIG_HEADER_TITLE = $config_ini['web']['CONFIG_HEADER_TITLE'];
@@ -40,6 +39,7 @@ if( file_exists("/etc/allmon3/web.ini") ){
 	$DEFAULT_WEB_POLL_INTERVAL = $config_ini['web']['DEFAULT_WEB_POLL_INTERVAL'];
 	$USERS_TABLE_LOCATION = $config_ini['web']['USERS_TABLE_LOCATION'];
 } else {
+	header('Content-Type: application/json');
     print(getJSONError("no config found at /etc/allmon3/web.ini"));
     exit;
 }
