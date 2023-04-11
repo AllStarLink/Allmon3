@@ -400,7 +400,15 @@ try:
 		POLLING_TIMER = 1
 	else:
 		POLLING_TIMER = int(config[str(args.node)]["pollinterval"])
-		log.debug("POLLING_TIMER - %s", POLLING_TIMER)
+		log.debug("POLLING_TIMER: {}".format(POLLING_TIMER))
+		if "pollsubsec" in config[str(args.node)]:
+			if config[str(args.node)]["pollsubsec"] == "y":
+				POLLING_TIMER = POLLING_TIMER / 1000
+				log.debug(POLLING_TIMER)
+				if POLLING_TIMER < .2:
+					POLLING_TIMER = 200
+					log.info("pollinterval with pollsubsec=y may not be less than 200 - setting to 200")
+				log.debug("pollsubsec = y - adjusting POLLING_TIMER to {}".format(POLLING_TIMER))
 
 	if not "retryinterval" in config[str(args.node)]:
 		log.info("No retryinterval= attribute specified, using default 15s")
