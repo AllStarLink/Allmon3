@@ -340,6 +340,13 @@ function nodeConnTable(conns, keyed, keyednode) {
 function changedLocationHash(){
 	document.getElementById("asl-statmon-dashboard-area").innerHTML = "";
 
+	let navbutton = document.getElementById("collapse-navbar-button");
+	if( navbutton.classList.contains("collapsed") == false ){
+		let menu = document.getElementById("sidebarMenu");
+		menu.classList.remove("show");
+		navbutton.classList.add("collapsed");
+	}
+
 	if( location.hash === "" || location.hash === "#" ){
 		getAPIJSON("api/uiconfig.php?e=nodelist")
 		.then((result) => {
