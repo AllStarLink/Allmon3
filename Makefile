@@ -27,7 +27,7 @@ install:
 	$(foreach dir, $(BUILDABLES), $(MAKE) -C $(dir);)
 
 verset:
-	perl -pi -e 's/@@HEAD-DEVELOP@@/$(RELVER)/g' src/* web/*
+	perl -pi -e 's/\@\@HEAD-DEVELOP\@\@/$(RELVER)/g' `grep -rl @@HEAD-DEVELOP@@ src/ web/`
 
 deb:	debclean debprep
 	debchange
