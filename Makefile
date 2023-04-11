@@ -40,4 +40,5 @@ debprep:	debclean
 
 debclean:
 	rm -f ../allmon3_$(RELVER)*
+	rm -rf debian/allmon3
 	
