@@ -4,37 +4,21 @@
 # Allmon3 and all components are Licensed under the AGPLv3
 # see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
 #
-
 #
-# Configuration for the Web API of Allmon3
-# Note: This is PHP code executed inline of the program
-# so proper PHP syntax is required
+# NOTE: YOU ARE 99.9% LIKELY TO BE LOOKING FOR /etc/allmon3/web.ini!!
 #
-
-# Site Customization Settings
-
-# CONFIG_HEADER_TITLE appears centered in the top nav/header bar
-$CONFIG_HEADER_TITLE = "Allmon3 Monitoring Dashboard";
-
-# CONFIG_LOGO_IMG appears aligned right in the top-right corner
-# of the page. The max height of this image should be 50px. If
-# you do not want a logo to appear, leave this entry as an
-# empty string "" and the ASL logo will be display. Image 
-# file is relative to the img/ subdirectory of Allmon3
-$CONFIG_HEADER_LOGO = "";
-
-# Default time in seconds to poll
-$DEFAULT_WEB_POLL_INTERVAL = 1;
-
-# Location of the password table
-$USERS_TABLE_LOCATION = "/etc/allmon3/users";
-
+# This file is only for tuning/testing various timer related
+# items as it relates to the internals of Allmon3's web interface.
+# This file is NOT preserved across upgrades and should
+# not be changed unless you are actively debugging and issue and
+# coordinating changes with the developers via GitHub
+#
 #####                                        #####
 ##### WARNING - THESE ARE INTERNAL VARIABLES #####
 ##### IT IS **EXTREMELY** UNLIKELY YOU EVER  #####
 ##### NEED TO CHANGE ANYTHING BELOW!!        #####
 #####                                        #####
-
+#
 define("CONFIG_ZMQ_LOCALHOST", "127.0.0.1");
 define("CONFIG_ZMQ_SNDTIMEO", 2000);
 define("CONFIG_ZMQ_RCVTIMEO", 2000);
