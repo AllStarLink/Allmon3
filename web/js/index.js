@@ -50,7 +50,7 @@ function startup(){
 		pollNode(n);
 		getAPIJSON(`api/uiconfig.php?e=pollint&n=${n}`).then((result) => {
 			if(result["SUCCESS"]){
-				const interval = Number(result["SUCCESS"]) * 1000;
+				const interval = Number(result["SUCCESS"]);
 				nodeWebPollIntervals.set(n, interval);
 				pollNode(n);
 				nodePollErrors[n] = 0;
