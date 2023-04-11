@@ -52,7 +52,7 @@ wget https://github.com/AllStarLink/Allmon3/releases/download/rel_0_9_5/allmon3_
 
 3. Install Allmon3's deb file (use the correct .deb file name)
 ```
-deb -i allmon3_0.9.5-1_all.deb
+dpkg -i allmon3_0.9.5-1_all.deb
 ```
 
 4. Skip the next section and resume directions at **Configuration**
