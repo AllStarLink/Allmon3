@@ -4,7 +4,7 @@
 
 ![Bootstrap](https://img.shields.io/badge/bootstrap-%23563D7C.svg?style=for-the-badge&logo=bootstrap&logoColor=white) ![PHP](https://img.shields.io/badge/php-%23777BB4.svg?style=for-the-badge&logo=php&logoColor=white) ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
 
-Allmon is the standard web-based montitoring and management for the AllStarLink
+Allmon is the standard web-based monitoring and management for the AllStarLink
 application. Allmon3 is the next generation of the venerable Allmon2 that is 
 rewritten for performance, scalability, and responsiveness.
 
@@ -13,7 +13,7 @@ Allmon3 features and functionality shall be governed by the following guidelines
 
 * Use of modern web responsive design for usability on all device form factors and screen sizes
 * Clear separation between long-running tasks and client-based display updates
-* Permit reduced workload on potentially slow repeater site links by cleanly supporting the ability to run only the pollers on the device controlling the repeater and run the dashaboard in the cloud; easy prevention of unnecessary web traffic, spidering, etc.
+* Permit reduced workload on potentially slow repeater site links by cleanly supporting the ability to run only the pollers on the device controlling the repeater and run the dashboard in the cloud; easy prevention of unnecessary web traffic, spidering, etc.
 * Prioritization of the common use cases of AllStarLink for feature enhancements
 
 ## Community
@@ -43,15 +43,23 @@ The following directions can be used to install with the Debian package
 apt install -y apache2 php7.4-fpm php-zmq python3-zmq make
 ```
 
-2. Install Allmon3's deb file (use the correct .deb file name)
+2. Download the latest .deb file from the current release
+branch. Current release is [allmon3_0.9.5-1_all.deb](https://github.com/AllStarLink/Allmon3/releases/download/rel_0_9_5/allmon3_0.9.5-1_all.deb). Downloading can be done with wget or curl. For example:
+
 ```
-deb -i allmon3_0.9.2-1_all.deb
+wget https://github.com/AllStarLink/Allmon3/releases/download/rel_0_9_5/allmon3_0.9.5-1_all.deb
 ```
 
-3. Skip the next section and resume directions at **Configuration**
+3. Install Allmon3's deb file (use the correct .deb file name)
+```
+deb -i allmon3_0.9.5-1_all.deb
+```
+
+4. Skip the next section and resume directions at **Configuration**
 
 ### Installation from Git
 The following directions can be used to install from the Git sources.
+This is **not** recommended but is available if necessary.
 
 1. Allmon3 requires Python, the Python ZMQ module, Apache, PHP 7 or 8,
 and the PHP ZMQ module. On Debian-based systems this can be installed
@@ -111,6 +119,12 @@ For example:
 
 ```
 make install destdir=/path/to/temp/location
+```
+
+3. Create the necessary `custom.css`:
+
+```
+cd /usr/share/allmon3/css && ln -s /etc/allmon3/custom.css
 ```
 
 ## Node and Daemon Configuration
@@ -310,10 +324,10 @@ SetEnvIf Request_URI "api/asl-statmon.php" nolog
 ```
 
 ## Three-Tier Structure
-Allmon3 is organized around a tierd structure: Asterisk AMI, message poller daemons (asl-statmon
+Allmon3 is organized around a tiered structure: Asterisk AMI, message poller daemons (asl-statmon
 and asl-cmdlink), and the web client. In order to reduce webserver and Asterisk AMI load experience
 in Allmon2 (especially for systems using workers with php-fpm) and on Asterisk AMI calls, 
-one asl-statmon and asl-cmdlink process oprates against each Asterisk AMI port as a 
+one asl-statmon and asl-cmdlink process operates against each Asterisk AMI port as a 
 [0MQ Messaging Publisher](https://www.zeromq.org/) messaging bus. This results in 
 polling AMI one time per cycle and distributing the information to many web clients 
 efficiently. It also allows for interesting things such as different views and abstractions 
