@@ -1,9 +1,16 @@
-allmon3 (0.9.4-1) UNRELEASED; urgency=medium
+allmon3 (0.9.4-6) UNRELEASED; urgency=medium
 
   * Beta release 0.9.4
+  * Release test #5
+  * 
+  * 
+  * 
+  * 
+  * 
+  * 
   * 
 
- -- Jason McCormick <jason@mfamily.org>  Tue, 11 Apr 2023 11:30:15 -0400
+ -- Jason McCormick <jason@mfamily.org>  Tue, 11 Apr 2023 13:34:15 -0400
 
 allmon3 (0.9.2-1) unstable; urgency=medium
 

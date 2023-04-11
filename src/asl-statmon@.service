@@ -4,8 +4,8 @@ After=asl-asterisk asterisk
 
 [Service]
 Type=exec
-User=nobody
-Group=nogroup
+User=allmon3
+Group=allmon3
 Environment="PATH=/usr/bin:/bin:/usr/sbin:/sbin"
 ExecStart=asl-statmon %i /etc/allmon3/allmon3.ini
 

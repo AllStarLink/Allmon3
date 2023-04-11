@@ -30,6 +30,7 @@ verset:
 	perl -pi -e 's/@@HEAD-DEVELOP@@/$(RELVER)/g' src/* web/*
 
 deb:	debclean debprep
+	debchange
 	debuild
 
 debprep:	debclean
@@ -44,4 +45,5 @@ debprep:	debclean
 debclean:
 	rm -f ../allmon3_$(RELVER)*
 	rm -rf debian/allmon3
+	rm -f debian/files
 	
