@@ -1,4 +1,4 @@
-% allmon3-procmgr(1) allmon3-procmgr 0.9.3
+% allmon3-procmgr(1) allmon3-procmgr @-DEVELOP@@
 % Jason McCormick
 % April 2023
 

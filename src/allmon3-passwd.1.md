@@ -1,4 +1,4 @@
-% allmon3-passwd(1) allmon3-passwd 0.9.3
+% allmon3-passwd(1) allmon3-passwd @-DEVELOP@@
 % Jason McCormick
 % April 2023
 

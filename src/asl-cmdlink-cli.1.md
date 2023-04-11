@@ -1,4 +1,4 @@
-% asl-cmdlink-cli(1) asl-cmdlink-cli 0.9.3
+% asl-cmdlink-cli(1) asl-cmdlink-cli @-DEVELOP@@
 % Jason McCormick
 % April 2023
 
