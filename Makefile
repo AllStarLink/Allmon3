@@ -30,8 +30,12 @@ verset:
 	perl -pi -e 's/@@HEAD-DEVELOP@@/$(RELVER)/g' src/* web/*
 
 deb:	debclean debprep
-	debchange
+	debchange -r
 	debuild
+
+
+debchange:
+	bebchange -v $(RELVER)-$(DEBVER)
 
 debprep:	debclean
 	(cd .. && \
