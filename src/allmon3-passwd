@@ -48,11 +48,23 @@ with open(user_filename, newline="") as user_file:
 	for row in users:
 		userdb.append({ "user" : row["user"] , "pass" : row["pass"] })
 
+log.debug("userdb:")
+log.debug(userdb)
+
 if args.delete:
+	to_delete = -1;
 	for i in range(0, len(userdb)):
 		u = userdb[i]
+		log.debug("considering {}".format(u))
 		if(u["user"] == args.user):
-			del userdb[i]
+			to_delete = i
+			log.debug("marking for delete element {}: {}".format(to_delete,userdb[i]))
+	
+	if to_delete > -1:
+		del userdb[to_delete]
+	else:
+		log.error("No user {} in file".format(args.user))
+
 else:
 	pass_a = input("Enter the password for {}: ".format(args.user))
 	pass_b = input("Confirm the password for {}: ".format(args.user))
