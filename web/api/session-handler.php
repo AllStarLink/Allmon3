@@ -6,7 +6,7 @@
 #
 
 require_once("functions.php");
-require_once("/etc/allmon3/config.php");
+require_once("config.php");
 
 session_start();
 
