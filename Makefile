@@ -1,7 +1,7 @@
 #
 # Build variables
 #
-RELVER = 0.9.2
+RELVER = 0.9.4
 DEBVER = 1
 
 BUILDABLES = \
@@ -25,6 +25,9 @@ default:
 install:
 	@echo DESTDIR=$(DESTDIR)
 	$(foreach dir, $(BUILDABLES), $(MAKE) -C $(dir);)
+
+verset:
+	perl -pi -e 's/@@HEAD-DEVELOP@@/$(RELVER)/g' src/* web/*
 
 deb:	debclean debprep
 	debuild
