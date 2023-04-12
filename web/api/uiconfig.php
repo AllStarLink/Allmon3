@@ -9,7 +9,7 @@
 require_once("functions.php");
 require_once("config.php");
 
-if(!strcmp(php_sapi_name(),"cli")){
+if( strcmp(php_sapi_name(),"cli") != 0 ){
     header('Content-Type: application/json');
 }
 
@@ -89,6 +89,21 @@ switch($CMD){
 		}
 		$menu = parse_ini_file("/etc/allmon3/menu.ini", true);
 		print(json_encode($menu));
+		break;
+
+	# Get the system commands
+	case 'syscmd':
+		if( ! file_exists("/etc/allmon3/web.ini")){
+            print(getJSONError("no /etc/allmon3/web.ini"));
+            break;
+        }
+        $webini = parse_ini_file("/etc/allmon3/web.ini", true);
+
+		$commands = array();
+		foreach( $webini["syscmds"] as $c => $l ){
+			$commands = array_merge($commands, array($c => $l));
+		}
+		print_r(json_encode($commands));
 		break;
 
 	# Otherwise error...
