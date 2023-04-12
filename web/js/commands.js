@@ -65,11 +65,11 @@ function openCmdModalLink(node){
 	modal.show();
 }
 
-function openCmdModalCLI(node){
+async function openCmdModalCLI(node){
 	const modal = new bootstrap.Modal(document.getElementById("commandModal"), {});
 	document.getElementById("commandModalTitleBox").innerHTML = `Execute Command on ${node}`;
 	if(loggedIn){
-		document.getElementById("command-modal-body").innerHTML = getCLICommandModalForm(node);
+		document.getElementById("command-modal-body").innerHTML = await getCLICommandModalForm(node);
 	} else {
 		document.getElementById("command-modal-body").innerHTML = `<div class="alert alert-danger role="alert">Must Logon First</div
 >`;
@@ -186,8 +186,16 @@ function executeNodeLinkCmd(node){
 //
 // CLI Command Modal Interface
 //
-function getCLICommandModalForm(node){
-	return `
+async function getCLICommandModalForm(node){
+	
+	const commands = await getAPIJSON("api/uiconfig.php?e=syscmd");
+	let cmdopts = "";
+	for(let c in commands){
+		let cmdstr = c.replace("'", "").replace("'","").replace("@",node);
+		cmdopts = cmdopts.concat(`<option value="${cmdstr}">`, commands[c], "</option>\n");
+	}
+			
+	const modal = `
 <div id="cmd-exec-cmd" class="container">
 	<form id="command-modal-form" class="needs-validation" novalidate>
 		<div class="row justify-content-start d-flex align-items-center mb-2">
@@ -198,13 +206,7 @@ function getCLICommandModalForm(node){
                 <select id="cmf-cmd-node-select" name="cmf-cmd-node-select"
 						class="form-select" aria-label="system command" onchange="buildCLICommandModalCmd()" required>
                     <option selected disabled value="">Choose a command</option>
-                    <option value="rpt stats ${node}">Show Node Status</option>
-                    <option value="core show uptime">Show Uptime</option>
-                    <option value="iax2 show registry">Show IAX Registry</option>
-                    <option value="iax2 show channels">Show IAX Channels</option>
-                    <option value="iax2 show netstats">Show Network Status</option>
-                    <option value="rpt lstats ${node}">Show Link Status</option>
-                    <option value="rpt show registrations">Show HTTP Registrations</option>
+					${cmdopts}
 					<option value="custom">Custom command</option>
 				</select>
 			</div>
@@ -231,6 +233,7 @@ function getCLICommandModalForm(node){
 </div>
 <div id="cmd-output" class="container my-2"></div>
 `;
+	return modal;
 }
 
 function buildCLICommandModalCmd(node){
