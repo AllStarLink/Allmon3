@@ -36,7 +36,7 @@ if( file_exists("/etc/allmon3/web.ini") ){
 	$config_ini = parse_ini_file("/etc/allmon3/web.ini", true);
 	$CONFIG_HEADER_TITLE = $config_ini['web']['CONFIG_HEADER_TITLE'];
 	$CONFIG_HEADER_LOGO = $config_ini['web']['CONFIG_HEADER_LOGO'];
-	$DEFAULT_WEB_POLL_INTERVAL = $config_ini['web']['DEFAULT_WEB_POLL_INTERVAL'];
+	$DEFAULT_WEB_POLL_INTERVAL = $config_ini['web']['DEFAULT_WEB_POLL_INTERVAL'] * 1000;
 	$USERS_TABLE_LOCATION = $config_ini['web']['USERS_TABLE_LOCATION'];
 } else {
 	header('Content-Type: application/json');

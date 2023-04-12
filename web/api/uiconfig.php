@@ -53,7 +53,20 @@ switch($CMD){
 			$NODE = getGetVar("n");
 		}
 		if(array_key_exists("webpinterval", $allmon_cfg[$NODE])){
-			print(getJSONSuccess($allmon_cfg[$NODE]["webpinterval"]));
+			$poll_int = $allmon_cfg[$NODE]["webpinterval"];
+			if(array_key_exists("webpsubsec", $allmon_cfg[$NODE])){
+				if( strcmp($allmon_cfg[$NODE]["webpsubsec"], "y") == 0 ){
+					if( $poll_int < 250 ){
+						$poll_int = 250;
+					}
+				} else {
+					$poll_int = $poll_int * 1000;
+				}
+			} else {
+				$poll_int = $poll_int * 1000;
+			}
+			print(getJSONSuccess($poll_int));
+
 		} else {
 			print(getJSONSuccess($DEFAULT_WEB_POLL_INTERVAL));
 		}
