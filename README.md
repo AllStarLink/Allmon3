@@ -25,9 +25,9 @@ ASL communities.
 ## Requirements
 Allmon3 requires the following:
 
+* Python3 with the Python ZMQ package
 * PHP with the PHP-ZMQ package
 * Apache 2.4 configured to host PHP-based applications
-* Python3 with the Python ZMQ package
 
 Note: Using Nginx is possible as an alternative to Apache but
 packaging and documentation assumes Apache.
@@ -40,7 +40,7 @@ The following directions can be used to install with the Debian package
 1. Install the prerequisites
 
 ```
-apt install -y apache2 php7.4-fpm php-zmq python3-zmq make
+apt install -y apache2 php7.4-fpm php-zmq python3-zmq 
 ```
 
 2. Download the latest .deb file from the current release
@@ -57,26 +57,44 @@ dpkg -i allmon3_0.9.5-1_all.deb
 
 4. Skip the next section and resume directions at **Configuration**
 
-### Installation from Git
-The following directions can be used to install from the Git sources.
+### Installation from Source
+The following directions can be used to install from sources.
 This is **not** recommended but is available if necessary.
 
 1. Allmon3 requires Python, the Python ZMQ module, Apache, PHP 7 or 8,
-and the PHP ZMQ module. On Debian-based systems this can be installed
-as followed (example uses Debian 11).
+the PHP ZMQ module, and a tool called pandoc. On Debian-based systems 
+this can be installed as followed (example uses Debian 11).
 ```
-apt install -y apache2 php7.4-fpm php-zmq python3-zmq make
+apt install -y apache2 php7.4-fpm php-zmq python3-zmq make pandoc
 ```
 
-Note that is is **strongly** recommended to use the PHP-FPM FastCGI
-style of PHP invocation rather than the old mod_php methods. This
-allows Apache to be operated in the efficient mpm_workers mode to 
-support HTTP/2 and offloads PHP execution to the more-efficient
-php-fpm daemon. See "Configuring Apache" below for more information.
 
-2. Install the application using make
+2. Download the "Source code (tar.gz) file from the releases
+page for the current release. The current release is Allmon3 0.9.5.
+You will end up with a file named rel_0_9_5.tar.gz. Uncompress
+the file and cd into it:
+
+```
+wget https://github.com/AllStarLink/Allmon3/archive/refs/tags/rel_0_9_5.tar.gz
+tar xvfz rel_0_9_5.tar.gz
+cd Allmon3-rel_0_9_5
+```
+
+3. Install the application using make
+
+If this is the first installation of Allmon3 on a fresh system,
+the software can be installed simply using `make install`:
+
 ```
 make install
+```
+
+However if this is an upgrade of an existing installation,
+add `instconf=n` to the command to prevent your configurations
+in `/etc/allmon3` from being overwritten.
+
+```
+make install instconf=n
 ```
 
 This will install everything into `/usr`, `/etc`, and `/lib`. 
@@ -106,7 +124,6 @@ to `$datadir/allmon3`.
 * `docdir=` will relocate the documentation and examples to `$docdir/allmon3`.
 
 For example:
-
 ```
 make install prefix=/usr/local sysconfdir=/usr/local/etc datadir=/var/www/html sysd_service=/etc/systemd/system
 ```
@@ -116,13 +133,11 @@ which will install the complete system in an alternative location. This is
 only really useful for testing in development.
 
 For example:
-
 ```
 make install destdir=/path/to/temp/location
 ```
 
 3. Create the necessary `custom.css`:
-
 ```
 cd /usr/share/allmon3/css && ln -s /etc/allmon3/custom.css
 ```
@@ -179,6 +194,12 @@ Created symlink /etc/systemd/system/multi-user.target.wants/asl-cmdlink@48496.se
 ```
 
 ## Website Specific Configuration
+Note that is is **strongly** recommended to use the PHP-FPM FastCGI
+style of PHP invocation rather than the old mod_php methods. This
+allows Apache to be operated in the efficient mpm_workers mode to 
+support HTTP/2 and offloads PHP execution to the more-efficient
+php-fpm daemon. See "Configuring Apache" below for more information.
+
 
 ### Usernames / Passwords for the Site
 Usernames and passwords are stored in `/etc/allmon3/users`.
