@@ -77,6 +77,12 @@ elif args.command == "stop":
 		subprocess.run(["systemctl", "stop", "asl-statmon@{}".format(node)])
 		subprocess.run(["systemctl", "stop", "asl-cmdlink@{}".format(node)])
 
+elif args.command == "status":
+	log.debug("command: status")
+	for node in nodelist:
+		subprocess.run(["systemctl", "status", "asl-statmon@{}".format(node)])
+		subprocess.run(["systemctl", "status", "asl-cmdlink@{}".format(node)])
+
 elif args.command == "restart":
 	log.debug("command: restart")
 	for node in nodelist:

@@ -9,7 +9,7 @@
 require_once("functions.php");
 require_once("config.php");
 
-if(!strcmp(php_sapi_name(),"cli")){
+if( strcmp(php_sapi_name(),"cli") != 0 ){
     header('Content-Type: application/json');
 }
 
@@ -53,7 +53,20 @@ switch($CMD){
 			$NODE = getGetVar("n");
 		}
 		if(array_key_exists("webpinterval", $allmon_cfg[$NODE])){
-			print(getJSONSuccess($allmon_cfg[$NODE]["webpinterval"]));
+			$poll_int = $allmon_cfg[$NODE]["webpinterval"];
+			if(array_key_exists("webpsubsec", $allmon_cfg[$NODE])){
+				if( strcmp($allmon_cfg[$NODE]["webpsubsec"], "y") == 0 ){
+					if( $poll_int < 250 ){
+						$poll_int = 250;
+					}
+				} else {
+					$poll_int = $poll_int * 1000;
+				}
+			} else {
+				$poll_int = $poll_int * 1000;
+			}
+			print(getJSONSuccess($poll_int));
+
 		} else {
 			print(getJSONSuccess($DEFAULT_WEB_POLL_INTERVAL));
 		}
@@ -76,6 +89,21 @@ switch($CMD){
 		}
 		$menu = parse_ini_file("/etc/allmon3/menu.ini", true);
 		print(json_encode($menu));
+		break;
+
+	# Get the system commands
+	case 'syscmd':
+		if( ! file_exists("/etc/allmon3/web.ini")){
+            print(getJSONError("no /etc/allmon3/web.ini"));
+            break;
+        }
+        $webini = parse_ini_file("/etc/allmon3/web.ini", true);
+
+		$commands = array();
+		foreach( $webini["syscmds"] as $c => $l ){
+			$commands = array_merge($commands, array($c => $l));
+		}
+		print_r(json_encode($commands));
 		break;
 
 	# Otherwise error...

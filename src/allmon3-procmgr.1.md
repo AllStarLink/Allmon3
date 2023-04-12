@@ -27,6 +27,8 @@ nodes in `/etc/allmon3/allmon3.ini` or `--file FILE`
 
 **stop** - Same a start but in reverse
 
+**status** - Display the status of all node units
+
 **restart** - Issues a stop then start as detailed above
 
 **enable** - Enable the unit @instance files for asl-statmon(1) and 

@@ -29,12 +29,14 @@ install:
 verset:
 	perl -pi -e 's/\@\@HEAD-DEVELOP\@\@/$(RELVER)/g' `grep -rl @@HEAD-DEVELOP@@ src/ web/`
 
-deb:	debchange debclean debprep
+deb:	debclean debprep
 	debchange -r
 	debuild
 
+
 debchange:
 	debchange -v $(RELVER)-$(DEBVER)
+
 
 debprep:	debclean
 	(cd .. && \
