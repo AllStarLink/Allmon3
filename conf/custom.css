@@ -25,10 +25,10 @@
 	/* Button highlight color of buttons in the node titlebar */
 	--am3-nodetitle-button-hl: rgba(145, 24, 92, 1);	
 
-	/* Node connection table header background color */
+	/* Node connection table header text color */
 	--am3-conntable-header-text: rgba(255, 255, 255, 1); 
 
-	/* Node connection table header text color */
+	/* Node connection table header background color */
 	--am3-conntable-header-bg: rgba(33, 37, 41, 1);
 
 	/* Node connection table border color */
