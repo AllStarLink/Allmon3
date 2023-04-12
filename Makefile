@@ -1,7 +1,7 @@
 #
 # Build variables
 #
-RELVER = 0.9.4
+RELVER = 0.9.5
 DEBVER = 1
 
 BUILDABLES = \
@@ -35,7 +35,8 @@ deb:	debclean debprep
 
 
 debchange:
-	bebchange -v $(RELVER)-$(DEBVER)
+	debchange -v $(RELVER)-$(DEBVER)
+
 
 debprep:	debclean
 	(cd .. && \
