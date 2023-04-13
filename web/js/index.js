@@ -74,6 +74,7 @@ async function customizeUI(){
 	if( customElements.HEADER_LOGO !== "" ){
 		document.getElementById("header-banner-img").src = `img/${customElements.HEADER_LOGO}`;
 	}
+	document.getElementById("nav-home-button").href = customElements.HOME_BUTTON_URL;
 };
 
 // Update the dashboard

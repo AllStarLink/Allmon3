@@ -38,6 +38,7 @@ if( file_exists("/etc/allmon3/web.ini") ){
 	$CONFIG_HEADER_LOGO = $config_ini['web']['CONFIG_HEADER_LOGO'];
 	$DEFAULT_WEB_POLL_INTERVAL = $config_ini['web']['DEFAULT_WEB_POLL_INTERVAL'] * 1000;
 	$USERS_TABLE_LOCATION = $config_ini['web']['USERS_TABLE_LOCATION'];
+	$HOME_BUTTON_URL = $config_ini['web']['HOME_BUTTON_URL'];
 } else {
 	header('Content-Type: application/json');
     print(getJSONError("no config found at /etc/allmon3/web.ini"));
