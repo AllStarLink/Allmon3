@@ -76,7 +76,8 @@ switch($CMD){
 	case 'customize':
 		$customize = array(
 			"HEADER_TITLE" => $CONFIG_HEADER_TITLE ,
-			"HEADER_LOGO" => $CONFIG_HEADER_LOGO
+			"HEADER_LOGO" => $CONFIG_HEADER_LOGO ,
+			"HOME_BUTTON_URL" => $HOME_BUTTON_URL
 		);
 		print_r(json_encode($customize));
 		break;
