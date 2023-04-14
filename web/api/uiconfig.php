@@ -107,6 +107,17 @@ switch($CMD){
 		print_r(json_encode($commands));
 		break;
 
+	case 'voter':
+		$voter_cfg = readVoterConfig();
+		if(! $voter_cfg){
+		    print(getJSONError("could not parse config file /etc/allmon3/voter.ini - likely misformatted"));
+		    exit;
+		}
+		$node = getGetVar("n");
+		print(getJSONSuccess($voter_cfg[$node]["votertitle"]));
+		break;
+
+
 	# Otherwise error...
 	default:
 		print(getJSONError("unknown command " . $CMD));

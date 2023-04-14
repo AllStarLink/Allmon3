@@ -1,0 +1,365 @@
+#!/usr/bin/python3
+# asl-votermon.py - Monitor ASL Asterisk server for voter module status
+#
+# Copyright(C) 2023 AllStarLink
+# Allmon3 and all components are Licensed under the AGPLv3
+# see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
+#
+
+import argparse
+import configparser
+import json
+import logging
+import logging.handlers
+import os
+import pprint
+import re
+import signal
+import socket
+import sys
+from time import sleep
+import time
+import urllib.request
+import uuid
+import zmq
+
+_BUILD_ID = "0.9.5"
+
+# Handle Signals
+def sigterm_handler(_signo, _stack_frame):
+	log.info("exiting on signal %d", _signo)
+	sys.exit(0)	
+signal.signal(signal.SIGINT, sigterm_handler)
+signal.signal(signal.SIGHUP, sigterm_handler)
+signal.signal(signal.SIGTERM, sigterm_handler)
+
+# Creating and connecting to the ASL manager socket
+
+## Use this creator as part of a retry interval
+def asl_create_connection_nofail():
+	return asl_create_connection(False)
+
+## Use this creator to fail immediately on any
+## network-level connect failure
+def asl_create_connection_fail():
+	return asl_create_connection(True)
+
+## If failhard=True then sys.exit() is called on network-level issues
+def asl_create_connection(failhard):
+	log.debug("asl_create_connection(failhard=%s)", failhard)
+	try:
+		nasl = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		nasl.settimeout(10)
+		log.debug("connect() using %s:%s", ASL_HOST, ASL_PORT)
+		nasl.connect((ASL_HOST, ASL_PORT))
+
+		# Check this connected to an Asterisk Call Manager (ACM)
+		part = nasl.recv(1024).decode("UTF-8")
+		log.debug("AIM version: %s", rern.sub("",part))
+
+		if not re.match("^Asterisk Call Manager", part):
+			log.error("Connection to %s:%d does not appear to be an Asterisk Call Manager", ASL_HOST, ASL_PORT)
+			nasl.close()
+			sys.exit(1)
+	
+		# Logon to the ACM
+		logon = "ACTION: LOGIN\r\nUSERNAME: %s\r\nSECRET: %s\r\nEVENTS: 0\r\n" % ( ASL_USER, ASL_PASS )
+
+		logon_response = asl_cmd_response(nasl, logon)
+		log.debug(rern.sub(" ",logon_response))
+		lp = re.compile('Response: Success\r\n', re.MULTILINE)
+		logon_success = lp.match(logon_response)
+		if not logon_success:
+			lr = rern.sub("  ", logon_response)
+			log.error("Logon failure msg=(%s)", lr)
+			asl.close()
+			sys.exit(1)
+
+		log.debug("leaving asl_create_connection()")
+		return nasl
+
+	except socket.error as error:
+		log.error("connection failed to %s:%s: %s", ASL_HOST, ASL_PORT, error)
+		if failhard:
+			sys.exit(1)
+		else:
+			return None
+	except TypeError as e:
+		log.error("failed connection on connect(): %s", e)
+
+		if failhard:
+			sys.exit(1)
+		else:	
+			return None
+
+
+# Generic construct for sending ASL Manager commands and reading responses
+def asl_cmd_response(s, cmd):
+	try:
+		aid = uuid.uuid4()
+		cmd += "ActionID: %s\r\n\r\n" % aid
+		s.settimeout(5)
+		if not cmd is None:
+			log.debug("command >> %s", rern.sub(" ", cmd))
+			s.sendall(str.encode(cmd))
+		
+		cont_recv = True
+		resp = ""
+		while cont_recv:		
+			part = s.recv(1024)
+			if part == b'':
+				log.debug("asl_cmd_response() socket went away on the far side")
+				raise BrokenPipeError("other side went away")
+			resp += part.decode("UTF-8")
+			if resp[-4:] == "\r\n\r\n":
+				cont_recv = False
+
+		log.debug("response >> %s", rern.sub("  ", resp))
+		return resp
+
+	except TimeoutError as e:
+		log.error("asl_cmd_response() TimeoutError")
+		raise e
+	except BrokenPipeError as e:
+		log.error("asl_cmd_response() BrokenPipeError")
+		raise e
+	except socket.timeout as e:
+		log.error("asl_cmd_response() socket.timeout")
+		raise e
+	except ConnectionResetError as e:
+		log.error("asl_cmd_response() ConnectionResetError")
+		raise e
+	except Exception as e:
+		log.error("asl_cmd_response() Exception: %s", e.__class__)
+		log.error("asl_cmd_response() Message: %s", e)
+		raise e
+
+# (try) to logout of ASL Manager neatly
+def asl_logout(s):	
+	try:
+		s.sendall(str.encode("ACTION: Logoff\r\n\r\n"))
+	except Exception as e:
+		log.error(e)
+
+def parse_voter_data(response):
+	log.debug("entering parse_voter_data()")
+	# voters = { {clientid(NUM) : IP : TEXT , RSSI : NUM , VOTED: TEXT } , .... }
+	voters = { } 
+	curr_client = 0
+	lines = re.split(r'[\n\r]+', response)
+	for line in lines:
+		if re.match(r'^Client', line):
+			client = re.split(r":\s", line)
+			curr_client = client[1]
+			voters[curr_client] = { "IP" : None , "RSSI" : None, "VOTED" : None }
+		elif re.match(r'^IP', line):
+			ip = re.split(r":\s", line)
+			voters[curr_client]["IP"] = ip[1]
+		elif re.match(r'^RSSI', line):
+			rssi = re.split(r":\s", line)
+			voters[curr_client]["RSSI"] = int(rssi[1])
+		elif re.match(r'Voted', line):
+			voted = re.split(r":\s", line)
+			voters[curr_client]["VOTED"] = int(votedi[1])
+	return voters
+
+######## MAIN PROGRAM ########
+
+# Global Vars
+node_database = {}
+
+# Helpers
+rern = re.compile(r'\r\n', re.MULTILINE)
+rens = re.compile(r'\s', re.MULTILINE)
+renol = re.compile(r'LinkedNodes:', re.MULTILINE)
+
+# Args and Log Setup
+ap = argparse.ArgumentParser(description="Connect to an ASL Asterisk server and gather voter stats")
+ap.add_argument("node", type=int, help="Node ID")
+ap.add_argument("--config", help="path to INI configuration for the node")
+ap.add_argument("--debug", help="enable debug-level logging output", action="store_true")
+ap.add_argument("--version", help="get the version of the software", action="version", version='%(prog)s {}'.format(_BUILD_ID))
+args = ap.parse_args()
+
+log = logging.getLogger("asl-votermon")
+lh = logging.StreamHandler()
+lf = logging.Formatter(fmt="%(name)s: %(levelname)s: %(message)s")
+lh.setFormatter(lf)
+log.addHandler(lh)
+
+if args.debug:
+	log.setLevel(logging.DEBUG)
+else:
+	log.setLevel(logging.INFO)
+
+if not 1 <= args.node <= 9999999:
+	log.error("provided node \"%s\" must be a number between 1 and 9999999", args.node)
+	sys.exit(1)
+else:
+	log.debug("using node %d", args.node)
+
+if args.config:
+	config_file = args.config
+else:
+	config_file = "/etc/allmon3/voter.ini"
+
+# Parse configuration
+
+try:
+	if not os.path.exists(config_file):
+		raise Exception("file not found: %s" % (config_file))
+	log.debug("config file is %s", config_file)
+	config = configparser.ConfigParser()
+	config.read(config_file)
+	log.debug({section: dict(config[section]) for section in config.sections()})
+
+	if str(args.node) not in config:
+		raise Exception("No configuration stanza for node %s in %s" % (args.node, config_file))
+	
+	if not "ip" in config[str(args.node)]:
+		raise Exception("Missing required attribute ip= for %s in %s" % (args.node, config_file))
+	ASL_HOST = config[str(args.node)]["ip"]
+	log.debug("ASL_HOST - %s", ASL_HOST)
+
+	if not "user" in config[str(args.node)]:
+		raise Exception("Missing required attribute user= for %s in %s" % (args.node, config_file))
+	ASL_USER = config[str(args.node)]["user"]
+	log.debug("ASL_USER - %s", ASL_USER)
+
+	if not "pass" in config[str(args.node)]:
+		raise Exception("Missing required attribute pass= for %s in %s" % (args.node, config_file))
+	ASL_PASS = config[str(args.node)]["pass"]
+	log.debug("ASL_PASS - %s", ASL_PASS)
+
+	if not "port" in config[str(args.node)]:
+		log.debug("No port= attribute specified, using default 5038")
+		ASL_PORT = 5038
+	else:
+		ASL_PORT = int(config[str(args.node)]["port"])
+		log.debug("ASL_PORT - %s", ASL_PORT)
+
+	if not "voterpollinterval" in config[str(args.node)]:
+		log.info("No voterpollinterval= attribute specified, using default 1")
+		POLLING_TIMER = 1
+	else:
+		POLLING_TIMER = int(config[str(args.node)]["voterpollinterval"])
+		log.debug("POLLING_TIMER: {}".format(POLLING_TIMER))
+		if "voterpollsubsec" in config[str(args.node)]:
+			if config[str(args.node)]["voterpollsubsec"] == "y":
+				POLLING_TIMER = POLLING_TIMER / 1000
+				log.debug(POLLING_TIMER)
+				if POLLING_TIMER < .2:
+					POLLING_TIMER = 200
+					log.info("voterpollinterval with voterpollsubsec=y may not be less than 200 - setting to 200")
+				log.debug("voterpollsubsec = y - adjusting POLLING_TIMER to {}".format(POLLING_TIMER))
+
+	if not "retryinterval" in config[str(args.node)]:
+		log.info("No retryinterval= attribute specified, using default 15s")
+		RETRY_INTERVAL = 15
+	else:
+		RETRY_INTERVAL = int(config[str(args.node)]["retryinterval"])
+		log.debug("RETRY_INTERVAL - %s", RETRY_INTERVAL)
+
+	if not "retrycount" in config[str(args.node)]:
+		log.info("No retrycount= attribute specified, using default of infinite retries")
+		RETRY_COUNT = -1
+	else:
+		RETRY_COUNT = int(config[str(args.node)]["retrycount"])
+		log.debug("RETRY_COUNT - %s", RETRY_COUNT)
+
+	if not "vmonport" in config[str(args.node)]:
+		raise Exception("Missing required attribute vmonport= for %s in %s" % (args.node, config_file))
+	ZMQ_PORT = int(config[str(args.node)]["vmonport"])
+	log.debug("ZMQ_PORT - %s", ZMQ_PORT)
+
+except Exception as e:
+	log.error("INI parser error: %s", e)
+	sys.exit(1)
+
+# Create the initial connection to the ASL Manager
+asl = asl_create_connection_fail()
+log.debug("have original asl object")
+
+# Create the ZeroMQ listener
+try:
+	log.debug("creating ZMQ listener")
+	p_context = zmq.Context()
+	publisher = p_context.socket(zmq.PUB)
+	publisher.bind("tcp://*:%d" % (ZMQ_PORT))
+except zmq.error.ZMQError as e:
+	log.error("unable to create ZeroMQ listener: %s", e )
+	asl_logout(asl)
+	asl.close()
+	sys.exit(1)
+
+# Execute the main status gathering loop
+log.debug("starting the main work loop")
+main_loop = True
+inner_loop = True
+last_db_update = time.time()
+pp = pprint.PrettyPrinter(indent=4)
+
+try:
+	while main_loop:
+		while inner_loop:
+			try:
+				voterstatus_cmd = "ACTION: VoterStatus\r\nNODE: %d\r\n" % ( args.node )
+				voterstatus_response = asl_cmd_response(asl, voterstatus_cmd)
+				voter_json = parse_voter_data(voterstatus_response)
+				publisher.send_multipart([str(args.node).encode("UTF-8"), json.dumps(voter_json).encode("UTF-8")])
+	
+			except BrokenPipeError as e:
+				log.error("received BrokenPipeError; trying to reconnect")
+				inner_loop = False
+			except socket.timeout as e:
+				log.error("received socket.timeout; trying to reconnect")
+				inner_loop = False
+			except ConnectionResetError as e:
+				log.error("received ConnectionResetError; trying to reconnect")
+				inner_loop = False
+
+			# Sleep for the polling time		
+			sleep(POLLING_TIMER)
+	
+		# If we exited out of inner_loop without throwing an exception
+		# then something went wrong with the asl socket. Loop around
+		# here trying to reconnect for the timeout interval and then
+		# let the main_loop continue
+	
+		asl.close()
+		asl_dead = True
+		retry_counter = 0
+	
+		while asl_dead:
+			log.debug("sleeping for RETRY_INTERVAL of %d", RETRY_INTERVAL)
+			sleep(RETRY_INTERVAL)
+			retry_counter += 1
+	
+			if RETRY_COUNT == -1 or RETRY_COUNT <= retry_counter:
+				log.debug("attempting reconnection retry #%d", retry_counter)
+
+				asl = asl_create_connection_nofail()
+				if asl:
+					log.info("connection reestablished after %d retries", retry_counter)
+					asl_dead = False
+			else:
+				log.error("count not reestablish connection after %d retries - exiting", retry_counter)
+				sys.exit(1)
+	
+		# re-enable the innter loop processing	
+		inner_loop = True
+
+	# return back to the top of main_loop
+
+except Exception as e:
+	log.error(e)
+	main_loop = False
+	raise e
+
+finally:
+	log.debug("Clean up on aisle 5")
+	asl_logout(asl)
+	asl.close()
+	publisher.close()
+
+sys.exit(0)
