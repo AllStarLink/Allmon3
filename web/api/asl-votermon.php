@@ -42,7 +42,7 @@ if( $z_port == "" ){
 	exit;
 }
 
-$z_host = getINIConfigVal($allmon_cfg, $ASL_NODE, "vmonip");
+$z_host = getINIConfigVal($allmon_cfg, $ASL_NODE, "vmonhost");
 if( $z_host == "" ){
 	$z_host = CONFIG_ZMQ_LOCALHOST;
 }
