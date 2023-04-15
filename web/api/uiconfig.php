@@ -109,12 +109,22 @@ switch($CMD){
 		    print(getJSONError("could not parse config file /etc/allmon3/voter.ini - likely misformatted"));
 		    exit;
 		}
-		$node = getGetVar("n");
 
-		if( array_key_exists("webvpinterval", $voter_cfg[$node])){
-			$poll_int = $voter_cfg[$node]["webvpinterval"];
+		if(defined('STDIN')){
+            if(array_key_exists(2, $argv)){
+                $NODE = $argv[2];
+            } else {
+                print "uiconfig.php voter NODE\n";
+                exit(1);
+            }
+        } else {
+            $NODE = getGetVar("n");
+        }
+
+		if( array_key_exists("webvpinterval", $voter_cfg[$NODE])){
+			$poll_int = $voter_cfg[$NODE]["webvpinterval"];
             if(array_key_exists("webvpsubsec", $voter_cfg[$NODE])){
-                if( strcmp($webvpsubsec_cfg[$node]["webvpsubsec"], "y") == 0 ){
+                if( strcmp($voter_cfg[$NODE]["webvpsubsec"], "y") == 0 ){
                     if( $poll_int < 250 ){
                         $poll_int = 250;
                     }
@@ -128,7 +138,7 @@ switch($CMD){
 			$poll_int = 1000;
 		}
 		$msg = sprintf("{ \"SUCCESS\" : { \"TITLE\" : \"%s\" , \"POLLTIME\" : \"%s\" } }",
-			$voter_cfg[$node]["votertitle"], $poll_int);
+			$voter_cfg[$NODE]["votertitle"], $poll_int);
 		print($msg);
 		break;
 

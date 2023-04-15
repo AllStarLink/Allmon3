@@ -1,3 +1,14 @@
+allmon3 (0.9.7-1) unstable; urgency=medium
+
+  * INCOMPATIBLE CHANGE: ip= fields in allmon3.ini and
+    votermon.ini are now host= (or related names) and 
+    can specify an IPv4, IPv6, or DNS item
+  * Private node labels supported in web.ini
+  * asl-{statmon,cmdlink,votermon} now support DNS and IPv6
+  * All stock configs and readme info now in /usr/share/doc/allmon3
+
+ -- Jason McCormick <jason@mfamily.org>  Sat, 15 Apr 2023 16:07:33 -0400
+
 allmon3 (0.9.6-1) unstable; urgency=medium
 
  * Implement subsecond polling as a option in `allmon3.ini`. When using the .deb file, `allmon3.ini` will not be updated with the newest information. See https://github.com/AllStarLink/Allmon3/commit/bda1e74e218c217e4381715297eaea72a8d2a236 for specifics
