@@ -114,7 +114,26 @@ switch($CMD){
 		    exit;
 		}
 		$node = getGetVar("n");
-		print(getJSONSuccess($voter_cfg[$node]["votertitle"]));
+
+		if( array_key_exists("webvpinterval", $voter_cfg[$node])){
+			$poll_int = $voter_cfg[$node]["webvpinterval"];
+            if(array_key_exists("webvpsubsec", $voter_cfg[$NODE])){
+                if( strcmp($webvpsubsec_cfg[$node]["webvpsubsec"], "y") == 0 ){
+                    if( $poll_int < 250 ){
+                        $poll_int = 250;
+                    }
+                } else {
+                    $poll_int = $poll_int * 1000;
+                }
+            } else {
+                $poll_int = $poll_int * 1000;
+            }
+		} else {
+			$poll_int = 1000;
+		}
+		$msg = sprintf("{ \"SUCCESS\" : { \"TITLE\" : \"%s\" , \"POLLTIME\" : \"%s\" } }",
+			$voter_cfg[$node]["votertitle"], $poll_int);
+		print($msg);
 		break;
 
 
