@@ -44,15 +44,15 @@ apt install -y apache2 php7.4-fpm php-zmq python3-zmq
 ```
 
 2. Download the latest .deb file from the current release
-branch. Current release is [allmon3_0.9.5-1_all.deb](https://github.com/AllStarLink/Allmon3/releases/download/rel_0_9_6/allmon3_0.9.5-1_all.deb). Downloading can be done with wget or curl. For example:
+branch. Current release is [allmon3_0.9.7-1_all.deb](https://github.com/AllStarLink/Allmon3/releases/download/rel_0_9_7/allmon3_0.9.7-1_all.deb). Downloading can be done with wget or curl. For example:
 
 ```
-wget https://github.com/AllStarLink/Allmon3/releases/download/rel_0_9_6/allmon3_0.9.5-1_all.deb
+wget https://github.com/AllStarLink/Allmon3/releases/download/rel_0_9_7/allmon3_0.9.7-1_all.deb
 ```
 
 3. Install Allmon3's deb file (use the correct .deb file name)
 ```
-dpkg -i allmon3_0.9.5-1_all.deb
+dpkg -i allmon3_0.9.7-1_all.deb
 ```
 
 4. Skip the next section and resume directions at **Configuration**
@@ -70,14 +70,14 @@ apt install -y apache2 php7.4-fpm php-zmq python3-zmq make pandoc
 
 
 2. Download the "Source code (tar.gz) file from the releases
-page for the current release. The current release is Allmon3 0.9.5.
-You will end up with a file named rel_0_9_6.tar.gz. Uncompress
+page for the current release. The current release is Allmon3 0.9.7.
+You will end up with a file named rel_0_9_7.tar.gz. Uncompress
 the file and cd into it:
 
 ```
-wget https://github.com/AllStarLink/Allmon3/archive/refs/tags/rel_0_9_6.tar.gz
-tar xvfz rel_0_9_6.tar.gz
-cd Allmon3-rel_0_9_6
+wget https://github.com/AllStarLink/Allmon3/archive/refs/tags/rel_0_9_7.tar.gz
+tar xvfz rel_0_9_7.tar.gz
+cd Allmon3-rel_0_9_7
 ```
 
 3. Install the application using make
@@ -154,21 +154,21 @@ Here's an example for monitoring three ASL Nodes:
 
 ```
 [50815]
-ip=172.17.16.36
+host=172.17.16.36
 user=admin
 pass=password
 monport=6750
 cmdport=6850
 
 [460180]
-ip=172.17.16.217
+host=172.17.16.217
 user=admin
 pass=password
 monport=6751
 cmdport=6851
 
 [48496]
-ip=208.167.248.86
+host=208.167.248.86
 user=admin
 pass=password
 monport=6752
@@ -355,7 +355,7 @@ for all voter-related elements in both the backend and the frontend.
 The most-minimal configuration for `voter.ini` is as follows:
 ```
 [1999]
-ip=192.0.2.10
+host=192.0.2.10
 user=admin
 pass=password
 vmonport=6950
