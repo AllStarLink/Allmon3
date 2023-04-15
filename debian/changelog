@@ -1,3 +1,12 @@
+allmon3 (0.9.6-1) unstable; urgency=medium
+
+ * Implement subsecond polling as a option in `allmon3.ini`. When using the .deb file, `allmon3.ini` will not be updated with the newest information. See https://github.com/AllStarLink/Allmon3/commit/bda1e74e218c217e4381715297eaea72a8d2a236 for specifics
+ * Implement the voter functionality. Requires `voter.ini`. See `asl-votermon`.
+ * System commands are now configured in `web.ini`
+ * Customizable home button href in `web.ini`* 
+
+ -- Jason McCormick <jason@mfamily.org>  Sat, 15 Apr 2023 13:05:02 -0400
+
 allmon3 (0.9.5-1) unstable; urgency=medium
 
   * Initial complete release of Allmon3 as beta
