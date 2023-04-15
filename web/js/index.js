@@ -15,6 +15,7 @@
 var monNodes = [ ];			// node(s) to monitor in Array
 var nodeWebPollIntervals = new Map();
 var nodePollErrors = new Map();
+var nodeDescOverrides = new Map();
 var loggedIn = false;
 var tooltipTriggerList;
 var tooltipList;
@@ -44,6 +45,12 @@ function startup(){
 	uiConfigs();
 	updateDashboardAreaStructure();
 	setInterval(checkLogonStatus, 900000);
+
+	// Load the overrides
+	getAPIJSON(`api/uiconfig.php?e=overrides`)
+		.then((result) => {
+			nodeDescOverrides = result;
+		});
 
 	// setup the initial polling intervals
 	for(const n of monNodes){
@@ -150,7 +157,10 @@ function nodeEntry(nodeid, nodeinfo){
 	const headerDescSpan = document.getElementById(`asl-statmon-dashboard-${nodeid}-header-desc`);
 
 	// update the description line
-	headerDescSpan.innerHTML = `${nodeid} - ${node.DESC}`;	
+	if(nodeDescOverrides[nodeid]){
+		node["DESC"] = nodeDescOverrides[nodeid];
+	}
+	headerDescSpan.innerHTML = `${nodeid} - ${node.DESC}`;
 
 	// update the tx line
 	if(node.RXKEYED === true && node.TXKEYED === true ){	

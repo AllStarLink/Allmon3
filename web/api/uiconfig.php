@@ -132,6 +132,19 @@ switch($CMD){
 		print($msg);
 		break;
 
+	case 'overrides':
+		if( ! file_exists("/etc/allmon3/web.ini")){
+            print(getJSONError("no /etc/allmon3/web.ini"));
+            break;
+        }
+        $webini = parse_ini_file("/etc/allmon3/web.ini", true);
+
+		$overrides = array();
+		foreach( $webini["node-overrides"] as $n => $t ){
+			$overrides += array($n => $t);
+		}
+		print_r(json_encode($overrides));
+		break;
 
 	# Otherwise error...
 	default:
