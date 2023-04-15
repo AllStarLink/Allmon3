@@ -20,7 +20,6 @@ if(strcmp($action,"login") == 0){
 	$pass = getPostVar("pass");
 	
 	if(strcmp($user,"") == 0 || strcmp($pass,"") == 0){
-		header('Content-Type: application/json');
 		print(getJSONError("login with no user or pass"));
 		exit;
 	}
@@ -37,15 +36,12 @@ if(strcmp($action,"login") == 0){
 			session_regenerate_id();
 			$_SESSION['user'] = $user;
 			$_SESSION['valid'] = true;
-			header('Content-Type: application/json');
 			print(getJSONSuccess("OK"));
 		} else {
-			header('Content-Type: application/json');
 			print(getJSONError("invalid username or password"));
 			exit;
 		}
 	} else {
-		header('Content-Type: application/json');
 		print(getJSONError("invalid username or password"));
 		exit;
 	}
@@ -58,7 +54,6 @@ if(strcmp($action,"logout") == 0){
 }
 
 if(!isset($_SESSION['valid'])){
-	header('Content-Type: application/json');
 	print(getJSONSecurityEvent("client is not logged in"));
 	exit;
 }

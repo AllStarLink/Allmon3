@@ -31,6 +31,13 @@ define("CONFIG_ZMQ_CMD_RETRY_INTERVAL", 1);
 define("CONFIG_ZMQ_CMD_POLL_TIMEO", 3000);
 #
 #
+# Set Headers
+if(strcmp(php_sapi_name(),"cli") != 0){
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: max-age=0, no-cache, no-store, must-revalidate');
+}
+#
+#
 # Load in web.ini
 if( file_exists("/etc/allmon3/web.ini") ){
 	$config_ini = parse_ini_file("/etc/allmon3/web.ini", true);
@@ -40,7 +47,6 @@ if( file_exists("/etc/allmon3/web.ini") ){
 	$USERS_TABLE_LOCATION = $config_ini['web']['USERS_TABLE_LOCATION'];
 	$HOME_BUTTON_URL = $config_ini['web']['HOME_BUTTON_URL'];
 } else {
-	header('Content-Type: application/json');
     print(getJSONError("no config found at /etc/allmon3/web.ini"));
     exit;
 }

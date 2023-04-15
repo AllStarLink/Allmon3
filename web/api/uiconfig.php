@@ -9,10 +9,6 @@
 require_once("functions.php");
 require_once("config.php");
 
-if( strcmp(php_sapi_name(),"cli") != 0 ){
-    header('Content-Type: application/json');
-}
-
 # Work with CLI or Web
 $CMD = "";
 if(defined('STDIN')){
