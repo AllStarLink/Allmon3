@@ -143,6 +143,8 @@ cd /usr/share/allmon3/css && ln -s /etc/allmon3/custom.css
 ```
 
 ## Node and Daemon Configuration
+The stock configuration files are always available at `/usr/share/doc/allmon3/`
+for recovery and documentation.
 
 Edit `/etc/allmon3/allmon3.ini` for at least one ASL AMI interface. Each node
 must have a separately-numbered `monport=` and `cmdport=` value. It's recommended
@@ -192,6 +194,7 @@ Created symlink /etc/systemd/system/multi-user.target.wants/asl-statmon@48496.se
 Created symlink /etc/systemd/system/multi-user.target.wants/asl-cmdlink@48496.service → /lib/systemd/system/asl-cmdlink@.service.
 # ./allmon3-procmgr start
 ```
+
 
 ## Website Specific Configuration
 Note that is is **strongly** recommended to use the PHP-FPM FastCGI

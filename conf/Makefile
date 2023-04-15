@@ -1,4 +1,6 @@
 sysconfdir ?= /etc/allmon3
+prefix ?= /usr
+docdir ?= $(prefix)/share/doc/allmon3
 
 CONF_FILES = $(filter-out Makefile, $(wildcard *))
 CONF_INSTALLABLES = $(patsubst %, $(DESTDIR)$(sysconfdir)/%, $(CONF_FILES))

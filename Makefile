@@ -1,7 +1,7 @@
 #
 # Build variables
 #
-RELVER = 0.9.5
+RELVER = 0.9.7
 DEBVER = 1
 
 BUILDABLES = \
@@ -19,12 +19,18 @@ ifdef ${DESTDIR}
 DESTDIR=${DESTDIR}
 endif
 
+ROOT_FILES = LICENSE README.md SECURITY.md
+ROOT_INSTALLABLES = $(patsubst %, $(DESTDIR)$(docdir)/%, $(CONF_FILES))
+
 default:
 	@echo This does nothing because of dpkg-buildpkg - use 'make install'
 
-install:
+install: $(ROOT_INSTALLABLES)
 	@echo DESTDIR=$(DESTDIR)
 	$(foreach dir, $(BUILDABLES), $(MAKE) -C $(dir);)
+
+$(DESTDIR)$(docdir)/%: %
+	install -D -m 0644  $< $@
 
 verset:
 	perl -pi -e 's/\@\@HEAD-DEVELOP\@\@/$(RELVER)/g' `grep -rl @@HEAD-DEVELOP@@ src/ web/`
