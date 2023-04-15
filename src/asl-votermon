@@ -143,24 +143,21 @@ def asl_logout(s):
 
 def parse_voter_data(response):
 	log.debug("entering parse_voter_data()")
-	# voters = { {clientid(NUM) : IP : TEXT , RSSI : NUM , VOTED: TEXT } , .... }
-	voters = { } 
+	# voters = { VOTED : None , VOTERS : { clientid : RSSI , .... } }
+	voters = { "VOTED" : None , "VOTERS" : {} } 
 	curr_client = 0
 	lines = re.split(r'[\n\r]+', response)
 	for line in lines:
 		if re.match(r'^Client', line):
 			client = re.split(r":\s", line)
 			curr_client = client[1]
-			voters[curr_client] = { "IP" : None , "RSSI" : None, "VOTED" : None }
-		elif re.match(r'^IP', line):
-			ip = re.split(r":\s", line)
-			voters[curr_client]["IP"] = ip[1]
+			voters["VOTERS"][curr_client] = 0
 		elif re.match(r'^RSSI', line):
 			rssi = re.split(r":\s", line)
-			voters[curr_client]["RSSI"] = int(rssi[1])
+			voters["VOTERS"][curr_client] = int(rssi[1])
 		elif re.match(r'Voted', line):
 			voted = re.split(r":\s", line)
-			voters[curr_client]["VOTED"] = int(votedi[1])
+			voters["VOTED"] = voted[1]
 	return voters
 
 ######## MAIN PROGRAM ########

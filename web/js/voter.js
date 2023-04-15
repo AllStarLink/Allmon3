@@ -125,14 +125,17 @@ async function getVotes(){
     }
 }
 
-function displayResults(voters){
+function displayResults(voterAPIData){
 	const voterDataArea = document.getElementById(`asl-votermon-${node}-data`);
 	let voterData = "";
+	const isMix = /\s[Mm]ix/;
+	const voted = voterAPIData["VOTED"];
+	const voters = voterAPIData["VOTERS"];
 	if(Object.keys(voters).length > 0){
 		for(let v in voters){
 
 			// RSSI
-			let rssi = voters[v]["RSSI"];
+			let rssi = voters[v]
 			let rssiPct = 0;
 			if( rssi == 255 ){
 				rssiPct = 100;
@@ -143,10 +146,10 @@ function displayResults(voters){
 
 			// Bar Color
 			let barColor = null;
-			if( voters[v]["VOTED"] === null ){
-				barColor = "info";
-			} else if( voters[v]["VOTED"] === v  ) {
+			if( v === voted ){
 				barColor = "success";
+			} else if(isMix.test(v)) {
+				barColor = "info";
 			} else {
 				barColor = "primary";
 			}
