@@ -47,10 +47,8 @@ def asl_create_connection_fail():
 def asl_create_connection(failhard):
 	log.debug("asl_create_connection(failhard=%s)", failhard)
 	try:
-		nasl = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		nasl.settimeout(10)
 		log.debug("connect() using %s:%s", ASL_HOST, ASL_PORT)
-		nasl.connect((ASL_HOST, ASL_PORT))
+		nasl = socket.create_connection((ASL_HOST, ASL_PORT), timeout=5)
 
 		# Check this connected to an Asterisk Call Manager (ACM)
 		part = nasl.recv(1024).decode("UTF-8")
@@ -238,7 +236,7 @@ else:
 if args.config:
 	config_file = args.config
 else:
-	config_file = "/etc/allmon3/voter.ini"
+	config_file = "/etc/allmon3/allmon3.ini"
 
 # Parse configuration
 
@@ -256,9 +254,9 @@ try:
 	if "colocated_on" in config[str(args.node)]:
 		raise Exception("Trying to start a process for a colocated node; only the primary node needs an asl-cmdlink")
 
-	if not "ip" in config[str(args.node)]:
-		raise Exception("Missing required attribute ip= for %s in %s" % (args.node, config_file))
-	ASL_HOST = config[str(args.node)]["ip"]
+	if not "host" in config[str(args.node)]:
+		raise Exception("Missing required attribute host= for %s in %s" % (args.node, config_file))
+	ASL_HOST = config[str(args.node)]["host"]
 	log.debug("ASL_HOST - %s", ASL_HOST)
 
 	if not "user" in config[str(args.node)]:

@@ -49,14 +49,14 @@ if(! $allmon_cfg){
 
 $colocated = getINIConfigVal($allmon_cfg, $ASL_NODE, "colocated_on");
 if($colocated == ""){
-	$z_host = getINIConfigVal($allmon_cfg, $ASL_NODE, "cmdip");
+	$z_host = getINIConfigVal($allmon_cfg, $ASL_NODE, "cmdhost");
 	if( $z_host == "" ){
 		$z_host = "127.0.0.1";
 	}
 	$z_port = getINIConfigVal($allmon_cfg, $ASL_NODE, "cmdport");
 	$ASL_PASS = getINIConfigVal($allmon_cfg, $ASL_NODE, "pass");
 } else {
-    $z_host = getINIConfigVal($allmon_cfg, $colocated, "cmdip");
+    $z_host = getINIConfigVal($allmon_cfg, $colocated, "cmdhost");
     if( $z_host == "" ){
         $z_host = "127.0.0.1";
     }
