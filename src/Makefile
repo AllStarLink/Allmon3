@@ -4,11 +4,14 @@ BINS = \
 	asl-statmon \
 	asl-statmon-client \
 	asl-cmdlink \
-	asl-cmdlink-cli
+	asl-cmdlink-cli \
+	asl-votermon \
+	asl-votermon-client
 
 SYSDS = \
 	asl-statmon@.service \
-	asl-cmdlink@.service 
+	asl-cmdlink@.service \
+	asl-votermon@.service
 
 MANS_SRC = $(wildcard *.1.md)
 

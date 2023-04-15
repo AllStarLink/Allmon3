@@ -107,6 +107,36 @@ switch($CMD){
 		print_r(json_encode($commands));
 		break;
 
+	case 'voter':
+		$voter_cfg = readVoterConfig();
+		if(! $voter_cfg){
+		    print(getJSONError("could not parse config file /etc/allmon3/voter.ini - likely misformatted"));
+		    exit;
+		}
+		$node = getGetVar("n");
+
+		if( array_key_exists("webvpinterval", $voter_cfg[$node])){
+			$poll_int = $voter_cfg[$node]["webvpinterval"];
+            if(array_key_exists("webvpsubsec", $voter_cfg[$NODE])){
+                if( strcmp($webvpsubsec_cfg[$node]["webvpsubsec"], "y") == 0 ){
+                    if( $poll_int < 250 ){
+                        $poll_int = 250;
+                    }
+                } else {
+                    $poll_int = $poll_int * 1000;
+                }
+            } else {
+                $poll_int = $poll_int * 1000;
+            }
+		} else {
+			$poll_int = 1000;
+		}
+		$msg = sprintf("{ \"SUCCESS\" : { \"TITLE\" : \"%s\" , \"POLLTIME\" : \"%s\" } }",
+			$voter_cfg[$node]["votertitle"], $poll_int);
+		print($msg);
+		break;
+
+
 	# Otherwise error...
 	default:
 		print(getJSONError("unknown command " . $CMD));

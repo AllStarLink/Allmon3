@@ -1,24 +1,25 @@
 #!/usr/bin/python3
-# asl-cmdlink.py - Monitor ASL Asterisk server for events
+# asl-votermon.py - Monitor ASL Asterisk server for voter module status
 #
 # Copyright(C) 2023 AllStarLink
 # Allmon3 and all components are Licensed under the AGPLv3
 # see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
 #
 
-
 import argparse
-import base64
 import configparser
-from itertools import cycle
+import json
 import logging
 import logging.handlers
 import os
+import pprint
 import re
 import signal
 import socket
 import sys
 from time import sleep
+import time
+import urllib.request
 import uuid
 import zmq
 
@@ -55,9 +56,9 @@ def asl_create_connection(failhard):
 		# Check this connected to an Asterisk Call Manager (ACM)
 		part = nasl.recv(1024).decode("UTF-8")
 		log.debug("AIM version: %s", rern.sub("",part))
+
 		if not re.match("^Asterisk Call Manager", part):
-			log.error("Connection to %s:%d does not appear to be an Asterisk Call Manager",
-				ASL_HOST, ASL_PORT) 
+			log.error("Connection to %s:%d does not appear to be an Asterisk Call Manager", ASL_HOST, ASL_PORT)
 			nasl.close()
 			sys.exit(1)
 	
@@ -71,7 +72,7 @@ def asl_create_connection(failhard):
 		if not logon_success:
 			lr = rern.sub("  ", logon_response)
 			log.error("Logon failure msg=(%s)", lr)
-			nasl.close()
+			asl.close()
 			sys.exit(1)
 
 		log.debug("leaving asl_create_connection()")
@@ -90,6 +91,7 @@ def asl_create_connection(failhard):
 			sys.exit(1)
 		else:	
 			return None
+
 
 # Generic construct for sending ASL Manager commands and reading responses
 def asl_cmd_response(s, cmd):
@@ -139,86 +141,44 @@ def asl_logout(s):
 	except Exception as e:
 		log.error(e)
 
-# Wrapper for asl_cmd_response to handle ACTION:COMMAND
-def asl_cmd(s, cmdstr):
-	log.debug("enter asl_cmd()")
-	
-	try:
-		cmd = "ACTION: COMMAND\r\nCOMMAND: {}\r\n".format(cmdstr)
-		c_response = asl_cmd_response(s, cmd)
-
-		# For Asterisk 20/ASL3 look for Output:
-		if  re.match(r"^Response\:\s+Error\s", c_response):
-			output = re.search(r"^.*Output:\s+(.*)", c_response, re.MULTILINE)
-			if(output):
-				return "ERR: {}".format(output.group(1))
-
-		# For Asterisk 20/ASL3 we look for Output: lines
-		if  re.match(r"^Response\:\s+Success\s", c_response):
-			output = re.split("\r\n", c_response)
-			r = "OK:\r\n"
-			for l in output:
-				if re.match(r"^Output:\s", l):
-					output = re.search(r"^Output:\s(.*)$", l)
-					log.debug(output.group(1))
-					r += output.group(1) + "\r\n"
-			return r
-
-		# For Asterisk 1.4/Classic ASL we have to assume the ordering
-		# and there's no valid command check
-		if  re.match(r"^Response\:\s+Follows\s", c_response):
-			output = re.split("\r\n", c_response)
-			log.debug(output[3])
-			if not re.match(r"No such command", output[3]) and not re.match(r"Unknown action name", output[3]):
-				return "OK:\r\n{}".format(output[3])
-			
-			return "ERR:\r\n{}".format(output[3])
-
-		return "ERR: command output responded with something I didn't understand"
-
-	except Exception as e:
-		log.error("asl_cmd() exception %s", e.__class__)
-		log.error("asl_cmd() message %s", e.__class__)
-		raise e	
-
-# To prevent casual interception/hacking, the cmd messages
-# are xor'd with the node admin key. The messages are base64-encoded.
-# Note: this is _not_ cryptographically secure... if you're concerned
-# about that you shouldn't be doing whatever it is you're doing
-# with this program.
-def decrypt_msg(data, key):
-	log.debug("entering decrypt_msg")
-	log.debug("msg: %s", data)
-	data_bytes = data.encode("UTF-8")
-	msg_bytes = base64.b64decode(data_bytes)
-	msg_x = msg_bytes.decode("UTF-8")
-	msg = ''.join(chr(ord(x) ^ ord(y)) for (x,y) in zip(msg_x, cycle(key)))
-	log.debug("msg: %s", msg)
-	return msg
+def parse_voter_data(response):
+	log.debug("entering parse_voter_data()")
+	# voters = { VOTED : None , VOTERS : { clientid : RSSI , .... } }
+	voters = { "VOTED" : None , "VOTERS" : {} } 
+	curr_client = 0
+	lines = re.split(r'[\n\r]+', response)
+	for line in lines:
+		if re.match(r'^Client', line):
+			client = re.split(r":\s", line)
+			curr_client = client[1]
+			voters["VOTERS"][curr_client] = 0
+		elif re.match(r'^RSSI', line):
+			rssi = re.split(r":\s", line)
+			voters["VOTERS"][curr_client] = int(rssi[1])
+		elif re.match(r'Voted', line):
+			voted = re.split(r":\s", line)
+			voters["VOTED"] = voted[1]
+	return voters
 
 ######## MAIN PROGRAM ########
 
-# node_mon_list
-# node_mon_list = { NODE : node_status{} , .... }
-node_mon_list = { }
+# Global Vars
+node_database = {}
 
 # Helpers
 rern = re.compile(r'\r\n', re.MULTILINE)
 rens = re.compile(r'\s', re.MULTILINE)
-
-# Tunables
-__MAX_MSG_LEN = 256
+renol = re.compile(r'LinkedNodes:', re.MULTILINE)
 
 # Args and Log Setup
-ap = argparse.ArgumentParser(description="Connect to an ASL Asterisk server and issue commands")
+ap = argparse.ArgumentParser(description="Connect to an ASL Asterisk server and gather voter stats")
 ap.add_argument("node", type=int, help="Node ID")
-ap.add_argument("config", help="path to INI configuration for the node")
+ap.add_argument("--config", help="path to INI configuration for the node")
 ap.add_argument("--debug", help="enable debug-level logging output", action="store_true")
-ap.add_argument("--version", help="get the version of the software", action="version",
-	version='%(prog)s {}'.format(_BUILD_ID))
+ap.add_argument("--version", help="get the version of the software", action="version", version='%(prog)s {}'.format(_BUILD_ID))
 args = ap.parse_args()
 
-log = logging.getLogger("asl-cmdlink")
+log = logging.getLogger("asl-votermon")
 lh = logging.StreamHandler()
 lf = logging.Formatter(fmt="%(name)s: %(levelname)s: %(message)s")
 lh.setFormatter(lf)
@@ -235,35 +195,36 @@ if not 1 <= args.node <= 9999999:
 else:
 	log.debug("using node %d", args.node)
 
+if args.config:
+	config_file = args.config
+else:
+	config_file = "/etc/allmon3/voter.ini"
 
 # Parse configuration
 
 try:
-	if not os.path.exists(args.config):
-		raise Exception("file not found: %s" % (args.config))
-	log.debug("config file is %s", args.config)
+	if not os.path.exists(config_file):
+		raise Exception("file not found: %s" % (config_file))
+	log.debug("config file is %s", config_file)
 	config = configparser.ConfigParser()
-	config.read(args.config)
+	config.read(config_file)
 	log.debug({section: dict(config[section]) for section in config.sections()})
 
 	if str(args.node) not in config:
-		raise Exception("No configuration stanza for node %s in %s" % (args.node, args.config))
-
-	if "colocated_on" in config[str(args.node)]:
-		raise Exception("Trying to start a process for a colocated node; only the primary node needs an asl-cmdlink")
-
+		raise Exception("No configuration stanza for node %s in %s" % (args.node, config_file))
+	
 	if not "ip" in config[str(args.node)]:
-		raise Exception("Missing required attribute ip= for %s in %s" % (args.node, args.config))
+		raise Exception("Missing required attribute ip= for %s in %s" % (args.node, config_file))
 	ASL_HOST = config[str(args.node)]["ip"]
 	log.debug("ASL_HOST - %s", ASL_HOST)
 
 	if not "user" in config[str(args.node)]:
-		raise Exception("Missing required attribute user= for %s in %s" % (args.node, args.config))
+		raise Exception("Missing required attribute user= for %s in %s" % (args.node, config_file))
 	ASL_USER = config[str(args.node)]["user"]
 	log.debug("ASL_USER - %s", ASL_USER)
 
 	if not "pass" in config[str(args.node)]:
-		raise Exception("Missing required attribute pass= for %s in %s" % (args.node, args.config))
+		raise Exception("Missing required attribute pass= for %s in %s" % (args.node, config_file))
 	ASL_PASS = config[str(args.node)]["pass"]
 	log.debug("ASL_PASS - %s", ASL_PASS)
 
@@ -274,6 +235,20 @@ try:
 		ASL_PORT = int(config[str(args.node)]["port"])
 		log.debug("ASL_PORT - %s", ASL_PORT)
 
+	if not "voterpollinterval" in config[str(args.node)]:
+		log.info("No voterpollinterval= attribute specified, using default 1")
+		POLLING_TIMER = 1
+	else:
+		POLLING_TIMER = int(config[str(args.node)]["voterpollinterval"])
+		log.debug("POLLING_TIMER: {}".format(POLLING_TIMER))
+		if "voterpollsubsec" in config[str(args.node)]:
+			if config[str(args.node)]["voterpollsubsec"] == "y":
+				POLLING_TIMER = POLLING_TIMER / 1000
+				log.debug(POLLING_TIMER)
+				if POLLING_TIMER < .2:
+					POLLING_TIMER = 200
+					log.info("voterpollinterval with voterpollsubsec=y may not be less than 200 - setting to 200")
+				log.debug("voterpollsubsec = y - adjusting POLLING_TIMER to {}".format(POLLING_TIMER))
 
 	if not "retryinterval" in config[str(args.node)]:
 		log.info("No retryinterval= attribute specified, using default 15s")
@@ -289,18 +264,10 @@ try:
 		RETRY_COUNT = int(config[str(args.node)]["retrycount"])
 		log.debug("RETRY_COUNT - %s", RETRY_COUNT)
 
-	if not "cmdport" in config[str(args.node)]:
-		raise Exception("Missing required attribute cmdport= for %s in %s" % (args.node, args.config))
-	ZMQ_PORT = int(config[str(args.node)]["cmdport"])
+	if not "vmonport" in config[str(args.node)]:
+		raise Exception("Missing required attribute vmonport= for %s in %s" % (args.node, config_file))
+	ZMQ_PORT = int(config[str(args.node)]["vmonport"])
 	log.debug("ZMQ_PORT - %s", ZMQ_PORT)
-
-	if "multinodes" in config[str(args.node)]:
-		log.debug("found multinodes")
-		for n in re.split(r',', config[str(args.node)]["multinodes"]):
-			log.debug("Adding node %d", int(n))
-			node_mon_list.update({ int(n): True })
-	else:
-		node_mon_list.update({ args.node : True })
 
 except Exception as e:
 	log.error("INI parser error: %s", e)
@@ -313,9 +280,9 @@ log.debug("have original asl object")
 # Create the ZeroMQ listener
 try:
 	log.debug("creating ZMQ listener")
-	c_context = zmq.Context()
-	cmdqueue = c_context.socket(zmq.REP)
-	cmdqueue.bind("tcp://*:%d" % (ZMQ_PORT))
+	p_context = zmq.Context()
+	publisher = p_context.socket(zmq.PUB)
+	publisher.bind("tcp://*:%d" % (ZMQ_PORT))
 except zmq.error.ZMQError as e:
 	log.error("unable to create ZeroMQ listener: %s", e )
 	asl_logout(asl)
@@ -326,27 +293,18 @@ except zmq.error.ZMQError as e:
 log.debug("starting the main work loop")
 main_loop = True
 inner_loop = True
+last_db_update = time.time()
+pp = pprint.PrettyPrinter(indent=4)
+
 try:
 	while main_loop:
 		while inner_loop:
 			try:
-				log.debug("Waiting for a message in ZMQ")
-				message_b = cmdqueue.recv()
-				message = decrypt_msg(message_b.decode(), ASL_PASS)
-				if len(message) > __MAX_MSG_LEN:
-					log.error("message > len(%d) was ignored", __MAX_MSG_LEN)
-					cmdqueue.send("ERR: cmd > %d chars not permitted", __MAX_MSG_LEN).encode("UTF-8")
-					continue
-
-				if not re.match("^(core|iax2|rpt|voter)", message):
-					log.error("unsupported command: %s", message)
-					cmdqueue.send("ERR: last command not a supported type".encode("UTF-8"))
-					continue
-
-				response = asl_cmd(asl, message)
-				log.debug("Sending a message in ZMQ")
-				cmdqueue.send(response.encode("UTF-8"))
-
+				voterstatus_cmd = "ACTION: VoterStatus\r\nNODE: %d\r\n" % ( args.node )
+				voterstatus_response = asl_cmd_response(asl, voterstatus_cmd)
+				voter_json = parse_voter_data(voterstatus_response)
+				publisher.send_multipart([str(args.node).encode("UTF-8"), json.dumps(voter_json).encode("UTF-8")])
+	
 			except BrokenPipeError as e:
 				log.error("received BrokenPipeError; trying to reconnect")
 				inner_loop = False
@@ -357,7 +315,9 @@ try:
 				log.error("received ConnectionResetError; trying to reconnect")
 				inner_loop = False
 
-
+			# Sleep for the polling time		
+			sleep(POLLING_TIMER)
+	
 		# If we exited out of inner_loop without throwing an exception
 		# then something went wrong with the asl socket. Loop around
 		# here trying to reconnect for the timeout interval and then
@@ -374,6 +334,7 @@ try:
 	
 			if RETRY_COUNT == -1 or RETRY_COUNT <= retry_counter:
 				log.debug("attempting reconnection retry #%d", retry_counter)
+
 				asl = asl_create_connection_nofail()
 				if asl:
 					log.info("connection reestablished after %d retries", retry_counter)
@@ -385,13 +346,6 @@ try:
 		# re-enable the innter loop processing	
 		inner_loop = True
 
-		# Close and recreate the ZMQ listener
-		log.info("Recreating ZMQ listener after connection reset")
-		cmdqueue.close();
-		c_context = zmq.Context()
-		cmdqueue = c_context.socket(zmq.REP)
-		cmdqueue.bind("tcp://*:%d" % (ZMQ_PORT))
-
 	# return back to the top of main_loop
 
 except Exception as e:
@@ -399,15 +353,10 @@ except Exception as e:
 	main_loop = False
 	raise e
 
-except zmq.error.ZMQError as e:
-	log.error("unable to create ZeroMQ listener: %s", e )
-	main_loop = False
-	raise e
-
 finally:
 	log.debug("Clean up on aisle 5")
 	asl_logout(asl)
 	asl.close()
-	cmdqueue.close()
+	publisher.close()
 
 sys.exit(0)
