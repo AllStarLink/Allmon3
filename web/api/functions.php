@@ -56,6 +56,16 @@ function readConfig(){
 	exit;
 }
 
+# Find and parse the voter configuration file
+function readVoterConfig(){
+	if( file_exists("/etc/allmon3/voter.ini") ){
+		return parse_ini_file("/etc/allmon3/voter.ini", true);
+	}
+
+	print(getJSONError("no config found at /etc/allmon3/voter.ini"));
+	exit;
+}
+
 #
 function userscsv($csv){
 	return str_getcsv($csv, "|");
