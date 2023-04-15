@@ -344,6 +344,44 @@ CustomLog ${APACHE_LOG_DIR}/access.log combined env=!nolog
 SetEnvIf Request_URI "api/asl-statmon.php" nolog
 ```
 
+## Voter Configuration
+Voting is monitored using the `asl-votermon(1)` daemon and has a different
+configuration file. The file `/etc/allmon3/voter.ini` is the configuration
+for all voter-related elements in both the backend and the frontend.
+
+The most-minimal configuration for `voter.ini` is as follows:
+```
+[1999]
+ip=192.0.2.10
+user=admin
+pass=password
+vmonport=6950
+votertitle="This is a Voter"
+```
+
+Voters need a separate invocation of the systemd unit:
+```
+systemctl enable asl-votermon@1999
+systemctl start asl-votermon@1999
+```
+
+The voter viewer is accessed at `allmon3/voter.html` and the URI
+requires a `#NODE` hash suffix. For the example node 1999:
+
+```
+http://localhost/allmon3/voter.html#1999
+```
+
+Specifying nothing after `voter.html` will result in an error.
+Links to voters should be created in `menu.ini` using as relative
+target. For example:
+```
+[ W1AW ]
+type = menu
+1999 = 1999
+'Voter 1999' = 'allmon3/voter.html#1999'
+```
+
 ## Three-Tier Structure
 Allmon3 is organized around a tiered structure: Asterisk AMI, message poller daemons (asl-statmon
 and asl-cmdlink), and the web client. In order to reduce webserver and Asterisk AMI load experience
