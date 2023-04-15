@@ -6,18 +6,19 @@
 asl-statmon - Monitor ASL Asterisk server for events
 
 # SYNOPSIS
-usage: asl-statmon [-h] [--debug] [--version] node config
+usage: asl-statmon [-h] [--debug] [--version] [--config FILE] node 
 
 Connect to an ASL Asterisk server and print rpt stats
 
 positional arguments:
   node        Node ID
-  config      path to INI configuration for the node
 
 optional arguments:
   -h, --help  show this help message and exit
   --debug     enable debug-level logging output
   --version   get the version of the software
+  --config    path to INI configuration for the node
+
 
 # DESCRIPTION
 **asl-statmon** is a polling damon against an Asterisk 

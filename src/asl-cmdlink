@@ -212,7 +212,7 @@ __MAX_MSG_LEN = 256
 # Args and Log Setup
 ap = argparse.ArgumentParser(description="Connect to an ASL Asterisk server and issue commands")
 ap.add_argument("node", type=int, help="Node ID")
-ap.add_argument("config", help="path to INI configuration for the node")
+ap.add_argument("--config", help="path to INI configuration for the node")
 ap.add_argument("--debug", help="enable debug-level logging output", action="store_true")
 ap.add_argument("--version", help="get the version of the software", action="version",
 	version='%(prog)s {}'.format(_BUILD_ID))
@@ -235,35 +235,39 @@ if not 1 <= args.node <= 9999999:
 else:
 	log.debug("using node %d", args.node)
 
+if args.config:
+	config_file = args.config
+else:
+	config_file = "/etc/allmon3/voter.ini"
 
 # Parse configuration
 
 try:
-	if not os.path.exists(args.config):
-		raise Exception("file not found: %s" % (args.config))
-	log.debug("config file is %s", args.config)
+	if not os.path.exists(config_file):
+		raise Exception("file not found: %s" % (config_file))
+	log.debug("config file is %s", config_file)
 	config = configparser.ConfigParser()
-	config.read(args.config)
+	config.read(config_file)
 	log.debug({section: dict(config[section]) for section in config.sections()})
 
 	if str(args.node) not in config:
-		raise Exception("No configuration stanza for node %s in %s" % (args.node, args.config))
+		raise Exception("No configuration stanza for node %s in %s" % (args.node, config_file))
 
 	if "colocated_on" in config[str(args.node)]:
 		raise Exception("Trying to start a process for a colocated node; only the primary node needs an asl-cmdlink")
 
 	if not "ip" in config[str(args.node)]:
-		raise Exception("Missing required attribute ip= for %s in %s" % (args.node, args.config))
+		raise Exception("Missing required attribute ip= for %s in %s" % (args.node, config_file))
 	ASL_HOST = config[str(args.node)]["ip"]
 	log.debug("ASL_HOST - %s", ASL_HOST)
 
 	if not "user" in config[str(args.node)]:
-		raise Exception("Missing required attribute user= for %s in %s" % (args.node, args.config))
+		raise Exception("Missing required attribute user= for %s in %s" % (args.node, config_file))
 	ASL_USER = config[str(args.node)]["user"]
 	log.debug("ASL_USER - %s", ASL_USER)
 
 	if not "pass" in config[str(args.node)]:
-		raise Exception("Missing required attribute pass= for %s in %s" % (args.node, args.config))
+		raise Exception("Missing required attribute pass= for %s in %s" % (args.node, config_file))
 	ASL_PASS = config[str(args.node)]["pass"]
 	log.debug("ASL_PASS - %s", ASL_PASS)
 
@@ -290,7 +294,7 @@ try:
 		log.debug("RETRY_COUNT - %s", RETRY_COUNT)
 
 	if not "cmdport" in config[str(args.node)]:
-		raise Exception("Missing required attribute cmdport= for %s in %s" % (args.node, args.config))
+		raise Exception("Missing required attribute cmdport= for %s in %s" % (args.node, config_file))
 	ZMQ_PORT = int(config[str(args.node)]["cmdport"])
 	log.debug("ZMQ_PORT - %s", ZMQ_PORT)
 

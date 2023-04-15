@@ -7,7 +7,7 @@ Type=exec
 User=allmon3
 group=allmon3
 Environment="PATH=/usr/bin:/bin:/usr/sbin:/sbin"
-ExecStart=asl-cmdlink %i /etc/allmon3/allmon3.ini
+ExecStart=asl-cmdlink %i
 
 [Install]
 WantedBy=multi-user.target

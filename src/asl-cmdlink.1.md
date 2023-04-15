@@ -6,18 +6,19 @@
 asl-cmdlink - Connect to an ASL Asterisk server and issue commands
 
 # SYNOPSIS
-usage: asl-cmdlink [-h] [--debug] [--version] node config
+usage: asl-cmdlink [-h] [--debug] [--version] [--config FILE] node
 
 Connect to an ASL Asterisk server and issue commands
 
 positional arguments:
   node        Node ID
-  config      path to INI configuration for the node
 
 optional arguments:
   -h, --help  show this help message and exit
   --debug     enable debug-level logging output
   --version   get the version of the software
+  --config    path to INI configuration for the node
+
 
 # DESCRIPTION
 **asl-cmdlink** takes input commands on its ZMQ message
