@@ -44,10 +44,10 @@ apt install -y apache2 php7.4-fpm php-zmq python3-zmq
 ```
 
 2. Download the latest .deb file from the current release
-branch. Current release is [allmon3_0.9.5-1_all.deb](https://github.com/AllStarLink/Allmon3/releases/download/rel_0_9_5/allmon3_0.9.5-1_all.deb). Downloading can be done with wget or curl. For example:
+branch. Current release is [allmon3_0.9.5-1_all.deb](https://github.com/AllStarLink/Allmon3/releases/download/rel_0_9_6/allmon3_0.9.5-1_all.deb). Downloading can be done with wget or curl. For example:
 
 ```
-wget https://github.com/AllStarLink/Allmon3/releases/download/rel_0_9_5/allmon3_0.9.5-1_all.deb
+wget https://github.com/AllStarLink/Allmon3/releases/download/rel_0_9_6/allmon3_0.9.5-1_all.deb
 ```
 
 3. Install Allmon3's deb file (use the correct .deb file name)
@@ -71,13 +71,13 @@ apt install -y apache2 php7.4-fpm php-zmq python3-zmq make pandoc
 
 2. Download the "Source code (tar.gz) file from the releases
 page for the current release. The current release is Allmon3 0.9.5.
-You will end up with a file named rel_0_9_5.tar.gz. Uncompress
+You will end up with a file named rel_0_9_6.tar.gz. Uncompress
 the file and cd into it:
 
 ```
-wget https://github.com/AllStarLink/Allmon3/archive/refs/tags/rel_0_9_5.tar.gz
-tar xvfz rel_0_9_5.tar.gz
-cd Allmon3-rel_0_9_5
+wget https://github.com/AllStarLink/Allmon3/archive/refs/tags/rel_0_9_6.tar.gz
+tar xvfz rel_0_9_6.tar.gz
+cd Allmon3-rel_0_9_6
 ```
 
 3. Install the application using make
@@ -250,11 +250,11 @@ for directions.
 ## Configuring Apache 
 
 ### Basic Application Configuration
-For best results, Apache should be configure according to these directions not based
-on historical configurations from Allmon3, Supermon, etc. These directions are for
+For best results, Apache should be configured according to these directions not based
+on historical configurations from Allmon2, Supermon, etc. These directions are for
 Debian-based systems. Due to widely varying web server configurations, the Debian
 package of allmon3 does not (yet?) try to enable itself within the webserver
-configuration.
+configuration. Notably, use of HTTP/2 and PHP-FPM is **strongly** encouraged.
 
 1. If Apache2 is already installed, remove any Apache configuration for mod_php:
 
