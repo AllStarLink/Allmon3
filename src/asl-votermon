@@ -10,21 +10,17 @@ import asyncio
 import argparse
 import configparser
 from datetime import datetime
-import json
 import logging
 import logging.handlers
 import os
-import pprint
 import re
 import signal
 import socket
 import sys
 from time import sleep
 import time
-import urllib.request
 import uuid
 from websockets.server import serve
-import zmq
 
 _BUILD_ID = "@@HEAD-DEVELOP@@"
 

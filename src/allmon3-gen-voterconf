@@ -61,7 +61,7 @@ try:
 			log.debug(config[node])
 			ws_port = config[node]["vmonport"]
 			print("# voter config for node {}".format(node))
-			print("ProxyPass /allmon3/ws/voter/{}".format(node))
+			print("ProxyPass /allmon3/ws/voter/{} ws://localhost:{}".format(node, ws_port))
 			print("RewriteCond %{HTTP:Upgrade} websocket [NC]")
 			print("RewriteCond %{HTTP:Connection} upgrade [NC]")
 			print("RewriteRule ^/allmon3/ws/voter/{} \"ws://localhost:{}/\"".format(node, ws_port))
