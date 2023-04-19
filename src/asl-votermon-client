@@ -11,9 +11,12 @@
 
 import asyncio
 import argparse
+import logging
 import signal
 import sys
-from websockets.sync.client import connect
+import websockets
+
+_BUILD_ID = "@@HEAD-DEVELOP@@"
 
 def sigterm_handler(_signo, _stack_frame):
 	print("exiting on signal %d" % (_signo))
@@ -24,18 +27,26 @@ signal.signal(signal.SIGINT, sigterm_handler)
 signal.signal(signal.SIGHUP, sigterm_handler)
 signal.signal(signal.SIGTERM, sigterm_handler)
 
-ap = argparse.ArgumentParser(description="Simple client to see that an asl-votermon instance. Dumps 0MQ messages from the specified port")
-ap.add_argument("host", type=str, help="FQDN or IP address of the asl-votermon to test")
-ap.add_argument("port", type=int, help="TCP port of asl-votermon to test")
-ap.add_argument("--topic", type=str, help="Topic to subscribe to")
-args = ap.parse_args()
-
-try:
-	with connect("ws://{}:{}".format(args.host, args.port)) as websocket:
-		websocket.send("GET")
-		message = websocket.recv()
+async def webSocketClient():
+	url = "ws://{}:{}".format(args.host, args.port)
+	async with websockets.connect(uri=url) as websocket:
+		await websocket.send(args.password)
+		message = await websocket.recv()
 		print("{}".format(message))
 
-except Exception as e:
-	print("Error: " + e)
-	system.exit(1)
+if __name__ == "__main__":
+	ap = argparse.ArgumentParser(description="Simple client to see that an asl-votermon instance.")
+	ap.add_argument("host", type=str, help="FQDN or IP address of the asl-votermon to test")
+	ap.add_argument("port", type=int, help="TCP port of asl-votermon to test")
+	ap.add_argument("password", type=str, help="node admin password to access the asl-votermon instance")
+	ap.add_argument("--debug", help="enable debug-level logging output", action="store_true")
+	ap.add_argument("--version", help="get the version of the software", action="version", version='%(prog)s {}'.format(_BUILD_ID))
+	args = ap.parse_args()
+	
+	log = logging.getLogger("asl-votermon")
+	lh = logging.StreamHandler()
+	lf = logging.Formatter(fmt="%(levelname)s: %(message)s")
+	lh.setFormatter(lf)
+	
+	asyncio.run(webSocketClient())
+
