@@ -137,8 +137,8 @@ switch($CMD){
 		} else {
 			$poll_int = 1000;
 		}
-		$msg = sprintf("{ \"SUCCESS\" : { \"TITLE\" : \"%s\" , \"POLLTIME\" : \"%s\" , \"PASS\" : \"%s\" } }",
-			$voter_cfg[$NODE]["votertitle"], $poll_int, $voter_cfg[$NODE]["pass"]);
+		$msg = sprintf("{ \"SUCCESS\" : { \"TITLE\" : \"%s\" , \"POLLTIME\" : \"%s\" , \"PASS\" : \"%s\" , \"VMONPORT\" : \"%s\" } }",
+			$voter_cfg[$NODE]["votertitle"], $poll_int, $voter_cfg[$NODE]["pass"], $voter_cfg[$NODE]["vmonport"]);
 		print($msg);
 		break;
 

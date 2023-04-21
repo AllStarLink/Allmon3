@@ -16,6 +16,7 @@ var node = 0;
 var nodeTitle = "";
 var nodeVoterPollInterval = 1000;
 var nodePass = "";
+var nodeVMonPort = 0;
 var nodePollErrors = 0;
 var votermon = null;
 
@@ -41,6 +42,7 @@ function startup(){
     	if(result["SUCCESS"]){
 			nodeVoterPollInterval = Number(result["SUCCESS"]["POLLTIME"]);
 			nodePass = result["SUCCESS"]["PASS"];
+			nodeVMonPort = result["SUCCESS"]["VMONPORT"]
 			drawVoterPanelFamework(result["SUCCESS"]["TITLE"]);
 			getVotes();
 		} else {
@@ -106,7 +108,7 @@ y-1 px-2 mt-1 mb-1 border-bottom nodeline-header rounded">
 function getVotes(){
 	const wsproto = window.location.protocol.replace("http", "ws");
 	const wshost = window.location.host;
-	const wsuri = window.location.pathname.replace("voter.html", `/ws/voter/${node}`)
+	const wsuri = window.location.pathname.replace("voter.html", `/ws/voter/${nodeVMonPort}`)
 	const wsurl = `${wsproto}//${wshost}${wsuri}`;
 	votermon = new WebSocket(wsurl);
 	votermon.addEventListener("message", displayResults);
