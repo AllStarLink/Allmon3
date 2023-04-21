@@ -105,6 +105,7 @@ async function createSidebarMenu(){
 						<div class="dropdown-menu">`);
 					for(let ml of Object.keys(customMenu[dd])){
 						if( ml !== "type" ){
+							ml = ml.replace(/'/g,"");
 							if(customMenu[dd][ml].match(/^[0-9]+$/)){
 								let nn = customMenu[dd][ml];
 								navMenu = navMenu.concat(`<a class="dropdown-item" href="${pageName}#${nn}">${ml}</a>`);
@@ -120,6 +121,7 @@ async function createSidebarMenu(){
 			} else if(customMenu[dd]["type"] === "single"){
 				for(let ml of Object.keys(customMenu[dd])){
 					if( ml !== "type" ){
+						ml = ml.replace(/'/g,"");
 						let href = customMenu[dd][ml];
 						navMenu = navMenu.concat(`
 							<div class="btn-group">
