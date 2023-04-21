@@ -64,7 +64,7 @@ try:
 			print("ProxyPass /allmon3/ws/voter/{} ws://localhost:{}".format(node, ws_port))
 			print("RewriteCond %{HTTP:Upgrade} websocket [NC]")
 			print("RewriteCond %{HTTP:Connection} upgrade [NC]")
-			print("RewriteRule ^/allmon3/ws/voter/{} \"ws://localhost:{}/\"".format(node, ws_port))
+			print("RewriteRule ^/allmon3/ws/voter/{} \"ws://localhost:{}/\" [P,L,QSA]".format(node, ws_port))
 
 except Exception as e:
 	log.error("INI parser error: %s", e)
