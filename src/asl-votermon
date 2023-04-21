@@ -183,11 +183,11 @@ def parse_voter_data(response):
 		if re.match(r"\s[Mm]ix", n):
 			barcolor = "info"
 
-		voter_html += "<div class=\"row d-flex align-items-center\">"
-		voter_html += "  <div class=\"col-2 text-end\">"
+		voter_html += "<div class=\"row justify-content-md-center\">"
+		voter_html += "  <div class=\"col-4 col-md-2 text-end\">"
 		voter_html += "    <b>{}</b>".format(n)
 		voter_html += "  </div>"
-		voter_html += "  <div class=\"col-8\">"
+		voter_html += "  <div class=\"col-8 col-md-10\">"
 		voter_html += "    <div class=\"progress\" role=\"progressbar\" aria-valuenow=\"{}\"".format(rssipct)
 		voter_html += "    aria-valuemin=\"0\" aria-valuemax=\"100\">"
 		voter_html += "      <div class=\"progress-bar progress-bar-striped bg-{}\" style=\"width: {}%\">{}</div>".format(barcolor, rssipct, r)
