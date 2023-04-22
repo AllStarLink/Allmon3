@@ -25,7 +25,7 @@ ASL communities.
 ## Requirements
 Allmon3 requires the following:
 
-* Python3 with the Python ZMQ package
+* Python3 with the `websockets` and `zmq` packages
 * PHP with the PHP-ZMQ package
 * Apache 2.4 configured to host PHP-based applications
 
@@ -35,12 +35,12 @@ packaging and documentation assumes Apache.
 ## Installation
 
 ### Installation for Packages
-The following directions can be used to install with the Debian package
+The following directions can be used to install with the Debian package.
 
 1. Install the prerequisites
 
 ```
-apt install -y apache2 php7.4-fpm php-zmq python3-zmq 
+apt install -y apache2 php7.4-fpm php-zmq python3-zmq python3-websockets
 ```
 
 2. Download the latest .deb file from the current release
@@ -65,7 +65,7 @@ This is **not** recommended but is available if necessary.
 the PHP ZMQ module, and a tool called pandoc. On Debian-based systems 
 this can be installed as followed (example uses Debian 11).
 ```
-apt install -y apache2 php7.4-fpm php-zmq python3-zmq make pandoc
+apt install -y apache2 php7.4-fpm php-zmq python3-zmq python3-websockets make pandoc
 ```
 
 
