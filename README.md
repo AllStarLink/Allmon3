@@ -239,16 +239,23 @@ would have identical contents.
 
 ### Website Customization
 
-Allmon3 has two configuration files to consider. The first is `/etc/allmon3/config.php`. This
-is where the site name and optional logo can be placed. In a future release, these
-two items will be moved to an .ini file.
+Allmon3 has multiple configuration files to consider:
 
-The second is `/etc/allmon3/menu.ini` for creating a customized menu structure. See `api/menu.ini.example`
-for complete instructions on how to configure a menu. To enable a menu, simply
-rename `menu.ini.example` to `menu.ini` and edit to taste.
+* `/etc/allmon3/web.ini` - Has three configuration sections - *web*, 
+*syscmds*, and *node-overrides*. The *web* section has the basic
+customizations for the Allmon3 site. The *syscmds* section defines
+the templates in the "system commands" menu. Add or remove as
+desired. The token `@` will be expanded into the selected node 
+on which to execute the command. The *node-overrides* section
+can be used to override information from the ASL database.
 
-Certain colors are able to be modified by editing `/usr/share/allmon3/css/custom.css`. See the internal comments
-for directions.
+* `/etc/allmon3/custom.css` - Certain CSS customizations to change
+colors in the application.
+
+* `/etc/allmon3/menu.ini` - Allows for the customization of the
+Allmon3 web menu. By default, the menu is a list of all nodes
+found in `allmon3.ini`. Cutomized menus can be configured
+as described in `menu.ini.example`.
 
 ## Configuring Apache 
 
@@ -323,6 +330,13 @@ on, create `/var/www/html/index.html` with the following contents:
 
 This will direct people to the Allmon3 index directly.
 
+Note: The file `/etc/allmon3/apache.conf` is NOT a configuration
+file that is preserved/managed across upgrades as it is only
+an example. All site-local customizations of Apache should be
+stored in `/etc/apache/conf-available/allmon3.conf` which is
+never touched by the installer package or the `make install`
+process.
+
 ### Important Web Log Performance Consideration
 
 As a "modern" web application, Allmon3 makes *extensive* use of AJAX callbacks
@@ -382,8 +396,13 @@ target. For example:
 [ W1AW ]
 type = menu
 1999 = 1999
-'Voter 1999' = 'allmon3/voter.html#1999'
+'Voter 1999' = 'voter.html#1999'
 ```
+
+It's important to note that `asl-votermon` differs from `asl-statmon`
+and `asl-cmdlink` in that rather than a 0MQ mesasge bus that is polled
+from the web, it is a websockets server. The websocket connection is
+proxied through Apache.
 
 ## Three-Tier Structure
 Allmon3 is organized around a tiered structure: Asterisk AMI, message poller daemons (asl-statmon
