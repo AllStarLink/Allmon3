@@ -16,7 +16,7 @@ import signal
 import sys
 import websockets
 
-_BUILD_ID = "@@HEAD-DEVELOP@@"
+_BUILD_ID = "0.9.7"
 
 def sigterm_handler(_signo, _stack_frame):
 	print("exiting on signal %d" % (_signo))
