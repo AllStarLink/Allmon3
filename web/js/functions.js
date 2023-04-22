@@ -91,6 +91,11 @@ async function createSidebarMenu(){
 	let customMenu = await getAPIJSON("api/uiconfig.php?e=custmenu");
 	let navMenu = `<div class="vstack d-grid gap-2 col-9 mx-auto">`;
 
+	let pageName = "";
+	if( document.location.pathname.match("voter.html") ){
+		pageName = "index.html";
+	}
+
 	if(!customMenu["ERROR"]){
 		for(let dd of Object.keys(customMenu)){
 			if(customMenu[dd]["type"] === "menu"){
@@ -100,9 +105,10 @@ async function createSidebarMenu(){
 						<div class="dropdown-menu">`);
 					for(let ml of Object.keys(customMenu[dd])){
 						if( ml !== "type" ){
+							ml = ml.replace(/'/g,"");
 							if(customMenu[dd][ml].match(/^[0-9]+$/)){
 								let nn = customMenu[dd][ml];
-								navMenu = navMenu.concat(`<a class="dropdown-item" href="#${nn}">${ml}</a>`);
+								navMenu = navMenu.concat(`<a class="dropdown-item" href="${pageName}#${nn}">${ml}</a>`);
 							} else {
 								let href = customMenu[dd][ml];
 								navMenu = navMenu.concat(`<a class="dropdown-item" href="${href}">${ml}</a>`);
@@ -115,6 +121,7 @@ async function createSidebarMenu(){
 			} else if(customMenu[dd]["type"] === "single"){
 				for(let ml of Object.keys(customMenu[dd])){
 					if( ml !== "type" ){
+						ml = ml.replace(/'/g,"");
 						let href = customMenu[dd][ml];
 						navMenu = navMenu.concat(`
 							<div class="btn-group">

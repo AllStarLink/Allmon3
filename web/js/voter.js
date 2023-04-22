@@ -15,7 +15,10 @@
 var node = 0;
 var nodeTitle = "";
 var nodeVoterPollInterval = 1000;
+var nodePass = "";
+var nodeVMonPort = 0;
 var nodePollErrors = 0;
+var votermon = null;
 
 const max_poll_errors = 10;
 
@@ -38,6 +41,8 @@ function startup(){
 	getAPIJSON(`api/uiconfig.php?e=voter&n=${node}`).then((result) => {
     	if(result["SUCCESS"]){
 			nodeVoterPollInterval = Number(result["SUCCESS"]["POLLTIME"]);
+			nodePass = result["SUCCESS"]["PASS"];
+			nodeVMonPort = result["SUCCESS"]["VMONPORT"]
 			drawVoterPanelFamework(result["SUCCESS"]["TITLE"]);
 			getVotes();
 		} else {
@@ -100,89 +105,50 @@ y-1 px-2 mt-1 mb-1 border-bottom nodeline-header rounded">
 	votermonArea.innerHTML = votermonAreaHeader + votermonAreaData;
 }
 
-async function getVotes(){
-	let errormsg = "";
-	let response = await fetch(`api/asl-votermon.php?node=${node}`);
-	if(response.ok){
-		const result = await response.json();
-        if(result["ERROR"]){
-            errormsg = result["ERROR"];
-            nodePollErrors = nodePollErrors + 1;
-        } else {
-            nodePollErrors = 0;
-            displayResults(result);
-        }
-    } else {
-        console.log(response);
-		errormsg = response;
-        nodePollErrors =  nodePollErrors + 1;
-    }
+function getVotes(){
+	const wsproto = window.location.protocol.replace("http", "ws");
+	const wshost = window.location.host;
+	const wsuri = window.location.pathname.replace("voter.html", `/ws/voter/${nodeVMonPort}`)
+	const wsurl = `${wsproto}//${wshost}${wsuri}`;
+	votermon = new WebSocket(wsurl);
+	votermon.addEventListener("message", displayResults);
+	votermon.onopen = (event) => {
+		getNextVoterData();
+	}
+	votermon.onclose = (event) => {
+		document.getElementById(`asl-votermon-${node}-data`).innerHTML = `
+            <div class="p-3 my-2 text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded-3">
+            	The websocket could not be contacted or unexpectedly closed. Check the server config.
+            </div>
+        `;
 
-    if( nodePollErrors < max_poll_errors ){
-		setTimeout(getVotes, nodeVoterPollInterval );
-    } else {
-    	displayError(errormsg);
-    }
+	}
+	votermon.onerror = (event) => {
+		document.getElementById(`asl-votermon-${node}-data`).innerHTML = `
+            <div class="p-3 my-2 text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded-3">
+            	The websocket had an error. Check the server config.
+            </div>
+        `;
+
+	}
+
 }
 
-function displayResults(voterAPIData){
-	const voterDataArea = document.getElementById(`asl-votermon-${node}-data`);
-	let voterData = "";
-	const isMix = /\s[Mm]ix/;
-	const voted = voterAPIData["VOTED"];
-	const voters = voterAPIData["VOTERS"];
-	if(Object.keys(voters).length > 0){
-		for(let v in voters){
+function getNextVoterData(){
+	votermon.send(nodePass);
+}
 
-			// RSSI
-			let rssi = voters[v]
-			let rssiPct = 0;
-			if( rssi == 255 ){
-				rssiPct = 100;
-			} else {
-				// display the bar as a relative size between 10% and 100% - 90/255 ~ .35
-				rssiPct = rssi * .35 + 10;
-			}
-
-			// Bar Color
-			let barColor = null;
-			if( v === voted ){
-				barColor = "success";
-			} else if(isMix.test(v)) {
-				barColor = "info";
-			} else {
-				barColor = "primary";
-			}
-
-			// Draw Data
-			voterData = voterData.concat(`
-				<div class="row d-flex align-items-center">
-	                <div class="col-2 text-end">
-	                    <b>${v}</b>
-	                </div>
-	                <div class="col-8">
-	                    <div class="progress" role="progressbar" aria-valuenow="${rssiPct}" aria-valuemin="0" aria-valuemax="100">
-	                          <div class="progress-bar progress-bar-striped bg-${barColor}" style="width: ${rssiPct}%">${rssi}</div>
-	                    </div>
-	                </div>
-	            </div>
-			`);
-		}
-		voterDataArea.innerHTML = voterData.concat(`
-			<div class="row d-flex align-items-center">
-				<div class="col-2 text-end">
-					<div class="spinner-grow spinner-grow-sm" style="animation-duration: .5s" role="status">
-						<span class="visually-hidden">Loading...</span>	
-					</div>
-				</div>
-			</div>`);
+function displayResults(voterEvent){
+	if(voterEvent.returnValue){
+		document.getElementById(`asl-votermon-${node}-data`).innerHTML = voterEvent.data;
 	} else {
-		voterData.innerHTML = `
+		document.getElementById(`asl-votermon-${node}-data`).innerHTML = `
 			<div class="p-3 my-2 text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded-3">
 				No voter data available from system
 			</div>
 		`;
 	}
+	setTimeout(getNextVoterData, nodeVoterPollInterval);
 }
 
 function displayError(errormsg){
