@@ -44,10 +44,11 @@ apt install -y apache2 php7.4-fpm php-zmq python3-zmq python3-websockets
 ```
 
 2. Download the latest .deb file from the current release
-branch. Current release is [allmon3_0.9.7-1_all.deb](https://github.com/AllStarLink/Allmon3/releases/download/rel_0_9_7/allmon3_0.9.7-1_all.deb). Downloading can be done with wget or curl. For example:
+branch. Current release is [allmon3_0.9.7-1_all.deb](https://github.com/AllStarLink/Allmon3/releases/download/0_9_7/allmon3_0.9.7-1_all.deb). 
+Downloading can be done with wget or curl. For example:
 
 ```
-wget https://github.com/AllStarLink/Allmon3/releases/download/rel_0_9_7/allmon3_0.9.7-1_all.deb
+wget https://github.com/AllStarLink/Allmon3/releases/download/0_9_7/allmon3_0.9.7-1_all.deb
 ```
 
 3. Install Allmon3's deb file (use the correct .deb file name)
