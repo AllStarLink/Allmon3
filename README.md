@@ -22,6 +22,53 @@ under the [GNU Affero General Public License v3](https://www.gnu.org/licenses/wh
 The choice of the AGPLv3 promotes giving back to the amateur radio and
 ASL communities.
 
+## Quickstart
+Use the following steps, as the root user, to install on a Debian 11 system:
+
+1. Install the software
+```
+apt install -y apache2 php7.4-fpm php-zmq python3-zmq python3-websockets wget
+wget https://github.com/AllStarLink/Allmon3/releases/download/0_9_7/allmon3_0.9.7-1_all.deb
+dpkg -i allmon3_0.9.7-1_all.deb
+```
+
+2. Edit `/etc/allmon3/allmon3.ini` for the basic node configuration as explained in the file.
+
+3. Configure Apache using the following commands:
+```
+a2dismod php7.4
+a2dismodapt mpm_prefork
+a2enmod mpm_event
+cp /etc/allmon3/apache.conf /etc/apache2/conf-available/allmon3.conf
+a2enconf allmon3
+```
+
+4. Edit `/etc/apache2/sites-available/000-default.conf` to look like the following:
+```
+<VirtualHost *:80>
+    Protocols h2 http/1.1
+	ServerAdmin YOUREMAIL@ADDRESS
+	DocumentRoot /var/www/html
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+	CustomLog ${APACHE_LOG_DIR}/access.log combined env=!nolog
+	SetEnvIf Request_URI "api/asl-statmon.php" nolog
+</VirtualHost>
+```
+Notably, ensure that CustomLog has `env=!nolog` at the end and the `SetEnvIf` appears.
+
+5. Enable and start the services
+```
+allmon3-procmgr enable
+allmon3-procmgr start
+systemctl restart apache2
+```
+6. Set a password for the default user allmon3:
+```
+allmon3-passwd allmon3
+```
+
+7. Open your web browser to the IP or hostname - http://192.0.2.10/allmon3/
+
 ## Requirements
 Allmon3 requires the following:
 
