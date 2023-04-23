@@ -37,7 +37,7 @@ dpkg -i allmon3_0.9.7-1_all.deb
 3. Configure Apache using the following commands:
 ```
 a2dismod php7.4
-a2dismodapt mpm_prefork
+a2dismod mpm_prefork
 a2enmod mpm_event
 cp /etc/allmon3/apache.conf /etc/apache2/conf-available/allmon3.conf
 a2enconf allmon3
@@ -67,7 +67,7 @@ systemctl restart apache2
 allmon3-passwd allmon3
 ```
 
-7. Open your web browser to the IP or hostname - http://192.0.2.10/allmon3/
+7. Open your web browser to the IP or hostname - for example: http://192.0.2.10/allmon3/
 
 ## Requirements
 Allmon3 requires the following:
