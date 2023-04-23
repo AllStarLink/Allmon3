@@ -73,12 +73,14 @@ allmon3-passwd allmon3
 7. Open your web browser to the IP or hostname - for example: http://192.0.2.10/allmon3/
 
 Note: If you have a voter system to monitor with Allmon3, Python3's websocket
-module must be upgraded to at least version 10.4 using Debian's bullseye-backports
-channel. See [Debian Backports Instructions](https://backports.debian.org/Instructions/)
+module must be upgraded to at least version 10.4. With Debian 11, this can be
+done with the bullseye-backports channel. See [Debian Backports Instructions](https://backports.debian.org/Instructions/)
 for enabling backports and then:
 ```
 apt install python3-websockets/bullseye-backports
 ```
+The voter monitor is currently not support on Debian 10 until a realiable method of
+installing Python3 websocket v10+ can be tested and documented properly.
 
 ## Requirements
 Allmon3 requires the following:
