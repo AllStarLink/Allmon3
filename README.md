@@ -24,7 +24,7 @@ ASL communities.
 
 ## Quickstart
 Use the following steps, as the root user, to install on a Debian 11 system follow
-these instructions. For Debian 11, replace all references to "php7.4" with "php7.3".
+these instructions. For Debian 10, replace all references to "php7.4" with "php7.3".
 
 1. Install the software
 ```
