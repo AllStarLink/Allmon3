@@ -23,7 +23,8 @@ The choice of the AGPLv3 promotes giving back to the amateur radio and
 ASL communities.
 
 ## Quickstart
-Use the following steps, as the root user, to install on a Debian 11 system:
+Use the following steps, as the root user, to install on a Debian 11 system follow
+these instructions. For Debian 11, replace all references to "php7.4" with "php7.3".
 
 1. Install the software
 ```
@@ -31,6 +32,8 @@ apt install -y apache2 php7.4-fpm php-zmq python3-zmq python3-websockets wget
 wget https://github.com/AllStarLink/Allmon3/releases/download/0_9_7/allmon3_0.9.7-1_all.deb
 dpkg -i allmon3_0.9.7-1_all.deb
 ```
+
+
 
 2. Edit `/etc/allmon3/allmon3.ini` for the basic node configuration as explained in the file.
 
@@ -68,6 +71,14 @@ allmon3-passwd allmon3
 ```
 
 7. Open your web browser to the IP or hostname - for example: http://192.0.2.10/allmon3/
+
+Note: If you have a voter system to monitor with Allmon3, Python3's websocket
+module must be upgraded to at least version 10.4 using Debian's bullseye-backports
+channel. See [Debian Backports Instructions](https://backports.debian.org/Instructions/)
+for enabling backports and then:
+```
+apt install python3-websockets/bullseye-backports
+```
 
 ## Requirements
 Allmon3 requires the following:
