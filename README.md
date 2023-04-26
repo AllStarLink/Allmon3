@@ -44,6 +44,8 @@ a2dismod mpm_prefork
 a2enmod mpm_event
 cp /etc/allmon3/apache.conf /etc/apache2/conf-available/allmon3.conf
 a2enconf allmon3
+a2enconf php7.4-fpm
+a2enmod proxy_fcgi
 ```
 
 4. Edit `/etc/apache2/sites-available/000-default.conf` to look like the following:
