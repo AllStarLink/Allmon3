@@ -333,7 +333,7 @@ configuration. Notably, use of HTTP/2 and PHP-FPM is **strongly** encouraged.
 
 ```
 a2dismod php7.4
-a2dismodapt mpm_prefork
+a2dismod mpm_prefork
 a2enmod mpm_event
 apt remove libapache2-mod-php libapache2-mod-php7.4
 apt install apache2
