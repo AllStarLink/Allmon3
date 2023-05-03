@@ -1,0 +1,921 @@
+#!/usr/bin/python3
+# almon3.py - Monitor ASL Asterisk server for events
+#
+# Copyright(C) 2023 AllStarLink
+# Allmon3 and all components are Licensed under the AGPLv3
+# see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
+#
+
+from asl import WebsocketBroadcaster
+import argparse
+import asyncio
+import base64
+import binascii
+import configparser
+import functools
+import json
+from itertools import cycle
+import logging
+import logging.handlers
+import os
+import re
+import signal
+import socket
+import sys
+from time import sleep
+import time
+import urllib.request
+import uuid
+import threading
+import websockets
+
+_BUILD_ID = "@@HEAD-DEVELOP@@"
+
+
+# Handle Signals
+def sigterm_handler(_signo, _stack_frame):
+	log.info("exiting on signal %d", _signo)
+	sys.exit(0)	
+signal.signal(signal.SIGINT, sigterm_handler)
+signal.signal(signal.SIGHUP, sigterm_handler)
+signal.signal(signal.SIGTERM, sigterm_handler)
+
+def sigusr1_handler(_signo, _stack_frame):
+	log.info("received SIGUSR1; refreshing database")
+	try:
+		get_allmon_db()
+	except Exception as e:
+		log.error("unable to get allmondb: %s", e)
+		if len(node_database) > 0:
+			log.info("info fields will use cached data until an update succeeds")
+		else:
+			log.error("info fields will be labeled UNAVAILABLE until the data is retrieved")
+signal.signal(signal.SIGUSR1, sigusr1_handler)
+	
+##
+## ASL/AMI Port Functions
+##
+
+## Use this creator as part of a retry interval
+def asl_create_connection_nofail():
+	return asl_create_connection(False)
+
+## Use this creator to fail immediately on any
+## network-level connect failure
+def asl_create_connection_fail():
+	return asl_create_connection(True)
+
+## If failhard=True then sys.exit() is called on network-level issues
+def asl_create_connection(failhard):
+	log.debug("asl_create_connection(failhard=%s)", failhard)
+	try:
+		log.debug("connect() using %s:%s", ASL_HOST, ASL_PORT)
+		nasl = socket.create_connection((ASL_HOST, ASL_PORT), timeout=5)
+
+		# Check this connected to an Asterisk Call Manager (ACM)
+		part = nasl.recv(1024).decode("UTF-8")
+		log.debug("AIM version: %s", rern.sub("",part))
+
+		if not re.match("^Asterisk Call Manager", part):
+			log.error("Connection to %s:%d does not appear to be an Asterisk Call Manager", ASL_HOST, ASL_PORT)
+			nasl.close()
+			sys.exit(1)
+	
+		# Logon to the ACM
+		logon = "ACTION: LOGIN\r\nUSERNAME: %s\r\nSECRET: %s\r\nEVENTS: 0\r\n" % ( ASL_USER, ASL_PASS )
+
+		logon_response = asl_cmd_response(nasl, logon)
+		log.debug(rern.sub(" ",logon_response))
+		lp = re.compile('Response: Success\r\n', re.MULTILINE)
+		logon_success = lp.match(logon_response)
+		if not logon_success:
+			lr = rern.sub("  ", logon_response)
+			log.error("Logon failure msg=(%s)", lr)
+			asl.close()
+			sys.exit(1)
+
+		log.debug("leaving asl_create_connection()")
+		return nasl
+
+	except socket.error as error:
+		log.error("connection failed to %s:%s: %s", ASL_HOST, ASL_PORT, error)
+		if failhard:
+			sys.exit(1)
+		else:
+			return None
+	except TypeError as e:
+		log.error("failed connection on connect(): %s", e)
+
+		if failhard:
+			sys.exit(1)
+		else:	
+			return None
+
+
+# Generic construct for sending ASL Manager commands and reading responses
+def asl_cmd_response(s, cmd):
+	try:
+		aid = uuid.uuid4()
+		cmd += "ActionID: %s\r\n\r\n" % aid
+		s.settimeout(5)
+		if not cmd is None:
+			log.debug("command >> %s", rern.sub(" ", cmd))
+			s.sendall(str.encode(cmd))
+		
+		cont_recv = True
+		resp = ""
+		while cont_recv:		
+			part = s.recv(1024)
+			if part == b'':
+				log.debug("asl_cmd_response() socket went away on the far side")
+				raise BrokenPipeError("other side went away")
+			resp += part.decode("UTF-8")
+			if resp[-4:] == "\r\n\r\n":
+				cont_recv = False
+
+		log.debug("response >> %s", rern.sub("  ", resp))
+		return resp
+
+	except TimeoutError as e:
+		log.error("asl_cmd_response() TimeoutError")
+		raise e
+	except BrokenPipeError as e:
+		log.error("asl_cmd_response() BrokenPipeError")
+		raise e
+	except socket.timeout as e:
+		log.error("asl_cmd_response() socket.timeout")
+		raise e
+	except ConnectionResetError as e:
+		log.error("asl_cmd_response() ConnectionResetError")
+		raise e
+	except Exception as e:
+		log.error("asl_cmd_response() Exception: %s", e.__class__)
+		log.error("asl_cmd_response() Message: %s", e)
+		raise e
+
+# (try) to logout of ASL Manager neatly
+def asl_logout(s):	
+	try:
+		s.sendall(str.encode("ACTION: Logoff\r\n\r\n"))
+	except Exception as e:
+		log.error(e)
+
+##
+## Status Broadcasting Functions
+##
+
+# Parse the (String) response from a SawStat command
+def parse_saw_stat(curr_node, response):
+	log.debug("enter parse_saw_stat(%d)", curr_node)
+	
+	# Clear the CONNKEYED* status
+	node_mon_list[curr_node].update( { "CONNKEYED" : False } )
+	node_mon_list[curr_node].update( { "CONNKEYEDNODE" : False } )
+
+	# Process the SawStat message
+	ra = re.split(r'[\n\r]+', response)
+	for l in ra:
+		if re.match("^Conn", l):
+			ce = re.split(r"\s+", l)
+			# Conn: NODE PTT SEC_SINCE_KEY SEC_SINCE_UNKEY
+			if ce[1] in node_mon_list[curr_node]["CONNS"]:
+				node_mon_list[curr_node]["CONNS"][ce[1]].update( { "PTT" : ce[2] , "SSK" : ce[3] , "SSU" : ce[4] } )				
+				if int(ce[2]) == 1:
+					node_mon_list[curr_node].update( { "CONNKEYED" : True } )
+					node_mon_list[curr_node].update( { "CONNKEYEDNODE" : ce[1] } )
+	log.debug("exiting parse_saw_stat(%d)", curr_node)
+
+# Query/Parse Echolink Node Info
+def get_echolink_name(echolink_id):
+	log.debug("enter get_echolink_name(%s)", echolink_id)
+	elnodecmd = "ACTION: COMMAND\r\nCOMMAND: echolink dbget nodename %s\r\n" % (echolink_id)
+	el_info = asl_cmd_response(asl, elnodecmd)
+	ra = re.split(r'[\n\r]+', el_info)
+	for l in ra:
+		if re.match("^[0-9]+\|", l):
+			ell = re.split(r'\|', l)
+			log.debug("exiting get_echolink_name(%s)", echolink_id)
+			return "%s - Echolink" % (ell[1])
+	log.debug("Invalid response about echolink - exiting get_echolink_name")
+	return "No Database Information"
+
+# Parse the (String) response from XStat command
+def parse_xstat(curr_node, response):
+	log.debug("entering parse_xstat(%d)", curr_node)
+	ra = re.split(r'[\n\r]+', response)
+	conn_count = 0
+
+	# {
+	#	NODE : {
+	#       IP : str            (ip adderss)
+	#       DIR : str           (direction of link)
+	#       CTIME: str          (connection time)
+	#       CSTATE: str         (connection state)
+	#       PTT : TRUE|FALSE    (current PTT state)
+	#       SSK : int           (sec since key)
+	#       SSU : int           (sec since unkey)
+	#       MODE : str          (mode)
+	#   } , 
+	#	NODE { ... } ,
+	#	... 
+	# }
+	node_conns = {}
+
+	for l in ra:
+		if re.match("^Conn", l):
+			ce = re.split(r"\s+", l)
+			node_conns.update( { ce[1] : {} } )
+			# For each Conn: line, a node starting with 3 and seven digits long is an echolink	
+			# node which is missing an IP entry. Treat everything else normally
+			if re.match(r'^3[0-9]{6}$', ce[1]):
+				node_conns[ce[1]].update( { "IP" : None , "DIR" : ce[3] , "CTIME" : ce[4] ,
+					"CSTATE" : ce[5] , "PTT" : False, "SSK" : -1, "SSU" : -1, "MODE" : "Echolink"} )
+				ename = get_echolink_name(ce[1][-6:])
+				log.debug(ename)
+				node_conns[ce[1]]["DESC"] = ename
+			else:
+				node_conns[ce[1]].update( { "IP" : ce[2] , "DIR" : ce[4] , "CTIME" : ce[5] ,
+					"CSTATE" : ce[6] , "PTT" : False, "SSK" : -1, "SSU" : -1, "MODE" : "Local Monitor" } )
+				if ce[1] in node_database:
+					node_conns[ce[1]]["DESC"] = "{0} {1} {2}".format(node_database[ce[1]]['CALL'], 
+						node_database[ce[1]]['DESC'], node_database[ce[1]]['LOC'])
+				elif re.match(r'^.*\-P$', ce[1]):
+					node_conns[ce[1]].update( { "DESC" : "Allstar Telephone Portal User",
+						"MODE" : "Transceive" } )
+				elif re.match(r'[A-Za-z]', ce[1]):
+					node_conns[ce[1]].update( { "DESC" : "Direct Client" } )
+				else:
+					node_conns[ce[1]]["DESC"] = "Private or Unavailable"
+				
+			conn_count += 1
+		elif re.match(r"^LinkedNodes:", l):
+			for link in l.split(","):
+				link = rens.sub("", link)			
+				link = renol.sub("", link)
+				log.debug(link)
+				if re.match(r"^[A-Z]\S+", link):
+					ns = re.search(r'^([A-Z])(\S+)', link)
+					if ns.group(2) in node_conns:
+						log.debug(ns.group(1))
+						if ns.group(1) == "T":
+							node_conns[ns.group(2)].update( { "MODE" : "Transceive" } )
+						elif ns.group(1) == "R":
+							node_conns[ns.group(2)].update( { "MODE" : "Monitor" } )
+						elif ns.group(1) == "C":
+							node_conns[ns.group(2)].update( { "MODE" : "Connecting" } )
+						else:
+							node_conns[ns.group(2)].update( { "MODE" : "Unknown" } )
+		elif re.match(r"^Var:\sRPT_TXKEYED=1", l):
+			node_mon_list[curr_node].update( { "TXKEYED" : True } )
+		elif re.match(r"^Var:\sRPT_TXEKEYED=1", l):
+			node_mon_list[curr_node].update( { "TXEKEYED" : True } )
+		elif re.match(r"^Var:\sRPT_RXKEYED=1", l):
+			node_mon_list[curr_node].update( { "RXKEYED" : True } )
+		elif re.match(r"^Var:\sRPT_TXKEYED=0", l):
+			node_mon_list[curr_node].update( { "TXKEYED" : False } )
+		elif re.match(r"^Var:\sRPT_TXEKEYED=0", l):
+			node_mon_list[curr_node].update( { "TXEKEYED" : False } )
+		elif re.match(r"^Var:\sRPT_RXKEYED=0", l):
+			node_mon_list[curr_node].update( { "RXKEYED" : False } )
+
+	if conn_count == 0:
+		log.debug("no nodes connected")
+	else:
+		log.debug("processed %d connections", conn_count)
+
+	node_mon_list[curr_node]["CONNS"] = node_conns
+	log.debug("exiting parse_xstat(%d)", curr_node)
+
+def gen_node_json_status(curr_node):
+	log.debug("gen_node_json_status(%d)", curr_node)
+	return json.dumps(node_mon_list[curr_node])
+
+##
+## Command Execution Portions
+##
+
+# Wrapper for asl_cmd_response to handle ACTION:COMMAND
+def asl_cmd(s, cmdstr):
+	log.debug("enter asl_cmd()")
+	
+	try:
+		cmd = "ACTION: COMMAND\r\nCOMMAND: {}\r\n".format(cmdstr)
+		c_response = asl_cmd_response(s, cmd)
+
+		# For Asterisk 20/ASL3 look for Output:
+		if  re.match(r"^Response\:\s+Error\s", c_response):
+			output = re.search(r"^.*Output:\s+(.*)", c_response, re.MULTILINE)
+			if(output):
+				return "ERR: {}".format(output.group(1))
+
+		# For Asterisk 20/ASL3 we look for Output: lines
+		if  re.match(r"^Response\:\s+Success\s", c_response):
+			output = re.split("\r\n", c_response)
+			r = "OK:\r\n"
+			for l in output:
+				if re.match(r"^Output:\s", l):
+					output = re.search(r"^Output:\s(.*)$", l)
+					log.debug(output.group(1))
+					r += output.group(1) + "\r\n"
+			return r
+
+		# For Asterisk 1.4/Classic ASL we have to assume the ordering
+		# and there's no valid command check
+		if  re.match(r"^Response\:\s+Follows\s", c_response):
+			output = re.split("\r\n", c_response)
+			log.debug(output[3])
+			if not re.match(r"No such command", output[3]) and not re.match(r"Unknown action name", output[3]):
+				return "OK:\r\n{}".format(output[3])
+			
+			return "ERR:\r\n{}".format(output[3])
+
+		return "ERR: command output responded with something I didn't understand"
+
+	except Exception as e:
+		log.error("asl_cmd() exception %s", e.__class__)
+		log.error("asl_cmd() message %s", e.__class__)
+		raise e	
+
+# To prevent casual interception/hacking, the cmd messages
+# are xor'd with the node admin key. The messages are base64-encoded.
+# Note: this is _not_ cryptographically secure... if you're concerned
+# about that you shouldn't be doing whatever it is you're doing
+# with this program.
+def decrypt_msg(data, key):
+	log.debug("entering decrypt_msg")
+	log.debug("msg: %s", data)
+	data_bytes = data.encode("UTF-8")
+	msg_bytes = base64.b64decode(data_bytes)
+	msg_x = msg_bytes.decode("UTF-8")
+	msg = ''.join(chr(ord(x) ^ ord(y)) for (x,y) in zip(msg_x, cycle(key)))
+	log.debug("msg: %s", msg)
+	return msg
+
+##
+## ASL Database Functions
+##
+# Read and load in the ASL Database
+def get_allmon_db():
+	log.debug("entering get_allmon_db()")
+	try:
+		url = "http://allmondb.allstarlink.org/"
+		req = urllib.request.Request(url, data=None, headers={ "User-Agent" : "Mozilla/5.0" })
+		log.info("Retrieving database from %s", url)
+		start_time = time.time()
+		with urllib.request.urlopen(req) as response:
+			dbf = response.read().decode("UTF-8")
+	except Exception as e:
+		raise e
+	nodedb = re.split(r"\n", dbf)
+
+	for ni in nodedb:
+		r = re.split(r"\|", ni)
+		if len(r) == 4:
+			node_database.update( { str(r[0]) : {} } )
+			node_database[str(r[0])].update( { "CALL" : r[1] , "DESC" : r[2] , "LOC" : r[3] } )
+	elapsed_time = time.time() - start_time
+	log.info("Updated node database in {0:.2f} seconds".format(elapsed_time))
+	set_my_info()
+	log.debug("exiting getAllMonDB()")
+
+def set_my_info():
+	log.debug("entering set_my_info()")
+	for n in node_mon_list:
+		if str(n) in node_database:
+			node_mon_list[n]["DESC"] = "{0} {1} {2}".format(node_database[str(n)]['CALL'], 
+			node_database[str(n)]['DESC'], node_database[str(n)]['LOC'])
+		else:
+			node_mon_list[n]["DESC"] = "Unavailable"
+	log.debug("exiting set_my_info()")
+
+##
+## Websockets
+##
+
+### Broadcast Status ###
+
+# Websocket handler
+async def node_status_handler(websocket):
+	log.debug("entering node_status_handler for {}".format(websocket.remote_address))
+	bcast_connections.add(websocket)
+	try:
+		async for message in bcast_ws:
+			await websocket.send(message)
+
+	except asyncio.exceptions.IncompleteReadError:
+		log.info("Other side went away: {}".format(websocket.remote_address))
+		pass
+
+	except websockets.exceptions.ConnectionClosedError:
+		log.info("ConnctionClosed with Error from {}".format(websocket.remote_address))
+		bcast_connections.remove(websocket)
+
+	except websockets.exceptions.ConnectionClosedOK:
+		log.info("ConnctionClosed from {}".format(websocket.remote_address))
+		bcast_connections.remove(websocket)
+
+# Websocket broadcaster
+async def node_status_broadcast(asl, log):
+	log.debug("enter node_status_broadcast()")
+	last_db_update = time.time()
+	asl_ok = True
+	
+	while True:
+		if asl_ok:
+			if len(bcast_connections) > 0:
+				log.debug(f"status_connections: {len(bcast_connections)}")
+				try:
+					for c_node in node_mon_list:
+						xstat_cmd = "ACTION: RptStatus\r\nCOMMAND: XStat\r\nNODE: %d\r\n" % ( c_node )
+						sawstat_cmd = "ACTION: RptStatus\r\nCOMMAND: SawStat\r\nNODE: %d\r\n" % ( c_node )
+						xstat = asl_cmd_response(asl, xstat_cmd)
+						parse_xstat(c_node, xstat)
+						sawstat = asl_cmd_response(asl, sawstat_cmd)
+						parse_saw_stat(c_node, sawstat)
+						log.debug("about to publish")
+						bcast_ws.publish(f"{c_node},{gen_node_json_status(c_node)}")
+						log.debug("done publishing")
+		
+				except BrokenPipeError as e:
+					log.error("received BrokenPipeError; trying to reconnect")
+					asl_ok = False
+				except socket.timeout as e:
+					log.error("received socket.timeout; trying to reconnect")
+					asl_ok = False
+				except ConnectionResetError as e:
+					log.error("received ConnectionResetError; trying to reconnect")
+					asl_ok = False
+
+			# Check and execute a database update if needed
+			try:
+				if ( time.time() - last_db_update ) > 3600:
+					get_allmon_db()
+					last_db_update = time.time()
+			except Exception as e:
+				log.error("unable to get allmondb: %s",e)
+				if len(node_database) > 0:
+					log.info("info fields will use cached data until an update succeeds")
+				else:
+					log.error("info fields will be labeled UNAVAILABLE until the data is retrieved")
+
+			else:
+				log.debug(f"status_connections: {len(bcast_connections)}")
+
+			# Sleep for the polling time
+			log.debug(f"status asyncio.sleep({POLLING_TIMER})")
+			await asyncio.sleep(POLLING_TIMER)
+
+		else:	
+			# If we exited out of asl_ok without throwing an exception
+			# then something went wrong with the asl socket. Loop around
+			# here trying to reconnect for the timeout interval and then
+			# let the main_loop continue
+			asl.close()
+			asl_dead = True
+			retry_counter = 0
+	
+			while asl_dead:
+				log.debug("sleeping for RETRY_INTERVAL of %d", RETRY_INTERVAL)
+				sleep(RETRY_INTERVAL)
+				retry_counter += 1
+		
+				if RETRY_COUNT == -1 or RETRY_COUNT <= retry_counter:
+					log.debug("attempting reconnection retry #%d", retry_counter)
+	
+					asl = asl_create_connection_nofail()
+					if asl:
+						log.info("connection reestablished after %d retries", retry_counter)
+						asl_dead = False
+				else:
+					log.error("count not reestablish connection after %d retries - exiting", retry_counter)
+					sys.exit(1)
+		
+			# re-enable the innter loop processing	
+			asl_ok = True
+
+# Primary broadcaster
+async def node_status_main(asl, log):
+	log.debug("enter node_status_main()")
+
+	loop = asyncio.get_event_loop()
+	bcast_ws.set_waiter(asyncio.Future(loop=loop))
+	async with websockets.serve(
+		node_status_handler, 
+		host = None, 
+		port = BCAST_WS_PORT,
+		logger = log,
+		compression = None,
+		ping_timeout = None
+	):
+		await node_status_broadcast(asl, log)
+
+### Command Handler ###
+
+# Websocket handler
+async def node_cmd_handler(websocket, asl):
+	log.debug("entering node_cmd_handler for {}".format(websocket.remote_address))
+	try:
+		message = await websocket.recv()
+		cmd = decrypt_msg(message, ASL_PASS)
+		if len(cmd) > __MAX_MSG_LEN:
+			log.error(f"message > len({__MAX_MSG_LEN} was ignored from {websocket.remote_address}")
+			await websocket.send(f"ERR: cmd > {__MAX_MSG_LEN} chars not permitted")
+			await websocket.close()
+			return
+
+		if not re.match("^(core|iax2|rpt|voter)", cmd):
+			log.error(f"unsupported command: {cmd} from {websocket.remote_address}")
+			await websocket.send("ERR: last command not a supported type")
+			await websocket.close()
+			return
+
+
+		log.debug("cmd_asl create")
+		asl = asl_create_connection_fail()
+		response = asl_cmd(asl, cmd)
+		asl_logout(asl)
+		asl.close()
+
+		response_b64 = base64.b64encode(response.encode("UTF-8"))
+		await websocket.send(response_b64.decode("UTF-8"))
+
+	except asyncio.exceptions.IncompleteReadError:
+		log.info("Other side went away: {}".format(websocket.remote_address))
+		pass
+
+	except websockets.exceptions.ConnectionClosedError:
+		log.info("ConnctionClosed with Error from {}".format(websocket.remote_address))
+		pass
+
+	except websockets.exceptions.ConnectionClosedOK:
+		log.info("ConnctionClosed from {}".format(websocket.remote_address))
+		pass
+
+	except BrokenPipeError as e:
+		log.error("received BrokenPipeError; trying to reconnect")
+		asl_ok = False
+
+	except socket.timeout as e:
+		log.error("received socket.timeout; trying to reconnect")
+		asl_ok = False
+	except ConnectionResetError as e:
+		log.error("received ConnectionResetError; trying to reconnect")
+		asl_ok = False
+
+	except Exception as e:
+		log.error(e)
+		await websocket.send("nonsense in command string")
+		await websocket.close()
+		
+
+# Primary node cmd
+async def node_cmd_main(log):
+	log.debug("enter node_cmd_main()")
+
+	loop = asyncio.get_event_loop()
+	bcast_ws.set_waiter(asyncio.Future(loop=loop))
+	async with websockets.serve(
+		node_cmd_handler,
+		host = None, 
+		port = CMD_WS_PORT,
+		logger = log,
+		compression = None,
+		ping_timeout = None
+	):
+		await asyncio.Future()
+
+### Voter Handler ###
+
+# Websocket handler
+async def node_voter_handler(websocket):
+	log.debug("entering node_voter_handler for {}".format(websocket.remote_address))
+	try:
+		r_message = await websocket.recv()
+		cmd = decrypt_msg(r_message, ASL_PASS)
+		if not re.match("^poll4votes$", cmd):
+			log.error(f"unsupported command: {cmd} from {websocket.remote_address}")
+			await websocket.send("ERR: last command not a supported type")
+			await websocket.close()
+			return
+
+		voter_connections.add(websocket)
+		async for message in voter_ws:
+			await websocket.send(message)
+
+	except asyncio.exceptions.IncompleteReadError:
+		log.info("Other side went away: {}".format(websocket.remote_address))
+		voter_connections.remove(websocket)
+		pass
+
+	except websockets.exceptions.ConnectionClosedError:
+		log.info("ConnctionClosed with Error from {}".format(websocket.remote_address))
+		voter_connections.remove(websocket)
+
+	except websockets.exceptions.ConnectionClosedOK:
+		log.info("ConnctionClosed from {}".format(websocket.remote_address))
+		voter_connections.remove(websocket)
+
+	except binascii.Error as e:
+		log.error(f"binascii.Error:{e}")
+		await websocket.send(f"command not base64 or corrupted: {e}")
+		await websocket.close()
+		voter_connections.remove(websocket)
+		
+
+# Websocket broadcaster
+async def node_voter_broadcast(asl, log):
+	log.debug("enter node_voter_broadcast()")
+	last_db_update = time.time()
+	asl_ok = True
+	
+	while True:
+		if asl_ok:
+			if len(voter_connections) > 0:
+				log.debug(f"voter_connections: {len(voter_connections)}")
+				try:
+
+						log.debug("about to publish")
+						voter_ws.publish(f"hi")
+						log.debug("done publishing")
+		
+				except BrokenPipeError as e:
+					log.error("received BrokenPipeError; trying to reconnect")
+					asl_ok = False
+				except socket.timeout as e:
+					log.error("received socket.timeout; trying to reconnect")
+					asl_ok = False
+				except ConnectionResetError as e:
+					log.error("received ConnectionResetError; trying to reconnect")
+					asl_ok = False
+
+			else:
+				log.debug(f"voter_connections: {len(voter_connections)}")
+
+			# Sleep for the polling time
+			log.debug(f"voter asyncio.sleep({POLLING_TIMER})")
+			await asyncio.sleep(POLLING_TIMER)
+
+		else:	
+			# If we exited out of asl_ok without throwing an exception
+			# then something went wrong with the asl socket. Loop around
+			# here trying to reconnect for the timeout interval and then
+			# let the main_loop continue
+			asl.close()
+			asl_dead = True
+			retry_counter = 0
+	
+			while asl_dead:
+				log.debug("sleeping for RETRY_INTERVAL of %d", RETRY_INTERVAL)
+				sleep(RETRY_INTERVAL)
+				retry_counter += 1
+		
+				if RETRY_COUNT == -1 or RETRY_COUNT <= retry_counter:
+					log.debug("attempting reconnection retry #%d", retry_counter)
+	
+					asl = asl_create_connection_nofail()
+					if asl:
+						log.info("connection reestablished after %d retries", retry_counter)
+						asl_dead = False
+				else:
+					log.error("count not reestablish connection after %d retries - exiting", retry_counter)
+					sys.exit(1)
+		
+			# re-enable the innter loop processing	
+			asl_ok = True
+
+# Primary broadcaster
+async def node_voter_main(asl, log):
+	log.debug("enter node_voter_main()")
+	loop = asyncio.get_event_loop()
+	voter_ws.set_waiter(asyncio.Future(loop=loop))
+	async with websockets.serve(
+		node_voter_handler, 
+		host = None, 
+		port = VOTER_WS_PORT,
+		logger = log,
+		compression = None,
+		ping_timeout = None
+	):
+		await node_voter_broadcast(asl, log)
+
+
+
+##
+## Startup coroutines
+##
+async def start_tasks(log):
+	log.debug("enter start_tasks()")
+
+	try:
+		log.debug("bcast_asl create")
+		bcast_asl = asl_create_connection_fail()
+		asl_connections.add(bcast_asl)
+
+		log.debug("voter_asl create")
+		voter_asl = asl_create_connection_fail()
+		asl_connections.add(voter_asl)
+
+		tasks = []
+		log.debug("launch node_status_main")
+		tasks.append(asyncio.create_task(node_status_main(bcast_asl, log)))
+		log.debug("launch node_cmd_main")
+		tasks.append(asyncio.create_task(node_cmd_main(log)))
+		log.debug("launch node_voter_main")
+		tasks.append(asyncio.create_task(node_voter_main(voter_asl, log)))
+		await asyncio.gather(*tasks)
+
+	except Exception as e:
+		log.debug("exception of start_tasks()")
+		raise e
+
+	finally:
+		log.debug("finally of start_tasks()")
+		asl_logout(bcast_asl)
+		bcast_asl.close()
+
+	
+
+######## MAIN PROGRAM ########
+
+# Node database
+# node_database = { NODE : { CALL : str , DESC : str , LOC : str } , ... }
+node_database = { } 
+
+# Node Status
+# node_status = "ME" : int(n) , "DESC" : None , "RXKEYED" : False, "TXKEYED" : False ,
+#                "TXEKEYED" : False, "CONNKEYED" : False, "CONNKEYEDNODE" : None , "CONNS" : None } 
+
+# node_mon_list
+# node_mon_list = { NODE : node_status{} , .... }
+node_mon_list = { }
+
+# Helpers
+rern = re.compile(r'\r\n', re.MULTILINE)
+rens = re.compile(r'\s', re.MULTILINE)
+renol = re.compile(r'LinkedNodes:', re.MULTILINE)
+__MAX_MSG_LEN = 256
+
+# Args and Log Setup
+ap = argparse.ArgumentParser(description="Connect to an ASL Asterisk server and print rpt stats")
+ap.add_argument("node", type=int, help="Node ID")
+ap.add_argument("--config", help="path to INI configuration for the node")
+ap.add_argument("--debug", help="enable debug-level logging output", action="store_true")
+ap.add_argument("--version", help="get the version of the software", action="version", version='%(prog)s {}'.format(_BUILD_ID))
+args = ap.parse_args()
+
+log = logging.getLogger("almon3")
+lh = logging.StreamHandler()
+lf = logging.Formatter(fmt="%(name)s: %(levelname)s: %(message)s")
+lh.setFormatter(lf)
+log.addHandler(lh)
+
+if args.debug:
+	log.setLevel(logging.DEBUG)
+else:
+	log.setLevel(logging.INFO)
+
+if not 1 <= args.node <= 9999999:
+	log.error("provided node \"%s\" must be a number between 1 and 9999999", args.node)
+	sys.exit(1)
+else:
+	log.debug("using node %d", args.node)
+
+if args.config:
+	config_file = args.config
+else:
+	config_file = "/etc/allmon3/allmon3.ini"
+
+
+# Parse configuration
+
+try:
+	if not os.path.exists(config_file):
+		raise Exception("file not found: %s" % (config_file))
+	log.debug("config file is %s", config_file)
+	config = configparser.ConfigParser()
+	config.read(config_file)
+	log.debug({section: dict(config[section]) for section in config.sections()})
+
+	if str(args.node) not in config:
+		raise Exception("No configuration stanza for node %s in %s" % (args.node, config_file))
+	
+	if "colocated_on" in config[str(args.node)]:
+		raise Exception("Trying to start a process for a colocated node; only the primary node needs an almon3")
+
+	if not "host" in config[str(args.node)]:
+		raise Exception("Missing required attribute host= for %s in %s" % (args.node, config_file))
+	ASL_HOST = config[str(args.node)]["host"]
+	log.debug("ASL_HOST - %s", ASL_HOST)
+
+	if not "user" in config[str(args.node)]:
+		raise Exception("Missing required attribute user= for %s in %s" % (args.node, config_file))
+	ASL_USER = config[str(args.node)]["user"]
+	log.debug("ASL_USER - %s", ASL_USER)
+
+	if not "pass" in config[str(args.node)]:
+		raise Exception("Missing required attribute pass= for %s in %s" % (args.node, config_file))
+	ASL_PASS = config[str(args.node)]["pass"]
+	log.debug("ASL_PASS - %s", ASL_PASS)
+
+	if not "port" in config[str(args.node)]:
+		log.debug("No port= attribute specified, using default 5038")
+		ASL_PORT = 5038
+	else:
+		ASL_PORT = int(config[str(args.node)]["port"])
+		log.debug("ASL_PORT - %s", ASL_PORT)
+
+	if not "pollinterval" in config[str(args.node)]:
+		log.info("No pollinterval= attribute specified, using default 1")
+		POLLING_TIMER = 1
+	else:
+		POLLING_TIMER = int(config[str(args.node)]["pollinterval"])
+		log.debug("POLLING_TIMER: {}".format(POLLING_TIMER))
+		if "pollsubsec" in config[str(args.node)]:
+			if config[str(args.node)]["pollsubsec"] == "y":
+				POLLING_TIMER = POLLING_TIMER / 1000
+				log.debug(POLLING_TIMER)
+				if POLLING_TIMER < .2:
+					POLLING_TIMER = 200
+					log.info("pollinterval with pollsubsec=y may not be less than 200 - setting to 200")
+				log.debug("pollsubsec = y - adjusting POLLING_TIMER to {}".format(POLLING_TIMER))
+
+	if not "retryinterval" in config[str(args.node)]:
+		log.info("No retryinterval= attribute specified, using default 15s")
+		RETRY_INTERVAL = 15
+	else:
+		RETRY_INTERVAL = int(config[str(args.node)]["retryinterval"])
+		log.debug("RETRY_INTERVAL - %s", RETRY_INTERVAL)
+
+	if not "retrycount" in config[str(args.node)]:
+		log.info("No retrycount= attribute specified, using default of infinite retries")
+		RETRY_COUNT = -1
+	else:
+		RETRY_COUNT = int(config[str(args.node)]["retrycount"])
+		log.debug("RETRY_COUNT - %s", RETRY_COUNT)
+
+	if not "cmdport" in config[str(args.node)]:
+		raise Exception("Missing required attribute cmdport= for %s in %s" % (args.node, config_file))
+	CMD_WS_PORT = int(config[str(args.node)]["cmdport"])
+	log.debug("CMD_WS_PORT - %s", CMD_WS_PORT)
+
+	if not "monport" in config[str(args.node)]:
+		raise Exception("Missing required attribute monport= for %s in %s" % (args.node, config_file))
+	BCAST_WS_PORT = int(config[str(args.node)]["monport"])
+	log.debug("BCAST_WS_PORT - %s", BCAST_WS_PORT)
+
+	if not "vmonport" in config[str(args.node)]:
+		raise Exception("Missing required attribute vmonport= for %s in %s" % (args.node, config_file))
+	VOTER_WS_PORT = int(config[str(args.node)]["vmonport"])
+	log.debug("VOTER_WS_PORT - %s", VOTER_WS_PORT)
+
+	if "multinodes" in config[str(args.node)]:
+		log.debug("found multinodes")
+		for mn in re.split(r',', config[str(args.node)]["multinodes"]):
+			log.debug("Adding node %d", int(mn))
+			node_mon_list.update({ int(mn): {
+				"ME" : int(mn) , "DESC" : None , "RXKEYED" : False, "TXKEYED" : False ,
+				"TXEKEYED" : False, "CONNKEYED" : False, "CONNKEYEDNODE" : None , "CONNS" : None }})
+	else:
+		node_mon_list.update({ args.node : { 
+				"ME" : args.node , "DESC" : None , "RXKEYED" : False, "TXKEYED" : False ,
+				"TXEKEYED" : False, "CONNKEYED" : False, "CONNKEYEDNODE" : None , "CONNS" : None }})
+
+except Exception as e:
+	log.error("INI parser error: %s", e)
+	sys.exit(1)
+
+# Load the allmon database
+try:
+	get_allmon_db()
+except Exception as e:
+	log.error("unable to get allmondb: %s", e)
+	log.error("info fields will be labeled UNAVAILABLE until the data is retrieve")
+
+
+# Execute the main status gathering loop
+log.debug("starting the main work loop")
+try:
+	# asl connections set to close them all
+	asl_connections = set()
+
+	# connections to the broadcaster
+	bcast_connections = set()
+	# broadcast websocket
+	bcast_ws = WebsocketBroadcaster.WebsocketBroadcaster()
+
+	# connections to the voter broadcaster
+	voter_connections = set()
+	# voter websocket
+	voter_ws = WebsocketBroadcaster.WebsocketBroadcaster()
+
+	asyncio.run(start_tasks(log))
+
+finally:
+	log.debug("__main__ finally")
+	for a in asl_connections:
+		log.info("closing an ASL AMI connection")
+		asl_logout(a)
+		a.close()
+
+sys.exit(0)
+
