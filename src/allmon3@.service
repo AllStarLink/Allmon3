@@ -1,0 +1,13 @@
+[Unit]
+Description=Allmon3 daemon for %i
+After=asl-asterisk asterisk
+
+[Service]
+Type=exec
+User=allmon3
+Group=allmon3
+Environment="PATH=/usr/bin:/bin:/usr/sbin:/sbin"
+ExecStart=allmon3 %i 
+
+[Install]
+WantedBy=multi-user.target

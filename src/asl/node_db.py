@@ -8,7 +8,7 @@
 import logging
 import re
 import time
-import urllib
+import urllib.request
 
 _BUILD_ID = "@@HEAD-DEVELOP@@"
 log = logging.getLogger(__name__)
