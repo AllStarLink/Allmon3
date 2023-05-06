@@ -500,7 +500,7 @@ try:
         log.info("No vpollinterval= attribute specified, using default 1")
         VOTER_POLLING_TIMER = 1
     else:
-        VOTER_POLLING_TIMER = float(config[str(args.node)]["pollinterval"])
+        VOTER_POLLING_TIMER = float(config[str(args.node)]["vpollinterval"])
         log.debug("POLLING_TIMER: %d", VOTER_POLLING_TIMER)
 
     if not "retryinterval" in config[str(args.node)]:
