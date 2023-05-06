@@ -23,7 +23,9 @@ signal.signal(signal.SIGINT, sigterm_handler)
 signal.signal(signal.SIGHUP, sigterm_handler)
 signal.signal(signal.SIGTERM, sigterm_handler)
 
-ap = argparse.ArgumentParser(description="Simple client to see that an asl-statmon instance. Dumps 0MQ messages from the specified port")
+ap = argparse.ArgumentParser(
+    description="Simple client to see that an allmon3 instance broadcasts " +
+    "status from the specified websocket port")
 ap.add_argument("host", type=str, help="FQDN or IP address of the asl-statmon to test")
 ap.add_argument("port", type=int, help="TCP port of asl-statmon to test")
 ap.add_argument("--node", type=str, help="Node to subscribe to")
