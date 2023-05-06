@@ -20,13 +20,6 @@ class AMI:
     # Local Variables
     __rern = re.compile(r'\r\n', re.MULTILINE)
 
-    # Varibles
-    socket = None
-    ami_host = None
-    ami_port = None
-    ami_user = str()
-    ami_pass = str()
-
     # Init
     def __init__(self, hostname, port, user, password):
         self.ami_host = hostname

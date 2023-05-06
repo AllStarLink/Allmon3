@@ -18,9 +18,8 @@ class ASLNodeDB:
     
     __url = "http://allmondb.allstarlink.org/"
 
-    node_database = {}
-
     def __init__(self):
+        self.node_database = dict()
         self.get_allmon_db()
         
     # Read and load in the ASL Database
@@ -45,12 +44,12 @@ class ASLNodeDB:
         log.info("Updated node database in {0:.2f} seconds".format(elapsed_time))
         log.debug("exiting getAllMonDB()")
     
-    def set_my_info(self, node_mon_list):
+    def set_my_info(self, node_conf):
         log.debug("entering set_my_info()")
-        for n in node_mon_list:
+        for n in node_conf.node_mon_list:
             if str(n) in self.node_database:
-                node_mon_list[n]["DESC"] = "{0} {1} {2}".format(self.node_database[str(n)]['CALL'],
+                node_conf.node_mon_list[n]["DESC"] = "{0} {1} {2}".format(self.node_database[str(n)]['CALL'],
                 self.node_database[str(n)]['DESC'], self.node_database[str(n)]['LOC'])
             else:
-                node_mon_list[n]["DESC"] = "Unavailable"
+                node_conf.node_mon_list[n]["DESC"] = "Unavailable"
         log.debug("exiting set_my_info()")

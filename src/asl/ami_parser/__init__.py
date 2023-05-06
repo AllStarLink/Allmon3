@@ -21,8 +21,6 @@ log = logging.getLogger(__name__)
 class AMIParser:
     """ parser for messages to/from Asterisk AMI for ASL """
 
-    __ami_conn = None
-
     def __init__(self, ami_conn):
         self.__ami_conn = ami_conn
 
@@ -77,7 +75,7 @@ class AMIParser:
     
     # Parse the (String) response from a SawStat command
     def parse_saw_stat(self, curr_node, node_mon_list):
-        log.debug("enter parse_saw_stat(%d)", curr_node)
+        log.debug("enter parse_saw_stat(%s)", curr_node)
         
         # Clear the CONNKEYED* status
         node_mon_list[curr_node].update( { "CONNKEYED" : False } )
@@ -96,7 +94,7 @@ class AMIParser:
                     if int(ce[2]) == 1:
                         node_mon_list[curr_node].update( { "CONNKEYED" : True } )
                         node_mon_list[curr_node].update( { "CONNKEYEDNODE" : ce[1] } )
-        log.debug("exiting parse_saw_stat(%d)", curr_node)
+        log.debug("exiting parse_saw_stat(%s)", curr_node)
     
     # Query/Parse Echolink Node Info
     def get_echolink_name(self, echolink_id):
@@ -114,7 +112,7 @@ class AMIParser:
     
     # Parse the (String) response from XStat command
     def parse_xstat(self, curr_node, node_database, node_mon_list):
-        log.debug("entering parse_xstat(%d)", curr_node)
+        log.debug("entering parse_xstat(%s)", curr_node)
         conn_count = 0
         rens = re.compile(r'\s', re.MULTILINE)
         renol = re.compile(r'LinkedNodes:', re.MULTILINE)
@@ -148,7 +146,6 @@ class AMIParser:
                     node_conns[ce[1]].update( { "IP" : None , "DIR" : ce[3] , "CTIME" : ce[4] ,
                         "CSTATE" : ce[5] , "PTT" : False, "SSK" : -1, "SSU" : -1, "MODE" : "Echolink"} )
                     ename = self.get_echolink_name(ce[1][-6:])
-                    log.debug(ename)
                     node_conns[ce[1]]["DESC"] = ename
                 else:
                     node_conns[ce[1]].update( { "IP" : ce[2] , "DIR" : ce[4] , "CTIME" : ce[5] ,
@@ -169,11 +166,9 @@ class AMIParser:
                 for link in l.split(","):
                     link = rens.sub("", link)            
                     link = renol.sub("", link)
-                    log.debug(link)
                     if re.match(r"^[A-Z]\S+", link):
                         ns = re.search(r'^([A-Z])(\S+)', link)
                         if ns.group(2) in node_conns:
-                            log.debug(ns.group(1))
                             if ns.group(1) == "T":
                                 node_conns[ns.group(2)].update( { "MODE" : "Transceive" } )
                             elif ns.group(1) == "R":
@@ -198,10 +193,10 @@ class AMIParser:
         if conn_count == 0:
             log.debug("no nodes connected")
         else:
-            log.debug("processed %d connections", conn_count)
+            log.debug("processed %s connections", conn_count)
     
         node_mon_list[curr_node]["CONNS"] = node_conns
-        log.debug("exiting parse_xstat(%d)", curr_node)
+        log.debug("exiting parse_xstat(%s)", curr_node)
    
     def parse_voter_data(self, curr_node):
         log.debug("entering parse_voter_data()")

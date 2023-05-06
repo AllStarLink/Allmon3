@@ -8,21 +8,14 @@
 
 import argparse
 import asyncio
-import base64
-import binascii
-import configparser
-import json
 import logging
 import logging.handlers
 import os
-import re
 import signal
-import socket
 import sys
-import time
-from time import sleep
-import websockets
-from asl import *
+from asl import allmon3_ws_status, allmon3_ws_cmd, allmon3_ws_voter
+from asl import ami_conn
+from asl import node_configs, node_db
 
 _BUILD_ID = "@@HEAD-DEVELOP@@"
 
@@ -41,346 +34,37 @@ def sigusr1_handler(_signo, _stack_frame):
         allmon_db.get_allmon_db()
     except Exception as e:
         log.error("unable to get allmondb: %s", e)
-        if len(node_database) > 0:
+        if len(allmon_db.node_database) > 0:
             log.info("info fields will use cached data until an update succeeds")
         else:
             log.error("info fields will be labeled UNAVAILABLE until the data is retrieved")
 signal.signal(signal.SIGUSR1, sigusr1_handler)
     
-##
-## Websockets
-##
 
-### Broadcast Status ###
-
-# Websocket handler
-async def node_status_handler(websocket):
-    log.debug("entering node_status_handler for %s", websocket.remote_address)
-    bcast_connections.add(websocket)
-    try:
-        async for message in bcast_ws:
-            await websocket.send(message)
-
-    except asyncio.exceptions.IncompleteReadError:
-        log.info("Other side went away: %s", websocket.remote_address)
-
-    except websockets.exceptions.ConnectionClosedError:
-        log.info("ConnctionClosed with Error from %s", websocket.remote_address)
-        bcast_connections.remove(websocket)
-
-    except websockets.exceptions.ConnectionClosedOK:
-        log.info("ConnctionClosed from %s", websocket.remote_address)
-        bcast_connections.remove(websocket)
-
-# Websocket broadcaster
-async def node_status_broadcast(conn):
-    log.debug("enter node_status_broadcast()")
-    last_db_update = time.time()
-    asl_ok = True
-    parser = ami_parser.AMIParser(conn)
-    
-    while True:
-        if asl_ok:
-            if len(bcast_connections) > 0:
-                log.debug("status_connections: %d", len(bcast_connections))
-                try:
-                    for c_node in node_mon_list:
-                        log.debug("broadcasting %s", c_node)
-                        parser.parse_xstat(c_node, allmon_db.node_database, node_mon_list)
-                        parser.parse_saw_stat(c_node, node_mon_list)
-                        message = json.dumps(node_mon_list[c_node])
-                        log.debug("about to publish")
-                        bcast_ws.publish(f"{c_node},{message}")
-                        log.debug("done publishing")
-        
-                except BrokenPipeError as e:
-                    log.error("received BrokenPipeError; trying to reconnect")
-                    asl_ok = False
-                except socket.timeout as e:
-                    log.error("received socket.timeout; trying to reconnect")
-                    asl_ok = False
-                except ConnectionResetError as e:
-                    log.error("received ConnectionResetError; trying to reconnect")
-                    asl_ok = False
-                except Exception as e:
-                    log.error(e)
-                    raise e
-
-            # Check and execute a database update if needed
-            try:
-                if ( time.time() - last_db_update ) > 3600:
-                    allmon_db.get_allmon_db()
-                    last_db_update = time.time()
-            except Exception as e:
-                log.error("unable to get allmondb: %s",e)
-                if len(node_database) > 0:
-                    log.info("info fields will use cached data until an update succeeds")
-                else:
-                    log.error("info fields will be labeled UNAVAILABLE until the data is retrieved")
-
-            else:
-                log.debug("status_connections: %d", len(bcast_connections))
-
-            # Sleep for the polling time
-            log.debug("status asyncio.sleep(%d)", POLLING_TIMER)
-            await asyncio.sleep(POLLING_TIMER)
-
-        else:    
-            # If we exited out of asl_ok without throwing an exception
-            # then something went wrong with the asl socket. Loop around
-            # here trying to reconnect for the timeout interval and then
-            # let the main_loop continue
-            conn.close()
-            asl_dead = True
-            retry_counter = 0
-    
-            while asl_dead:
-                log.debug("sleeping for RETRY_INTERVAL of %d", RETRY_INTERVAL)
-                sleep(RETRY_INTERVAL)
-                retry_counter += 1
-        
-                if RETRY_COUNT == -1 or RETRY_COUNT <= retry_counter:
-                    log.debug("attempting reconnection retry #%d", retry_counter)
-    
-                    c_stat = conn.asl_create_connection_nofail()
-                    if c_stat:
-                        log.info("connection reestablished after %d retries", retry_counter)
-                        asl_dead = False
-                else:
-                    log.error("count not reestablish connection after %d retries - exiting", retry_counter)
-                    sys.exit(1)
-        
-            # re-enable the innter loop processing    
-            asl_ok = True
-
-# Primary broadcaster
-async def node_status_main(conn):
-    log.debug("enter node_status_main()")
-
-    loop = asyncio.get_event_loop()
-    bcast_ws.set_waiter(asyncio.Future(loop=loop))
-    async with websockets.serve(
-        node_status_handler, 
-        host = None, 
-        port = BCAST_WS_PORT,
-        logger = log,
-        compression = None,
-        ping_timeout = None
-    ):
-        await node_status_broadcast(conn)
-
-### Command Handler ###
-
-# Websocket handler
-async def node_cmd_handler(websocket):
-    log.debug("entering node_cmd_handler for %s", websocket.remote_address)
-
-    try:
-        message = await websocket.recv()
-        cmd = ami_parser.decrypt_msg(message, ASL_PASS)
-        if len(cmd) > __MAX_MSG_LEN:
-            log.error("message > len(%d) was ignored from %s", __MAX_MSG_LEN, websocket.remote_address)
-            await websocket.send(f"ERR: cmd > {__MAX_MSG_LEN} chars not permitted")
-            await websocket.close()
-            return
-
-        if not re.match(r"^(core|iax2|rpt|voter)", cmd):
-            log.error("unsupported command: %s from %s", cmd, websocket.remote_address)
-            await websocket.send("ERR: last command not a supported type")
-            await websocket.close()
-            return
-
-        log.debug("cmd_asl create")
-
-        a = ami_conn.AMI(ASL_HOST, ASL_PORT, ASL_USER, ASL_PASS)
-        parser = ami_parser.AMIParser(a)
-        log.debug("fart")
-        response = parser.asl_cmd(cmd)
-        a.close()
-        response_b64 = base64.b64encode(response.encode("UTF-8"))
-        await websocket.send(response_b64.decode("UTF-8"))
-
-    except asyncio.exceptions.IncompleteReadError:
-        log.info("Other side went away: %x", websocket.remote_address)
-
-    except websockets.exceptions.ConnectionClosedError:
-        log.info("ConnctionClosed with Error from %s", websocket.remote_address)
-
-    except websockets.exceptions.ConnectionClosedOK:
-        log.info("ConnctionClosed from %s", websocket.remote_address)
-
-    except BrokenPipeError as e:
-        log.error("received BrokenPipeError; trying to reconnect")
-
-    except socket.timeout as e:
-        log.error("received socket.timeout; trying to reconnect")
-
-    except ConnectionResetError as e:
-        log.error("received ConnectionResetError; trying to reconnect")
-
-    except Exception as e:
-        log.error(e)
-        await websocket.send("nonsense in command string")
-        await websocket.close()
-        raise e
-        
-
-# Primary node cmd
-async def node_cmd_main():
-    log.debug("enter node_cmd_main()")
-
-    loop = asyncio.get_event_loop()
-    bcast_ws.set_waiter(asyncio.Future(loop=loop))
-    async with websockets.serve(
-        node_cmd_handler,
-        host = None, 
-        port = CMD_WS_PORT,
-        logger = log,
-        compression = None,
-        ping_timeout = None
-    ):
-        await asyncio.Future()
-
-### Voter Handler ###
-
-# Websocket handler
-async def node_voter_handler(websocket):
-    log.debug("entering node_voter_handler for %s", websocket.remote_address)
-    try:
-        r_message = await websocket.recv()
-        cmd = ami_parser.decrypt_msg(r_message, ASL_PASS)
-        if not re.match(r"^poll4votes$", cmd):
-            log.error("unsupported command: %s from %s", cmd, websocket.remote_address)
-            await websocket.send("ERR: last command not a supported type")
-            await websocket.close()
-            return
-
-        voter_connections.add(websocket)
-        async for message in voter_ws:
-            await websocket.send(message)
-
-    except asyncio.exceptions.IncompleteReadError:
-        log.info("Other side went away: %s", websocket.remote_address)
-        voter_connections.remove(websocket)
-
-    except websockets.exceptions.ConnectionClosedError:
-        log.info("ConnctionClosed with Error from %s", websocket.remote_address)
-        voter_connections.remove(websocket)
-
-    except websockets.exceptions.ConnectionClosedOK:
-        log.info("ConnctionClosed from %s", websocket.remote_address)
-        voter_connections.remove(websocket)
-
-    except binascii.Error as e:
-        log.error(e)
-        await websocket.send("command not base64 or corrupted: %s", e)
-        await websocket.close()
-        voter_connections.remove(websocket)
-        
-
-# Websocket broadcaster
-async def node_voter_broadcast(conn):
-    log.debug("enter node_voter_broadcast()")
-    asl_ok = True
-    parser = ami_parser.AMIParser(conn)
-    
-    while True:
-        if asl_ok:
-            if len(voter_connections) > 0:
-                log.debug("voter_connections: %d", len(voter_connections))
-                try:
-                    message = parser.parse_voter_data(args.node)
-                    log.debug("about to publish")
-                    voter_ws.publish(message)
-                    log.debug("done publishing")
-        
-                except BrokenPipeError:
-                    log.error("received BrokenPipeError; trying to reconnect")
-                    asl_ok = False
-                except socket.timeout:
-                    log.error("received socket.timeout; trying to reconnect")
-                    asl_ok = False
-                except ConnectionResetError:
-                    log.error("received ConnectionResetError; trying to reconnect")
-                    asl_ok = False
-
-            else:
-                log.debug("voter_connections: %d", len(voter_connections))
-
-            # Sleep for the polling time
-            log.debug("voter asyncio.sleep(%d)", POLLING_TIMER)
-            await asyncio.sleep(POLLING_TIMER)
-
-        else:    
-            # If we exited out of asl_ok without throwing an exception
-            # then something went wrong with the asl socket. Loop around
-            # here trying to reconnect for the timeout interval and then
-            # let the main_loop continue
-            conn.close()
-            asl_dead = True
-            retry_counter = 0
-    
-            while asl_dead:
-                log.debug("sleeping for RETRY_INTERVAL of %d", RETRY_INTERVAL)
-                sleep(RETRY_INTERVAL)
-                retry_counter += 1
-        
-                if RETRY_COUNT == -1 or RETRY_COUNT <= retry_counter:
-                    log.debug("attempting reconnection retry #%d", retry_counter)
-    
-                    c_stat = conn.asl_create_connection_nofail()
-                    if c_stat:
-                        log.info("connection reestablished after %d retries", retry_counter)
-                        asl_dead = False
-                else:
-                    log.error("count not reestablish connection after %d retries - exiting", retry_counter)
-                    sys.exit(1)
-        
-            # re-enable the innter loop processing    
-            asl_ok = True
-
-# Primary broadcaster
-async def node_voter_main(conn):
-    log.debug("enter node_voter_main()")
-    loop = asyncio.get_event_loop()
-    voter_ws.set_waiter(asyncio.Future(loop=loop))
-    async with websockets.serve(
-        node_voter_handler, 
-        host = None, 
-        port = VOTER_WS_PORT,
-        logger = log,
-        compression = None,
-        ping_timeout = None
-    ):
-        await node_voter_broadcast(conn)
-
-
-
-##
 ## Startup coroutines
-##
 async def start_tasks():
     log.debug("enter start_tasks()")
+    ami_connections = set()
+    tasks = []
 
     try:
-        log.debug("bcast_asl create")
-        bcast_asl = ami_conn.AMI(ASL_HOST, ASL_PORT, ASL_USER, ASL_PASS)
-        asl_connections.add(bcast_asl)
+        for n, c in node_configuration.nodes.items():
+            log.debug(f"starting status ws {n}@{c.host} on port {c.monport}")
+            ami = ami_conn.AMI(c.host, c.port, c.user, c.password)
+            ami_connections.add(ami)
+            status_ws =  allmon3_ws_status.NodeStatusWS(n, c, allmon_db, ami)
+            tasks.append(asyncio.create_task(status_ws.main()))
 
-        if VOTER_WS_PORT != -1: 
-            log.debug("voter_asl create")
-            voter_asl = ami_conn.AMI(ASL_HOST, ASL_PORT, ASL_USER, ASL_PASS)
-            asl_connections.add(voter_asl)
+            log.debug(f"starting command ws {n}@{c.host} on port {c.monport}")
+            node_ws = allmon3_ws_cmd.NodeCmdWS(n, c)
+            tasks.append(asyncio.create_task(node_ws.main()))
 
-        tasks = []
-        log.debug("launch node_status_main")
-        tasks.append(asyncio.create_task(node_status_main(bcast_asl)))
-        log.debug("launch node_cmd_main")
-        tasks.append(asyncio.create_task(node_cmd_main()))
-
-        if VOTER_WS_PORT != -1: 
-            log.debug("launch node_voter_main")
-            tasks.append(asyncio.create_task(node_voter_main(voter_asl)))
+            if c.vmonport > 0:
+                log.debug(f"starting voter ws {n}@{c.host} on port {c.vmonport}")
+                ami = ami_conn.AMI(c.host, c.port, c.user, c.password)
+                ami_connections.add(ami)
+                voter_ws =  allmon3_ws_voter.NodeVoterWS(n, c, ami)
+                tasks.append(asyncio.create_task(voter_ws.main()))
 
         await asyncio.gather(*tasks)
 
@@ -390,33 +74,15 @@ async def start_tasks():
 
     finally:
         log.debug("finally of start_tasks()")
-        for conn in asl_connections:
+        for conn in ami_connections:
             log.info("closing an AMI connection: %s", conn.ami_host)
             conn.close()
 
 ######## MAIN PROGRAM ########
 
-# Node database
-# node_database = { NODE : { CALL : str , DESC : str , LOC : str } , ... }
-node_database = { } 
-
-# Node Status
-# node_status = "ME" : int(n) , "DESC" : None , "RXKEYED" : False, "TXKEYED" : False ,
-#                "TXEKEYED" : False, "CONNKEYED" : False, "CONNKEYEDNODE" : None , "CONNS" : None } 
-
-# node_mon_list
-# node_mon_list = { NODE : node_status{} , .... }
-node_mon_list = { }
-
-# Helpers
-rern = re.compile(r'\r\n', re.MULTILINE)
-rens = re.compile(r'\s', re.MULTILINE)
-renol = re.compile(r'LinkedNodes:', re.MULTILINE)
-__MAX_MSG_LEN = 256
-
 # Args and Log Setup
 ap = argparse.ArgumentParser(description="Connect to an ASL Asterisk server and print rpt stats")
-ap.add_argument("node", type=int, help="Node ID")
+ap.add_argument("--nodes", type=str, help="Only start the node(s) listed as --node NODE[,NODE,...]")
 ap.add_argument("--config", help="path to INI configuration for the node")
 ap.add_argument("--debug", help="enable debug-level logging output", action="store_true")
 ap.add_argument("--version", help="get the version of the software", action="version", version='%(prog)s {}'.format(_BUILD_ID))
@@ -424,7 +90,7 @@ args = ap.parse_args()
 
 log = logging.getLogger("allmon3")
 lh = logging.StreamHandler()
-lf = logging.Formatter(fmt="%(name)s: %(levelname)s: %(message)s")
+lf = logging.Formatter(fmt="%(levelname)s: (%(name)s) %(message)s")
 lh.setFormatter(lf)
 log.addHandler(lh)
 
@@ -439,147 +105,39 @@ else:
     log.setLevel(logging.INFO)
     mlog.setLevel(logging.INFO)
 
-if not 1 <= args.node <= 9999999:
-    log.error("provided node \"%s\" must be a number between 1 and 9999999", args.node)
-    sys.exit(1)
-else:
-    log.debug("using node %d", args.node)
-
 if args.config:
     config_file = args.config
 else:
     config_file = "/etc/allmon3/allmon3.ini"
 
-
-# Parse configuration
-
 try:
+    # Config Parse
     if not os.path.exists(config_file):
         raise Exception("file not found: %s" % (config_file))
     log.debug("config file is %s", config_file)
-    config = configparser.ConfigParser()
-    config.read(config_file)
-    log.debug({section: dict(config[section]) for section in config.sections()})
 
-    if str(args.node) not in config:
-        raise Exception("No configuration stanza for node %s in %s" % (args.node, config_file))
+    if args.nodes:
+        filter_list = args.nodes.split(",")
+    else:
+        filter_list = None
+
+    node_configuration = node_configs.NodeConfigs(config_file, filter_list)
     
-    if "colocated_on" in config[str(args.node)]:
-        raise Exception("Trying to start a process for a colocated node; only the primary node needs an almon3")
+    # Get Database
+    allmon_db = node_db.ASLNodeDB()
+    for n, c in node_configuration.nodes.items():
+        allmon_db.set_my_info(c)
 
-    if not "host" in config[str(args.node)]:
-        raise Exception("Missing required attribute host= for %s in %s" % (args.node, config_file))
-    ASL_HOST = config[str(args.node)]["host"]
-    log.debug("ASL_HOST - %s", ASL_HOST)
-
-    if not "user" in config[str(args.node)]:
-        raise Exception("Missing required attribute user= for %s in %s" % (args.node, config_file))
-    ASL_USER = config[str(args.node)]["user"]
-    log.debug("ASL_USER - %s", ASL_USER)
-
-    if not "pass" in config[str(args.node)]:
-        raise Exception("Missing required attribute pass= for %s in %s" % (args.node, config_file))
-    ASL_PASS = config[str(args.node)]["pass"]
-    log.debug("ASL_PASS - %s", ASL_PASS)
-
-    if not "port" in config[str(args.node)]:
-        log.debug("No port= attribute specified, using default 5038")
-        ASL_PORT = 5038
-    else:
-        ASL_PORT = int(config[str(args.node)]["port"])
-        log.debug("ASL_PORT - %s", ASL_PORT)
-
-    if not "pollinterval" in config[str(args.node)]:
-        log.info("No pollinterval= attribute specified, using default 1")
-        POLLING_TIMER = 1
-    else:
-        POLLING_TIMER = float(config[str(args.node)]["pollinterval"])
-        log.debug("POLLING_TIMER: %d", POLLING_TIMER)
-
-    if not "vpollinterval" in config[str(args.node)]:
-        log.info("No vpollinterval= attribute specified, using default 1")
-        VOTER_POLLING_TIMER = 1
-    else:
-        VOTER_POLLING_TIMER = float(config[str(args.node)]["pollinterval"])
-        log.debug("POLLING_TIMER: %d", VOTER_POLLING_TIMER)
-
-    if not "retryinterval" in config[str(args.node)]:
-        log.info("No retryinterval= attribute specified, using default 15s")
-        RETRY_INTERVAL = 15
-    else:
-        RETRY_INTERVAL = int(config[str(args.node)]["retryinterval"])
-        log.debug("RETRY_INTERVAL - %s", RETRY_INTERVAL)
-
-    if not "retrycount" in config[str(args.node)]:
-        log.info("No retrycount= attribute specified, using default of infinite retries")
-        RETRY_COUNT = -1
-    else:
-        RETRY_COUNT = int(config[str(args.node)]["retrycount"])
-        log.debug("RETRY_COUNT - %s", RETRY_COUNT)
-
-    if not "cmdport" in config[str(args.node)]:
-        raise Exception("Missing required attribute cmdport= for %s in %s" % (args.node, config_file))
-    CMD_WS_PORT = int(config[str(args.node)]["cmdport"])
-    log.debug("CMD_WS_PORT - %s", CMD_WS_PORT)
-
-    if not "monport" in config[str(args.node)]:
-        raise Exception("Missing required attribute monport= for %s in %s" % (args.node, config_file))
-    BCAST_WS_PORT = int(config[str(args.node)]["monport"])
-    log.debug("BCAST_WS_PORT - %s", BCAST_WS_PORT)
-
-    if "vmonport" in config[str(args.node)]:
-        VOTER_WS_PORT = int(config[str(args.node)]["vmonport"])
-        log.debug("VOTER_WS_PORT - %s", VOTER_WS_PORT)
-    else:
-        VOTER_WS_PORT = -1
-        log.info("no vmonport specified - disabling votermon")
-
-    if "votertitle" in config[str(args.node)]:
-        VOTER_TITLE = config[str(args.node)]["vmonport"]
-    else:
-        VOTER_TITLE = "{ASL_NODE} Voter"
-
-    if "multinodes" in config[str(args.node)]:
-        log.debug("found multinodes")
-        for mn in re.split(r',', config[str(args.node)]["multinodes"]):
-            log.debug("Adding node %d", int(mn))
-            node_mon_list.update({ int(mn): {
-                "ME" : int(mn) , "DESC" : None , "RXKEYED" : False, "TXKEYED" : False ,
-                "TXEKEYED" : False, "CONNKEYED" : False, "CONNKEYEDNODE" : None , "CONNS" : None }})
-    else:
-        node_mon_list.update({ args.node : { 
-                "ME" : args.node , "DESC" : None , "RXKEYED" : False, "TXKEYED" : False ,
-                "TXEKEYED" : False, "CONNKEYED" : False, "CONNKEYEDNODE" : None , "CONNS" : None }})
-
-except Exception as e:
-    log.error("INI parser error: %s", e)
+except node_configs.ASLNodeConfigException as e:
+    log.error(e)
     sys.exit(1)
 
-# Load the allmon database
-try:
-    allmon_db = node_db.ASLNodeDB()
-    allmon_db.set_my_info(node_mon_list)
-    log.debug(node_mon_list)
 except Exception as e:
-    log.error("unable to get allmondb: %s", e)
-    log.error("info fields will be labeled UNAVAILABLE until the data is retrieve")
+    raise e
 
 # Execute the main status gathering loop
 log.debug("starting the main work loop")
 try:
-    # asl connections set to close them all
-    asl_connections = set()
-
-    # connections to the broadcaster
-    bcast_connections = set()
-    # broadcast websocket
-    bcast_ws = ws_broadcaster.WebsocketBroadcaster()
-
-    # connections to the voter broadcaster
-    voter_connections = set()
-    # voter websocket
-    voter_ws = ws_broadcaster.WebsocketBroadcaster()
-
     asyncio.run(start_tasks())
 
 finally:
