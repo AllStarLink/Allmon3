@@ -1,12 +1,12 @@
-% asl-cmdlink-cli(1) asl-cmdlink-cli @-DEVELOP@@
+% allmon3-cmd-client(1) allmon3-cmd-client @HEAD-DEVELOP@@
 % Jason McCormick
-% April 2023
+% May 2023
 
 # NAME
-asl-cmdlink - Connect to an ASL Asterisk server and issue commands
+allmon3-cmd-client - Connect to an ASL Asterisk server and issue commands
 
 # SYNOPSIS
-usage: asl-cmdlink-cli [-h] host port passwd cmd
+usage: allmon3-cmd-client [-h] host port passwd cmd
 
 Simple client to asl-cmdlink
 
@@ -20,8 +20,8 @@ optional arguments:
   -h, --help  show this help message and exit
 
 # DESCRIPTION
-**asl-cmdlink-cli** executes an AMI command 
-via an asl-cmdlink(1) ZMQ port and returns
+**allmon3-cmd-client** executes an AMI command 
+via an allmon3 port and returns
 the information. This script is only useful for
 AllStarLink Asterisk.
 
