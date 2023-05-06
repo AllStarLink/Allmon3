@@ -184,7 +184,7 @@ async def node_cmd_handler(websocket):
             await websocket.close()
             return
 
-        if not re.match("^(core|iax2|rpt|voter)", cmd):
+        if not re.match(r"^(core|iax2|rpt|voter)", cmd):
             log.error("unsupported command: %s from %s", cmd, websocket.remote_address)
             await websocket.send("ERR: last command not a supported type")
             await websocket.close()
@@ -249,7 +249,7 @@ async def node_voter_handler(websocket):
     try:
         r_message = await websocket.recv()
         cmd = ami_parser.decrypt_msg(r_message, ASL_PASS)
-        if not re.match("^poll4votes$", cmd):
+        if not re.match(r"^poll4votes$", cmd):
             log.error("unsupported command: %s from %s", cmd, websocket.remote_address)
             await websocket.send("ERR: last command not a supported type")
             await websocket.close()
@@ -489,14 +489,14 @@ try:
         log.info("No pollinterval= attribute specified, using default 1")
         POLLING_TIMER = 1
     else:
-        POLLING_TIMER = int(config[str(args.node)]["pollinterval"])
+        POLLING_TIMER = float(config[str(args.node)]["pollinterval"])
         log.debug("POLLING_TIMER: %d", POLLING_TIMER)
 
     if not "vpollinterval" in config[str(args.node)]:
         log.info("No vpollinterval= attribute specified, using default 1")
         VOTER_POLLING_TIMER = 1
     else:
-        VOTER_POLLING_TIMER = int(config[str(args.node)]["pollinterval"])
+        VOTER_POLLING_TIMER = float(config[str(args.node)]["pollinterval"])
         log.debug("POLLING_TIMER: %d", VOTER_POLLING_TIMER)
 
     if not "retryinterval" in config[str(args.node)]:
