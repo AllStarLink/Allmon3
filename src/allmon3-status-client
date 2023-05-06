@@ -1,0 +1,50 @@
+#!/usr/bin/python3
+#
+# Simple client to see that an asl-statmon instance 
+# is working properly
+#
+# Copyright(C) 2023 AllStarLink
+# Allmon3 and all components are Licensed under the AGPLv3
+# see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
+
+#
+
+import argparse
+import asyncio
+import re
+import signal
+import sys
+import websockets
+
+def sigterm_handler(_signo, _stack_frame):
+    print("exiting on signal %d" % (_signo))
+    sys.exit(0)
+signal.signal(signal.SIGINT, sigterm_handler)
+signal.signal(signal.SIGHUP, sigterm_handler)
+signal.signal(signal.SIGTERM, sigterm_handler)
+
+ap = argparse.ArgumentParser(description="Simple client to see that an asl-statmon instance. Dumps 0MQ messages from the specified port")
+ap.add_argument("host", type=str, help="FQDN or IP address of the asl-statmon to test")
+ap.add_argument("port", type=int, help="TCP port of asl-statmon to test")
+ap.add_argument("--node", type=str, help="Node to subscribe to")
+args = ap.parse_args()
+
+async def main():
+    try:
+        url = f"ws://{args.host}:{args.port}"
+        print("Creating websoocket connection to {url}")
+        
+        async with websockets.connect(url, ping_timeout=None) as websocket:
+            async for message in websocket:
+                if args.node:
+                    if re.match(r"^" + args.node + r",", message):
+                        print(message)
+                else:
+                    print(message)
+    
+    except Exception as e:
+        print("Error: " + e)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    asyncio.run(main())
