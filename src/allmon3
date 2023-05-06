@@ -367,17 +367,21 @@ async def start_tasks():
         bcast_asl = ami_conn.AMI(ASL_HOST, ASL_PORT, ASL_USER, ASL_PASS)
         asl_connections.add(bcast_asl)
 
-        log.debug("voter_asl create")
-        voter_asl = ami_conn.AMI(ASL_HOST, ASL_PORT, ASL_USER, ASL_PASS)
-        asl_connections.add(voter_asl)
+        if VOTER_WS_PORT != -1: 
+            log.debug("voter_asl create")
+            voter_asl = ami_conn.AMI(ASL_HOST, ASL_PORT, ASL_USER, ASL_PASS)
+            asl_connections.add(voter_asl)
 
         tasks = []
         log.debug("launch node_status_main")
         tasks.append(asyncio.create_task(node_status_main(bcast_asl)))
         log.debug("launch node_cmd_main")
         tasks.append(asyncio.create_task(node_cmd_main()))
-        log.debug("launch node_voter_main")
-        tasks.append(asyncio.create_task(node_voter_main(voter_asl)))
+
+        if VOTER_WS_PORT != -1: 
+            log.debug("launch node_voter_main")
+            tasks.append(asyncio.create_task(node_voter_main(voter_asl)))
+
         await asyncio.gather(*tasks)
 
     except Exception as e:
