@@ -6,10 +6,10 @@
 #
 
 import base64
-import json
+from datetime import datetime
+from itertools import cycle
 import logging
 import re
-from itertools import cycle
 
 _BUILD_ID = "@@HEAD-DEVELOP@@"
 log = logging.getLogger(__name__)
@@ -203,18 +203,75 @@ class AMIParser:
         node_mon_list[curr_node]["CONNS"] = node_conns
         log.debug("exiting parse_xstat(%d)", curr_node)
    
-    # To prevent casual interception/hacking, the cmd messages
-    # are xor'd with the node admin key. The messages are base64-encoded.
-    # Note: this is _not_ cryptographically secure... if you're concerned
-    # about that you shouldn't be doing whatever it is you're doing
-    # with this program.
-    @staticmethod
-    def decrypt_msg(data, key):
-        log.debug("entering decrypt_msg")
-        log.debug("msg: %s", data)
-        data_bytes = data.encode("UTF-8")
-        msg_bytes = base64.b64decode(data_bytes)
-        msg_x = msg_bytes.decode("UTF-8")
-        msg = ''.join(chr(ord(x) ^ ord(y)) for (x,y) in zip(msg_x, cycle(key)))
-        log.debug("msg: %s", msg)
-        return msg
+    def parse_voter_data(self, curr_node):
+        log.debug("entering parse_voter_data()")
+        # voters = { VOTED : None , VOTERS : { clientid : RSSI , .... } }
+        voters = { "VOTED" : None , "VOTERS" : {} }
+        curr_client = 0
+
+        voterstatus_cmd = f"ACTION: VoterStatus\r\nNODE: {curr_node}\r\n"
+        response = self.__ami_conn.asl_cmd_response(voterstatus_cmd)    
+
+        lines = re.split(r'[\n\r]+', response)
+        for line in lines:
+            if re.match(r'^Client', line):
+                client = re.split(r":\s", line)
+                curr_client = client[1]
+                voters["VOTERS"][curr_client] = 0
+            elif re.match(r'^RSSI', line):
+                rssi = re.split(r":\s", line)
+                voters["VOTERS"][curr_client] = int(rssi[1])
+            elif re.match(r'Voted', line):
+                voted = re.split(r":\s", line)
+                voters["VOTED"] = voted[1]
+    
+        voter_html = ""
+        for n, r in voters["VOTERS"].items():
+            rssipct = 0
+            if r == 255:
+                rssipct = 100
+            else:
+                rssipct = int(r) * .35 + 10
+    
+            barcolor = "primary"
+            if n == voters["VOTED"]:
+                barcolor = "success"
+            if re.match(r"\s[Mm]ix", n):
+                barcolor = "info"
+    
+            voter_html += "<div class=\"row justify-content-md-center\">"
+            voter_html += "  <div class=\"col-4 col-md-2 text-end\">"
+            voter_html += "    <b>{}</b>".format(n)
+            voter_html += "  </div>"
+            voter_html += "  <div class=\"col-8 col-md-10\">"
+            voter_html += "    <div class=\"progress\" role=\"progressbar\" aria-valuenow=\"{}\"".format(rssipct)
+            voter_html += "    aria-valuemin=\"0\" aria-valuemax=\"100\">"
+            voter_html += "      <div class=\"progress-bar progress-bar-striped bg-{}\" style=\"width: {}%\">{}</div>".format(barcolor, rssipct, r)
+            voter_html += "    </div>"
+            voter_html += "  </div>"
+            voter_html += "</div>"
+    
+    
+        voter_html += "<div class=\"row d-flex align-items-center\">"
+        voter_html += "  <div class=\"col-2\">&nbsp</div>"
+        voter_html += "  <div class=\"col-8\">"
+        voter_html += "    Last Update: {}".format(datetime.now())
+        voter_html += "  </div>"
+        log.debug("exiting parse_voter_data()")
+    
+        return voter_html
+
+# To prevent casual interception/hacking, the cmd messages
+# are xor'd with the node admin key. The messages are base64-encoded.
+# Note: this is _not_ cryptographically secure... if you're concerned
+# about that you shouldn't be doing whatever it is you're doing
+# with this program.
+def decrypt_msg(data, key):
+    log.debug("entering decrypt_msg")
+    log.debug("msg: %s", data)
+    data_bytes = data.encode("UTF-8")
+    msg_bytes = base64.b64decode(data_bytes)
+    msg_x = msg_bytes.decode("UTF-8")
+    msg = ''.join(chr(ord(x) ^ ord(y)) for (x,y) in zip(msg_x, cycle(key)))
+    log.debug("msg: %s", msg)
+    return msg

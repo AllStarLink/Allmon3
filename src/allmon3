@@ -174,11 +174,10 @@ async def node_status_main(conn):
 # Websocket handler
 async def node_cmd_handler(websocket):
     log.debug("entering node_cmd_handler for %s", websocket.remote_address)
-    parser = ami_parser.AMIParser(None)
 
     try:
         message = await websocket.recv()
-        cmd = parser.decrypt_msg(message, ASL_PASS)
+        cmd = ami_parser.decrypt_msg(message, ASL_PASS)
         if len(cmd) > __MAX_MSG_LEN:
             log.error("message > len(%d) was ignored from %s", __MAX_MSG_LEN, websocket.remote_address)
             await websocket.send(f"ERR: cmd > {__MAX_MSG_LEN} chars not permitted")
@@ -192,8 +191,9 @@ async def node_cmd_handler(websocket):
             return
 
         log.debug("cmd_asl create")
+
         a = ami_conn.AMI(ASL_HOST, ASL_PORT, ASL_USER, ASL_PASS)
-        parser.set_ami_conn(a)
+        parser = ami_parser.AMIParser(a)
         log.debug("fart")
         response = parser.asl_cmd(cmd)
         a.close()
@@ -248,7 +248,7 @@ async def node_voter_handler(websocket):
     log.debug("entering node_voter_handler for %s", websocket.remote_address)
     try:
         r_message = await websocket.recv()
-        cmd = decrypt_msg(r_message, ASL_PASS)
+        cmd = ami_parser.decrypt_msg(r_message, ASL_PASS)
         if not re.match("^poll4votes$", cmd):
             log.error("unsupported command: %s from %s", cmd, websocket.remote_address)
             await websocket.send("ERR: last command not a supported type")
@@ -279,19 +279,20 @@ async def node_voter_handler(websocket):
         
 
 # Websocket broadcaster
-async def node_voter_broadcast(asl, log):
+async def node_voter_broadcast(conn):
     log.debug("enter node_voter_broadcast()")
     asl_ok = True
+    parser = ami_parser.AMIParser(conn)
     
     while True:
         if asl_ok:
             if len(voter_connections) > 0:
-                log.debug(f"voter_connections: {len(voter_connections)}")
+                log.debug("voter_connections: %d", len(voter_connections))
                 try:
-
-                        log.debug("about to publish")
-                        voter_ws.publish("hi")
-                        log.debug("done publishing")
+                    message = parser.parse_voter_data(args.node)
+                    log.debug("about to publish")
+                    voter_ws.publish(message)
+                    log.debug("done publishing")
         
                 except BrokenPipeError:
                     log.error("received BrokenPipeError; trying to reconnect")
@@ -304,10 +305,10 @@ async def node_voter_broadcast(asl, log):
                     asl_ok = False
 
             else:
-                log.debug(f"voter_connections: {len(voter_connections)}")
+                log.debug("voter_connections: %d", len(voter_connections))
 
             # Sleep for the polling time
-            log.debug(f"voter asyncio.sleep({POLLING_TIMER})")
+            log.debug("voter asyncio.sleep(%d)", POLLING_TIMER)
             await asyncio.sleep(POLLING_TIMER)
 
         else:    
@@ -315,7 +316,7 @@ async def node_voter_broadcast(asl, log):
             # then something went wrong with the asl socket. Loop around
             # here trying to reconnect for the timeout interval and then
             # let the main_loop continue
-            asl.close()
+            conn.close()
             asl_dead = True
             retry_counter = 0
     
@@ -327,8 +328,8 @@ async def node_voter_broadcast(asl, log):
                 if RETRY_COUNT == -1 or RETRY_COUNT <= retry_counter:
                     log.debug("attempting reconnection retry #%d", retry_counter)
     
-                    asl = asl_create_connection_nofail()
-                    if asl:
+                    c_stat = conn.asl_create_connection_nofail()
+                    if c_stat:
                         log.info("connection reestablished after %d retries", retry_counter)
                         asl_dead = False
                 else:
@@ -351,7 +352,7 @@ async def node_voter_main(conn):
         compression = None,
         ping_timeout = None
     ):
-        await node_voter_broadcast(conn, log)
+        await node_voter_broadcast(conn)
 
 
 
@@ -366,17 +367,17 @@ async def start_tasks():
         bcast_asl = ami_conn.AMI(ASL_HOST, ASL_PORT, ASL_USER, ASL_PASS)
         asl_connections.add(bcast_asl)
 
-#        log.debug("voter_asl create")
-#        voter_asl = asl_create_connection_fail()
-#        asl_connections.add(voter_asl)
+        log.debug("voter_asl create")
+        voter_asl = ami_conn.AMI(ASL_HOST, ASL_PORT, ASL_USER, ASL_PASS)
+        asl_connections.add(voter_asl)
 
         tasks = []
         log.debug("launch node_status_main")
         tasks.append(asyncio.create_task(node_status_main(bcast_asl)))
         log.debug("launch node_cmd_main")
         tasks.append(asyncio.create_task(node_cmd_main()))
-#        log.debug("launch node_voter_main")
-#        tasks.append(asyncio.create_task(node_voter_main(voter_asl, log)))
+        log.debug("launch node_voter_main")
+        tasks.append(asyncio.create_task(node_voter_main(voter_asl)))
         await asyncio.gather(*tasks)
 
     except Exception as e:
@@ -490,14 +491,13 @@ try:
     else:
         POLLING_TIMER = int(config[str(args.node)]["pollinterval"])
         log.debug("POLLING_TIMER: %d", POLLING_TIMER)
-        if "pollsubsec" in config[str(args.node)]:
-            if config[str(args.node)]["pollsubsec"] == "y":
-                POLLING_TIMER = POLLING_TIMER / 1000
-                log.debug(POLLING_TIMER)
-                if POLLING_TIMER < .2:
-                    POLLING_TIMER = 200
-                    log.info("pollinterval with pollsubsec=y may not be less than 200 - setting to 200")
-                log.debug("pollsubsec = y - adjusting POLLING_TIMER to %d", POLLING_TIMER)
+
+    if not "vpollinterval" in config[str(args.node)]:
+        log.info("No vpollinterval= attribute specified, using default 1")
+        VOTER_POLLING_TIMER = 1
+    else:
+        VOTER_POLLING_TIMER = int(config[str(args.node)]["pollinterval"])
+        log.debug("POLLING_TIMER: %d", VOTER_POLLING_TIMER)
 
     if not "retryinterval" in config[str(args.node)]:
         log.info("No retryinterval= attribute specified, using default 15s")
@@ -529,6 +529,11 @@ try:
     else:
         VOTER_WS_PORT = -1
         log.info("no vmonport specified - disabling votermon")
+
+    if "votertitle" in config[str(args.node)]:
+        VOTER_TITLE = config[str(args.node)]["vmonport"]
+    else:
+        VOTER_TITLE = "{ASL_NODE} Voter"
 
     if "multinodes" in config[str(args.node)]:
         log.debug("found multinodes")
@@ -567,9 +572,9 @@ try:
     bcast_ws = ws_broadcaster.WebsocketBroadcaster()
 
     # connections to the voter broadcaster
-#    voter_connections = set()
+    voter_connections = set()
     # voter websocket
-#    voter_ws = WebsocketBroadcaster.WebsocketBroadcaster()
+    voter_ws = ws_broadcaster.WebsocketBroadcaster()
 
     asyncio.run(start_tasks())
 
