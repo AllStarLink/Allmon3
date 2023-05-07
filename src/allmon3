@@ -121,76 +121,12 @@ try:
     else:
         filter_list = None
 
-<<<<<<< HEAD
     node_configuration = node_configs.NodeConfigs(config_file, filter_list)
     
     # Get Database
     allmon_db = node_db.ASLNodeDB()
     for n, c in node_configuration.nodes.items():
         allmon_db.set_my_info(c)
-=======
-    if not "pollinterval" in config[str(args.node)]:
-        log.info("No pollinterval= attribute specified, using default 1")
-        POLLING_TIMER = 1
-    else:
-        POLLING_TIMER = float(config[str(args.node)]["pollinterval"])
-        log.debug("POLLING_TIMER: %d", POLLING_TIMER)
-
-    if not "vpollinterval" in config[str(args.node)]:
-        log.info("No vpollinterval= attribute specified, using default 1")
-        VOTER_POLLING_TIMER = 1
-    else:
-        VOTER_POLLING_TIMER = float(config[str(args.node)]["vpollinterval"])
-        log.debug("POLLING_TIMER: %d", VOTER_POLLING_TIMER)
-
-    if not "retryinterval" in config[str(args.node)]:
-        log.info("No retryinterval= attribute specified, using default 15s")
-        RETRY_INTERVAL = 15
-    else:
-        RETRY_INTERVAL = int(config[str(args.node)]["retryinterval"])
-        log.debug("RETRY_INTERVAL - %s", RETRY_INTERVAL)
-
-    if not "retrycount" in config[str(args.node)]:
-        log.info("No retrycount= attribute specified, using default of infinite retries")
-        RETRY_COUNT = -1
-    else:
-        RETRY_COUNT = int(config[str(args.node)]["retrycount"])
-        log.debug("RETRY_COUNT - %s", RETRY_COUNT)
-
-    if not "cmdport" in config[str(args.node)]:
-        raise Exception("Missing required attribute cmdport= for %s in %s" % (args.node, config_file))
-    CMD_WS_PORT = int(config[str(args.node)]["cmdport"])
-    log.debug("CMD_WS_PORT - %s", CMD_WS_PORT)
-
-    if not "monport" in config[str(args.node)]:
-        raise Exception("Missing required attribute monport= for %s in %s" % (args.node, config_file))
-    BCAST_WS_PORT = int(config[str(args.node)]["monport"])
-    log.debug("BCAST_WS_PORT - %s", BCAST_WS_PORT)
-
-    if "vmonport" in config[str(args.node)]:
-        VOTER_WS_PORT = int(config[str(args.node)]["vmonport"])
-        log.debug("VOTER_WS_PORT - %s", VOTER_WS_PORT)
-    else:
-        VOTER_WS_PORT = -1
-        log.info("no vmonport specified - disabling votermon")
-
-    if "votertitle" in config[str(args.node)]:
-        VOTER_TITLE = config[str(args.node)]["vmonport"]
-    else:
-        VOTER_TITLE = "{ASL_NODE} Voter"
-
-    if "multinodes" in config[str(args.node)]:
-        log.debug("found multinodes")
-        for mn in re.split(r',', config[str(args.node)]["multinodes"]):
-            log.debug("Adding node %d", int(mn))
-            node_mon_list.update({ int(mn): {
-                "ME" : int(mn) , "DESC" : None , "RXKEYED" : False, "TXKEYED" : False ,
-                "TXEKEYED" : False, "CONNKEYED" : False, "CONNKEYEDNODE" : None , "CONNS" : None }})
-    else:
-        node_mon_list.update({ args.node : { 
-                "ME" : args.node , "DESC" : None , "RXKEYED" : False, "TXKEYED" : False ,
-                "TXEKEYED" : False, "CONNKEYED" : False, "CONNKEYEDNODE" : None , "CONNS" : None }})
->>>>>>> 81cb97c61d61540d474d4f7aaa3d63c899b919b1
 
 except node_configs.ASLNodeConfigException as e:
     log.error(e)
