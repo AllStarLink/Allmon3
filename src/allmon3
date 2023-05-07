@@ -8,14 +8,16 @@
 
 import argparse
 import asyncio
+import configparser
 import logging
 import logging.handlers
 import os
+import pprint
 import signal
 import sys
-from asl import allmon3_ws_status, allmon3_ws_cmd, allmon3_ws_voter
+from asl import allmon3_server, allmon3_ws_status, allmon3_ws_cmd, allmon3_ws_voter
 from asl import ami_conn
-from asl import node_configs, node_db
+from asl import node_configs, node_db, web_configs
 
 _BUILD_ID = "@@HEAD-DEVELOP@@"
 
@@ -46,27 +48,39 @@ async def start_tasks():
     log.debug("enter start_tasks()")
     ami_connections = set()
     tasks = []
-
+    
     try:
         for n, c in node_configuration.nodes.items():
-            log.debug(f"starting status ws {n}@{c.host} on port {c.monport}")
+            c.monport = web_configuration.ws_port_start + len(tasks)
+            log.info("starting status ws %s@%s on port %s", n, c.host, c.monport)
             ami = ami_conn.AMI(c.host, c.port, c.user, c.password)
             ami_connections.add(ami)
             status_ws =  allmon3_ws_status.NodeStatusWS(n, c, allmon_db, ami)
             tasks.append(asyncio.create_task(status_ws.main()))
 
-            log.debug(f"starting command ws {n}@{c.host} on port {c.monport}")
+            c.cmdport = web_configuration.ws_port_start + len(tasks)
+            log.info("starting cmd ws %s@%s on port %s", n, c.host, c.cmdport)
             node_ws = allmon3_ws_cmd.NodeCmdWS(n, c)
             tasks.append(asyncio.create_task(node_ws.main()))
 
-            if c.vmonport > 0:
-                log.debug(f"starting voter ws {n}@{c.host} on port {c.vmonport}")
+            if c.voter:
+                c.vmonport = web_configuration.ws_port_start + len(tasks)
+                log.info("starting voter ws %s@%s on port %s", n, c.host, c.vmonport)
                 ami = ami_conn.AMI(c.host, c.port, c.user, c.password)
                 ami_connections.add(ami)
                 voter_ws =  allmon3_ws_voter.NodeVoterWS(n, c, ami)
                 tasks.append(asyncio.create_task(voter_ws.main()))
 
+        log.info("starting allmon3 master ws on port %s", web_configuration.http_port)
+        a3server = allmon3_server.ServerWS(web_configuration, node_configuration)
+        tasks.append(asyncio.create_task(a3server.main()))
+
         await asyncio.gather(*tasks)
+    
+    except asyncio.exceptions.CancelledError as e:
+        log.debug("ending asyncio tasks")
+        for t in tasks:
+            t.cancel()
 
     except Exception as e:
         log.debug("exception of start_tasks()")
@@ -74,6 +88,9 @@ async def start_tasks():
 
     finally:
         log.debug("finally of start_tasks()")
+        for t in tasks:
+            t.cancel()
+
         for conn in ami_connections:
             log.info("closing an AMI connection: %s", conn.ami_host)
             conn.close()
@@ -83,7 +100,9 @@ async def start_tasks():
 # Args and Log Setup
 ap = argparse.ArgumentParser(description="Connect to an ASL Asterisk server and print rpt stats")
 ap.add_argument("--nodes", type=str, help="Only start the node(s) listed as --node NODE[,NODE,...]")
-ap.add_argument("--config", help="path to INI configuration for the node")
+ap.add_argument("--config", help="path to INI configuration allmon3 nodes (default /etc/allmon3/allmon3.ini)")
+ap.add_argument("--webconfig", help="path to INI configuration for web services (default /etc/allmon3/web.ini")
+ap.add_argument("--menuconfig", help="path to INI configuration for menus (default /etc/allmon3/menu.ini")
 ap.add_argument("--debug", help="enable debug-level logging output", action="store_true")
 ap.add_argument("--version", help="get the version of the software", action="version", version='%(prog)s {}'.format(_BUILD_ID))
 args = ap.parse_args()
@@ -110,6 +129,16 @@ if args.config:
 else:
     config_file = "/etc/allmon3/allmon3.ini"
 
+if args.webconfig:
+    web_config_file = args.web_config
+else:
+    web_config_file = "/etc/allmon3/web.ini"
+
+if args.menuconfig:
+    menu_config_file = args.menuconfig
+else:
+    menu_config_file = "/etc/allmon3/menu.ini"
+
 try:
     # Config Parse
     if not os.path.exists(config_file):
@@ -121,8 +150,22 @@ try:
     else:
         filter_list = None
 
-    node_configuration = node_configs.NodeConfigs(config_file, filter_list)
-    
+    node_configuration = node_configs.NodeConfigs(config_file, filter_list)    
+
+    if not os.path.exists(web_config_file):
+        raise Exception("file not found: %s" % (web_config_file))
+    log.debug("web config file is %s", web_config_file)
+    web_configuration = web_configs.WebConfigs(web_config_file)
+
+    if not os.path.exists(menu_config_file):
+        log.info("no %s found; no menu data available")
+    else:
+        menu_ini = configparser.ConfigParser()
+        menu_ini.read(menu_config_file)
+        for m in menu_ini:
+            if m != "DEFAULT":
+                web_configuration.menu.update({ m : dict(menu_ini[m]) })
+
     # Get Database
     allmon_db = node_db.ASLNodeDB()
     for n, c in node_configuration.nodes.items():

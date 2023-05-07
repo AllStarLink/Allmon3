@@ -47,8 +47,8 @@ class AllmonNodeConfig:
         self.port = int()
         self.user = str()
         self.password = str()
-        self.monport = int()
-        self.cmdport = int()
+        self.monport = int(0)
+        self.cmdport = int(0)
         self.vmonport = -1
         self.pollinterval = float(1)
         self.vpollinterval = float(1)
@@ -90,21 +90,26 @@ class AllmonNodeConfig:
         if "retrycount" in config:
             self.retrycount = int(config["retrycount"])
     
-        if not "cmdport" in config:
-            raise ASLNodeConfigException("Missing required attribute cmdport= for %s" % (self.node))
-        self.cmdport = int(config["cmdport"])
-    
-        if not "monport" in config:
-            raise ASLNodeConfigException("Missing required attribute monport= for %s" % (self.node))
-        self.monport = int(config["monport"])
-    
-        if "vmonport" in config:
-            self.vmonport = int(config["vmonport"])
+#        if not "cmdport" in config:
+#            raise ASLNodeConfigException("Missing required attribute cmdport= for %s" % (self.node))
+#        self.cmdport = int(config["cmdport"])
+#    
+#        if not "monport" in config:
+#            raise ASLNodeConfigException("Missing required attribute monport= for %s" % (self.node))
+#        self.monport = int(config["monport"])
+#    
+#        if "vmonport" in config:
+#            self.vmonport = int(config["vmonport"])
+#        else:
+#            log.info("no vmonport specified - disabling votermon on %s", node)
+#    
+        if "voter" in config:
+            self.voter = True
         else:
-            log.info("no vmonport specified - disabling votermon on %s", node)
-    
+            self.voter = False
+
         if "votertitle" in config:
-            self.votertitle = config["vmonport"]
+            self.votertitle = config["votertitle"]
         else:
             self.votertitle = f"{node} Voter"
     
