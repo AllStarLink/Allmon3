@@ -1,0 +1,20 @@
+#!/usr/bin/python3
+
+import base64
+from itertools import cycle
+import argparse
+import sys
+
+def crypt_msg(msg, key):
+    msg_x = ''.join(chr(ord(x) ^ ord(y)) for (x,y) in zip(msg, cycle(key)))
+    msg_x_b = msg_x.encode("UTF-8")
+    return base64.b64encode(msg_x_b)
+
+ap = argparse.ArgumentParser(description="Emit XOR-encoded file for testing")
+ap.add_argument("key", type=str, help="XOR Key")
+ap.add_argument("msg", type=str, help="Message")
+args = ap.parse_args()
+
+xor = crypt_msg(args.msg, args.key)
+print(xor.decode("UTF-8"))
+sys.exit(0)

@@ -1,0 +1,125 @@
+#!/usr/bin/python3
+# almon3.py - Monitor ASL Asterisk server for events
+#
+# Copyright(C) 2023 AllStarLink
+# Allmon3 and all components are Licensed under the AGPLv3
+# see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
+#
+
+import asyncio
+import base64
+import binascii
+import logging
+import socket
+import time
+from time import sleep
+import websockets
+from .. import ami_conn, ami_parser, node_configs, node_db, ws_broadcaster
+
+__BUILD_ID = "@@HEAD-DEVELOP@@"
+log = logging.getLogger(__name__)
+
+class NodeVoterWS:
+    """ Node voter WS client """
+
+    def __init__(self, node, node_config, ami):
+        self.node_id = node
+        self.node_config = node_config
+        self.ami = ami
+        self.connections = set()
+        self.voter_ws = ws_broadcaster.WebsocketBroadcaster()
+
+    async def handler(self, websocket):
+        log.debug("entering voter handler(%s} for %s", self.node_id, websocket.remote_address)
+        self.connections.add(websocket)
+        try:
+            async for message in self.voter_ws:
+                await websocket.send(message)
+
+        except asyncio.exceptions.IncompleteReadError:
+            log.info("Other side went away: %s", websocket.remote_address)
+
+        except websockets.exceptions.ConnectionClosedError:
+            log.info("ConnctionClosed with Error from %s", websocket.remote_address)
+            self.connections.remove(websocket)
+
+        except websockets.exceptions.ConnectionClosedOK:
+            log.info("ConnctionClosed from %s", websocket.remote_address)
+            self.connections.remove(websocket)
+
+
+    # Websocket broadcaster
+    async def broadcast(self):
+        log.debug("enter node_voter_broadcast()")
+        asl_ok = True
+        parser = ami_parser.AMIParser(self.ami)
+    
+        while True:
+            if asl_ok:
+                if len(self.connections) > 0:
+                    log.debug("node %s voter connections: %d", self.node_id, len(self.connections))
+                    try:
+                        message = parser.parse_voter_data(self.node_id)
+                        self.voter_ws.publish(message)
+    
+                    except BrokenPipeError:
+                        log.error("received BrokenPipeError; trying to reconnect")
+                        asl_ok = False
+                    except socket.timeout:
+                        log.error("received socket.timeout; trying to reconnect")
+                        asl_ok = False
+                    except ConnectionResetError:
+                        log.error("received ConnectionResetError; trying to reconnect")
+                        asl_ok = False
+    
+                else:
+                    log.debug("node %s voter connections: %s", self.node_id, len(self.connections))
+    
+                # Sleep for the polling time
+                log.debug("voter asyncio.sleep(%s)", self.node_config.vpollinterval)
+                await asyncio.sleep(self.node_config.vpollinterval)
+    
+            else:
+                # If we exited out of asl_ok without throwing an exception
+                # then something went wrong with the asl socket. Loop around
+                # here trying to reconnect for the timeout interval and then
+                # let the main_loop continue
+                self.ami.close()
+                asl_dead = True
+                retry_counter = 0
+    
+                while asl_dead:
+                    log.debug("sleeping for RETRY_INTERVAL of %s", self.node_config.retryinterval)
+                    sleep(self.node_config.retryinterval)
+                    retry_counter += 1
+    
+                    if self.node_config.retrycount == -1 or self.node_config.retrycount <= retry_counter:
+                        log.debug("attempting reconnection retry #%d", retry_counter)
+    
+                        c_stat = self.ami.asl_create_connection_nofail()
+                        if c_stat:
+                            log.info("connection reestablished after %d retries", retry_counter)
+                            asl_dead = False
+                    else:
+                        log.error("count not reestablish connection after %d retries - exiting", retry_counter)
+                        raise NodeVoterWSException(f"count not reestablish connection after {retry_counter} retries - exiting")
+ 
+                # re-enable the innter loop processing
+                asl_ok = True
+    
+    
+    # Primary broadcaster
+    async def main(self):
+        log.debug("enter node_voter_main()")
+        loop = asyncio.get_event_loop()
+        self.voter_ws.set_waiter(asyncio.Future(loop=loop))
+        async with websockets.serve(
+            self.handler,
+            host = None,
+            port = self.node_config.vmonport,
+            logger = log
+        ):
+            await self.broadcast()
+
+class NodeVoterWSException(Exception):
+    """ exception for class """

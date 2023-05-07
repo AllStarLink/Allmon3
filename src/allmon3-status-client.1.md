@@ -1,12 +1,12 @@
-% asl-statmon-client(1) asl-client-statmon @-DEVELOP@@
+% allmon3-status-client(1) asl-client-statmon @HEAD-DEVELOP@@
 % Jason McCormick
-% April 2023
+% Mary 2023
 
 # NAME
-asl-statmon-client - monitor the output of an asl-statmon ZMQ port
+allmon3-status-client - monitor the output of an asl-statmon ZMQ port
 
 # SYNOPSIS
-usage: asl-statmon-client [-h] [--topic TOPIC] host port
+usage: allmon3-status-client [-h] [--node NODE] host port
 
 Simple client to see that an asl-statmon instance. Dumps 0MQ messages from the
 specified port
@@ -17,11 +17,13 @@ positional arguments:
 
 optional arguments:
   -h, --help     show this help message and exit
-  --topic TOPIC  Topic to subscribe to
+  --node NODE  Topic to subscribe to
 _
 # DESCRIPTION
-**asl-statmon-client** simply listens to an asl-statmon(1)
-ZMQ port and prints all output. Terminate with ^c.
+**allmon3-status-client** simply listens to an allmon3
+on the status broadcast websocket port and prints
+all output, moderated by --node if specified.
+Terminate with ^c.
 
 # BUGS
 Report bugs to https://github.com/AllStarLink/Allmon3/issues

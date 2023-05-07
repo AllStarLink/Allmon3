@@ -1,5 +1,5 @@
 [Unit]
-Description=ASL Asterisk AMI voter poller for %i
+Description=Allmon3 daemon for %i
 After=asl-asterisk asterisk
 
 [Service]
@@ -7,7 +7,7 @@ Type=exec
 User=allmon3
 Group=allmon3
 Environment="PATH=/usr/bin:/bin:/usr/sbin:/sbin"
-ExecStart=asl-votermon %i 
+ExecStart=allmon3 %i 
 
 [Install]
 WantedBy=multi-user.target

@@ -1,12 +1,12 @@
-% asl-statmon(1) asl-statmon @-DEVELOP@@
+% allmon3(1) allmon3 @@HEAD-DEVELOP@@
 % Jason McCormick
-% April 2023
+% May 2023
 
 # NAME
-asl-statmon - Monitor ASL Asterisk server for events
+allmon3 - Monitor and communicate with AllStarLink Asterisk node
 
 # SYNOPSIS
-usage: asl-statmon [-h] [--debug] [--version] [--config FILE] node 
+usage: allmon3 [-h] [--debug] [--version] [--config FILE] node 
 
 Connect to an ASL Asterisk server and print rpt stats
 
@@ -21,10 +21,11 @@ optional arguments:
 
 
 # DESCRIPTION
-**asl-statmon** is a polling damon against an Asterisk 
-instance on the AMI port and returns status information
-about app_rpt functions on its ZMQ port as a publication
-message. This script is only useful for AllStarLink Asterisk.
+**allmon3** polls against the AMI port of an Asterisk
+node running app_rpt for AllStarLink and provides
+a websocket connection for node status and voter
+status. It also supports a command websocket to execute
+commands on the AMI port.
 
 # BUGS
 Report bugs to https://github.com/AllStarLink/Allmon3/issues

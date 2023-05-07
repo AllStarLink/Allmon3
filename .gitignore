@@ -3,3 +3,4 @@ debian/.debhelper/
 debian/allmon3/
 debian/files
 debian/changelog.dch
+__pycache__
