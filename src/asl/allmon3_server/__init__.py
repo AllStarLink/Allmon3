@@ -6,12 +6,13 @@
 # see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
 #
 
+from aiohttp import web
 import asyncio
 import logging
 import json
 import re
-import socket
-import websockets
+#import socket
+#import websockets
 from .. import node_configs, web_configs
 
 __BUILD_ID = "@@HEAD-DEVELOP@@"
@@ -25,6 +26,7 @@ class ServerWS:
     def __init__(self, configs_web, configs_node):
         self.config_web = configs_web
         self.config_nodes = configs_node
+        self.httpserver = web.Application()
 
     @staticmethod
     def __get_json_error(message):
@@ -40,41 +42,41 @@ class ServerWS:
     def __get_json_security(message):
         return f"{{ \"SECURITY\" : \"{message}\" }}"
 
-    def __proc_auth(self, c):
-        if c[1] == "auth":
-            return "unimplemented"
-
-        raise ServerWSException("unknown secondary command for auth")
+    ##
+    ## Security Auth Functions
+    ##
+    def __proc_auth(self, request):
+        return web.Response(status=503)
 
     ##
     ## Node Functions
     ##
 
-    def __proc_node(self, c):
-        if c[1] == "listall":
-            return self.__get_json_success(self.__proc_node_listall())
-
+    def __proc_node(self, request):
         try:
-            if re.match(r"^[0-9]+$", c[1]):
-                if c[2] == "config":
-                    if c[1] in self.config_nodes.colo_nodes:
-                        node = self.config_nodes.colo_nodes[c[1]]
+            c = request.url.path.split("/")
+            r_txt = None
+            if c[2] == "listall":
+                r_txt = self.__proc_node_listall()
+
+            elif re.match(r"^[0-9]+$", c[2]):
+                if c[3] == "config":
+                    if c[2] in self.config_nodes.colo_nodes:
+                        node = self.config_nodes.colo_nodes[c[2]]
                     else:
-                        node = c[1]
+                        node = c[2]
                     if self.config_nodes.nodes[node]:
-                        return self.__get_json_success(self.__proc_node_config(node))
+                        r_txt = self.__proc_node_config(node)
     
-                    raise ServerWSException("unknown node")
-    
-                raise ServerWSException("unknown tertiary command for node NODE")
-    
-            raise ServerWSException("unknown secondary command for node")
+        except (IndexError, KeyError):
+            r_txt = None
         
-        except IndexError:
-            raise ServerWSException("malformed command")
+        finally:
+            if r_txt:
+                r_json = self.__get_json_success(r_txt)
+                return web.Response(text=r_json, content_type="text/json")
     
-        except KeyError:
-            raise ServerWSException("unknown node")
+            return web.Response(status=400)
 
     def __proc_node_listall(self):
         ret = []
@@ -95,20 +97,30 @@ class ServerWS:
     ## UI Customizations
     ##
 
-    def __proc_ui(self, c):
-        if c[1] == "custom":
-            if c[2] == "html":
-                return self.__get_json_success(self.__proc_ui_html())
-            if c[2] == "menu":
-                if self.config_web:
-                    return self.__get_json_success(json.dumps(self.config_web.menu))
-                return self.__get_json_success("NONE")
-            if c[2] == "overrides":
-                return self.__get_json_success(json.dumps(self.config_web.node_overrides))
+    def __proc_ui(self, request):
+        try:
+            c = request.url.path.split("/") 
+            r_txt = None
+            if c[2] == "custom":
+                if c[3] == "html":
+                    r_txt = self.__proc_ui_html()
+                elif c[3] == "menu":
+                    if self.config_web:
+                        r_txt = json.dumps(self.config_web.menu)
+                    else:
+                        r_txt = "NONE"
+                elif c[3] == "overrides":
+                    r_txt = json.dumps(self.config_web.node_overrides)
+    
+        except (IndexError, KeyError):
+            r_txt = None
 
-            raise ServerWSException(self.__get_json_error("unknown tertiary command for ui custom"))
-
-        raise ServerWSException(self.__get_json_error("unknown secondary commend for ui"))
+        finally:
+            if r_txt:
+                r_json = self.__get_json_success(r_txt)
+                return web.Response(text=r_json, content_type="text/json")
+    
+            return web.Response(status=400)
 
     def __proc_ui_html(self):
         ui_html = dict()
@@ -121,63 +133,25 @@ class ServerWS:
     ## Server Logic
     ##
 
-    async def handler(self, websocket):
-        log.debug("entering serverws handler for %s", websocket.remote_address)
-    
-        try:
-            while True:
-                message = await websocket.recv()
-                log.debug(f"ws: {message}")
-                c = message.split(" ")
-                log.debug(c)
-                if c[0] == "auth":
-                    response = self.__proc_auth(c)
-                elif c[0] == "node":
-                    response = self.__proc_node(c)
-                elif c[0] == "ui":
-                    response = self.__proc_ui(c)
-                elif c[0] == "exit":
-                    await websocket.send(self.__get_json_success("bye"))
-                    await websocket.clost()
-                    continue
-                else:
-                    raise ServerWSException("unknown command prefix") 
-    
-                await websocket.send(response)
-        
-        except asyncio.exceptions.IncompleteReadError:
-            log.info("Other side went away: %x", websocket.remote_address)
-    
-        except websockets.exceptions.ConnectionClosedError:
-            log.info("ConnctionClosed with Error from %s", websocket.remote_address)
-    
-        except websockets.exceptions.ConnectionClosedOK:
-            log.info("ConnctionClosed from %s", websocket.remote_address)
-    
-        except BrokenPipeError as e:
-            log.error("received BrokenPipeError")
-    
-        except socket.timeout as e:
-            log.error("received socket.timeout")
-    
-        except ConnectionResetError as e:
-            log.error("received ConnectionResetError")
-    
-        except ServerWSException as e:
-            log.error(e)
-            await websocket.send(self.__get_json_error(e))
-            await websocket.close()
-    
+    async def handler(self, request):
+        log.error("rel_url: " + request.rel_url)
+        log.error("path_qs: " + request.path_qs)
+        return web.Response(text="Hello")
+
     async def main(self):
-        async with websockets.serve(
-            self.handler,
-            host = None,
-            port = self.config_web.http_port,
-            logger = log,
-            compression = None,
-            ping_timeout = None
-        ):
-            await asyncio.Future()
+
+        # Handlers for different API commands
+        api_routes = [
+            web.get(r"/auth/{cmd:.*}", self.__proc_auth),
+            web.get(r"/node/{cmd:.*}", self.__proc_node),
+            web.get(r"/ui/{cmd:.*}", self.__proc_ui)
+            ]
+        self.httpserver.add_routes(api_routes)
+        runner = web.AppRunner(self.httpserver)
+        await runner.setup()
+        site = web.TCPSite(runner, "localhost", 16080)
+        await site.start()
+
 
 class ServerWSException(Exception):
     """ specific Exception for class """
