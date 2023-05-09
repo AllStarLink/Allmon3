@@ -30,127 +30,142 @@ The choice of the AGPLv3 promotes giving back to the amateur radio and
 ASL communities.
 
 ## Quickstart
-Use the following steps, as the root user, to install on a Debian 11 system follow
-these instructions. For Debian 10, replace all references to "php7.4" with "php7.3".
 
-1. Install the software
+Note: This software is currently only supported on Debian 11 with the
+`bullseye-backports` enabled. Debian 10 support will be added in the near
+future.
+
+### Install Debian 11 / Raspian 11 Software
+
+1. Enable the Debian 11 `bullseye-backports` package repositorty:
+
 ```
-apt install -y apache2 php7.4-fpm php-zmq python3-zmq python3-websockets wget
-wget https://github.com/AllStarLink/Allmon3/releases/download/0_9_7/allmon3_0.9.7-1_all.deb
-dpkg -i allmon3_0.9.7-1_all.deb
+echo "deb http://deb.debian.org/debian bullseye-backports main" > /etc/apt/sources.list.d/bullseye-backports.list
+apt update
 ```
 
-
-
-2. Edit `/etc/allmon3/allmon3.ini` for the basic node configuration as explained in the file.
-
-3. Configure Apache using the following commands:
+2. Install the dependencies
 ```
-a2dismod php7.4
-a2dismod mpm_prefork
-a2enmod mpm_event
+apt install -y -t bullseye-backports python3-websockets python3-aiohttp
+apt install -y apache2 wget
+wget https://github.com/AllStarLink/Allmon3/releases/download/
+dpkg -i allmon3_
+```
+
+### Install Debian 10 / Raspian 10 Software
+
+Coming soon
+
+### Configure Allmon
+
+1. Edit `/etc/allmon3/allmon3.ini` for the basic node configuration as explained in the file.
+
+2. Configure Apache using the following commands:
+```
+a2enmod proxy_http
 cp /etc/allmon3/apache.conf /etc/apache2/conf-available/allmon3.conf
 a2enconf allmon3
-a2enconf php7.4-fpm
-a2enmod proxy_fcgi
-```
-
-4. Edit `/etc/apache2/sites-available/000-default.conf` to look like the following:
-```
-<VirtualHost *:80>
-    Protocols h2 http/1.1
-	ServerAdmin YOUREMAIL@ADDRESS
-	DocumentRoot /var/www/html
-	ErrorLog ${APACHE_LOG_DIR}/error.log
-	CustomLog ${APACHE_LOG_DIR}/access.log combined env=!nolog
-	SetEnvIf Request_URI "api/asl-statmon.php" nolog
-</VirtualHost>
-```
-Notably, ensure that CustomLog has `env=!nolog` at the end and the `SetEnvIf` appears.
-
-5. Enable and start the services
-```
-allmon3-procmgr enable
-allmon3-procmgr start
 systemctl restart apache2
 ```
-6. Set a password for the default user allmon3:
+
+3. Enable and start the services
+```
+systemctl enable allmon3 
+systemctl start allmon3
+
+```
+4. Set a password for the default user allmon3:
 ```
 allmon3-passwd allmon3
 ```
 
-7. Open your web browser to the IP or hostname - for example: http://192.0.2.10/allmon3/
+5. Open your web browser to the IP or hostname - for example: http://192.0.2.10/allmon3/
 
-Note: If you have a voter system to monitor with Allmon3, Python3's websocket
-module must be upgraded to at least version 10.4. With Debian 11, this can be
-done with the bullseye-backports channel. See [Debian Backports Instructions](https://backports.debian.org/Instructions/)
-for enabling backports and then:
+# Configuration
+
+## Node and Daemon Configuration
+The stock configuration files are always available at `/usr/share/doc/allmon3/`
+for recovery and documentation.
+
+Edit `/etc/allmon3/allmon3.ini` for at least one ASL AMI interface.
+
+Here's an example for monitoring three ASL Nodes:
 ```
-apt install python3-websockets/bullseye-backports
-```
-The voter monitor is currently not support on Debian 10 until a realiable method of
-installing Python3 websocket v10+ can be tested and documented properly.
+[50815]
+host=172.17.16.36
+user=admin
+pass=password
 
-## Requirements
-Allmon3 requires the following:
+[460180]
+host=172.17.16.217
+user=admin
+pass=password
 
-* Python3 with the `websockets` and `zmq` packages
-* PHP with the PHP-ZMQ package
-* Apache 2.4 configured to host PHP-based applications
-
-Note: Using Nginx is possible as an alternative to Apache but
-packaging and documentation assumes Apache.
-
-## Installation
-
-### Installation for Packages
-The following directions can be used to install with the Debian package.
-
-1. Install the prerequisites
-
-```
-apt install -y apache2 php7.4-fpm php-zmq python3-zmq python3-websockets
+[48496]
+host=208.167.248.86
+user=admin
+pass=password
+voter=y
+votertitle=Megavoter
 ```
 
-2. Download the latest .deb file from the current release
-branch. Current release is [allmon3_0.9.7-1_all.deb](https://github.com/AllStarLink/Allmon3/releases/download/0_9_7/allmon3_0.9.7-1_all.deb). 
-Downloading can be done with wget or curl. For example:
+After changing `allmon3.ini` the service `allmon3` must be restarted - `systemctl restart allmon3`.
 
-```
-wget https://github.com/AllStarLink/Allmon3/releases/download/0_9_7/allmon3_0.9.7-1_all.deb
-```
+## Usernames / Passwords for the Site
+Usernames and passwords are stored in `/etc/allmon3/users`.
+The default-configured username and password combination is `allmon3 / password`. 
+**You *must* change this**.
 
-3. Install Allmon3's deb file (use the correct .deb file name)
+Allmon3's user database is managed by `allmon3-passwd`. Adding a new user
+or editing an existing user is the same command. If the user does not exist,
+it will be added. If the user does exist, the password will be updated. 
+To add or edit a user's password:
 ```
-dpkg -i allmon3_0.9.7-1_all.deb
-```
-
-4. Skip the next section and resume directions at **Configuration**
-
-### Installation from Source
-The following directions can be used to install from sources.
-This is **not** recommended but is available if necessary.
-
-1. Allmon3 requires Python, the Python ZMQ module, Apache, PHP 7 or 8,
-the PHP ZMQ module, and a tool called pandoc. On Debian-based systems 
-this can be installed as followed (example uses Debian 11).
-```
-apt install -y apache2 php7.4-fpm php-zmq python3-zmq python3-websockets make pandoc
+$ allmon3-passwd allmon3
+Enter the password for allmon3: password
+Confirm the password for allmon3: password
+$
 ```
 
+That's all there is to it. The `/etc/allmon3/users` file is readable to see that the
+Argon2 hash changed for the user.
 
-2. Download the "Source code (tar.gz) file from the releases
-page for the current release. The current release is Allmon3 0.9.7.
-You will end up with a file named rel_0_9_7.tar.gz. Uncompress
-the file and cd into it:
+Deleting a user is simply adding the `--delete` flag to the command:
 
 ```
-wget https://github.com/AllStarLink/Allmon3/archive/refs/tags/rel_0_9_7.tar.gz
-tar xvfz rel_0_9_7.tar.gz
-cd Allmon3-rel_0_9_7
+$ allmon3-passwd --delete allmon3
 ```
 
-3. Install the application using make
+## Server Customization
+
+Allmon3 has multiple configuration files to consider:
+
+* `/etc/allmon3/web.ini` - Has three configuration sections - *web*, 
+*syscmds*, and *node-overrides*. The *web* section has the basic
+customizations for the Allmon3 site. The *syscmds* section defines
+the templates in the "system commands" menu. Add or remove as
+desired. The token `@` will be expanded into the selected node 
+on which to execute the command. The *node-overrides* section
+can be used to override information from the ASL database.
+
+* `/etc/allmon3/custom.css` - Certain CSS customizations to change
+colors in the application.
+
+* `/etc/allmon3/menu.ini` - Allows for the customization of the
+Allmon3 web menu. By default, the menu is a list of all nodes
+found in `allmon3.ini`. Cutomized menus can be configured
+as described in `menu.ini.example`.
+
+# Install From Source
+
+This method is **NOT** recommended.
+`
+1. Install the necessary dependencies using apt, pip, etc.
+
+   Python3 websockets > 11.0 
+   Python3 aiohttp > 3.7 and dependencies (yarl, attr, chardet, multidict) 
+
+2. Install the application using make
 
 If this is the first installation of Allmon3 on a fresh system,
 the software can be installed simply using `make install`:
@@ -212,280 +227,5 @@ make install destdir=/path/to/temp/location
 cd /usr/share/allmon3/css && ln -s /etc/allmon3/custom.css
 ```
 
-## Node and Daemon Configuration
-The stock configuration files are always available at `/usr/share/doc/allmon3/`
-for recovery and documentation.
+After this, follow the configuration steps above.
 
-Edit `/etc/allmon3/allmon3.ini` for at least one ASL AMI interface. Each node
-must have a separately-numbered `monport=` and `cmdport=` value. It's recommended
-to start with port 6750 for `monport` and 6850 for `cmdport`
- and count up from there for each node configured in the .ini file. 
-Here's an example for monitoring three ASL Nodes:
-
-```
-[50815]
-host=172.17.16.36
-user=admin
-pass=password
-monport=6750
-cmdport=6850
-
-[460180]
-host=172.17.16.217
-user=admin
-pass=password
-monport=6751
-cmdport=6851
-
-[48496]
-host=208.167.248.86
-user=admin
-pass=password
-monport=6752
-cmdport=6852
-```
-
-Allmon3 uses systemd service units with the "instances" concept. In general
-this uses the format `asl-statmon@NODE` and `asl-cmdlink@NODE` for the 
-individual names to stop and start. For example, following the above, the node
-5018 needs to enable and start two unit instances - `asl-statmon@50815` and
-`asl-cmdlink@50815`. 
-
-However, most users will want to use the `allmon3-procmgr` wrapper to
-enable, start, stop, and restart all of the units. After modifying
-`allmon3.ini`, enable and start all the services as the root user:
-```
-# allmon3-procmgr enable
-Created symlink /etc/systemd/system/multi-user.target.wants/asl-statmon@50815.service → /lib/systemd/system/asl-statmon@.service.
-Created symlink /etc/systemd/system/multi-user.target.wants/asl-cmdlink@50815.service → /lib/systemd/system/asl-cmdlink@.service.
-Created symlink /etc/systemd/system/multi-user.target.wants/asl-statmon@460180.service → /lib/systemd/system/asl-statmon@.service.
-Created symlink /etc/systemd/system/multi-user.target.wants/asl-cmdlink@460180.service → /lib/systemd/system/asl-cmdlink@.service.
-Created symlink /etc/systemd/system/multi-user.target.wants/asl-statmon@48496.service → /lib/systemd/system/asl-statmon@.service.
-Created symlink /etc/systemd/system/multi-user.target.wants/asl-cmdlink@48496.service → /lib/systemd/system/asl-cmdlink@.service.
-# ./allmon3-procmgr start
-```
-
-
-## Website Specific Configuration
-Note that is is **strongly** recommended to use the PHP-FPM FastCGI
-style of PHP invocation rather than the old mod_php methods. This
-allows Apache to be operated in the efficient mpm_workers mode to 
-support HTTP/2 and offloads PHP execution to the more-efficient
-php-fpm daemon. See "Configuring Apache" below for more information.
-
-
-### Usernames / Passwords for the Site
-Usernames and passwords are stored in `/etc/allmon3/users`.
-The default-configured username and password combination is `allmon3 / password`. 
-**You *must* change this**.
-
-Allmon3's user database is managed by `allmon3-passwd`. Adding a new user
-or editing an existing user is the same command. If the user does not exist,
-it will be added. If the user does exist, the password will be updated. 
-To add or edit a user's password:
-```
-$ allmon3-passwd allmon3
-Enter the password for allmon3: password
-Confirm the password for allmon3: password
-$
-```
-
-That's all there is to it. The `/etc/allmon3/users` file is readable to see that the
-Argon2 hash changed for the user.
-
-Deleting a user is simply adding the `--delete` flag to the command:
-
-```
-$ allmon3-passwd --delete allmon3
-```
-
-### Alternative Node Configuration for the Web Interface
-Note, that for the web interface a separate, distinct configuration file
-can be placed in `/etc/allmon3/allmon3-web.ini`
-which will be used **in place of** the common `/etc/allmon3/allmon3.ini`
-for the website only. No configuration is need to use a web-specific
-configuration when `/etc/allmon3/allmon3.ini` and `/etc/allmon3/allmon3-web.ini`
-would have identical contents.
-
-### Website Customization
-
-Allmon3 has multiple configuration files to consider:
-
-* `/etc/allmon3/web.ini` - Has three configuration sections - *web*, 
-*syscmds*, and *node-overrides*. The *web* section has the basic
-customizations for the Allmon3 site. The *syscmds* section defines
-the templates in the "system commands" menu. Add or remove as
-desired. The token `@` will be expanded into the selected node 
-on which to execute the command. The *node-overrides* section
-can be used to override information from the ASL database.
-
-* `/etc/allmon3/custom.css` - Certain CSS customizations to change
-colors in the application.
-
-* `/etc/allmon3/menu.ini` - Allows for the customization of the
-Allmon3 web menu. By default, the menu is a list of all nodes
-found in `allmon3.ini`. Cutomized menus can be configured
-as described in `menu.ini.example`.
-
-## Configuring Apache 
-
-### Basic Application Configuration
-For best results, Apache should be configured according to these directions not based
-on historical configurations from Allmon2, Supermon, etc. These directions are for
-Debian-based systems. Due to widely varying web server configurations, the Debian
-package of allmon3 does not (yet?) try to enable itself within the webserver
-configuration. Notably, use of HTTP/2 and PHP-FPM is **strongly** encouraged.
-
-1. If Apache2 is already installed, remove any Apache configuration for mod_php:
-
-```
-a2dismod php7.4
-a2dismod mpm_prefork
-a2enmod mpm_event
-apt remove libapache2-mod-php libapache2-mod-php7.4
-apt install apache2
-apt autoremove
-```
-
-Note that the extra `apt install apache2` fixes apache2 as a requested package
-which may not be the case depending on how it was already installed.
-
-2. Ensure that PHP-FPM is installed. On Debian-based systems do `apt install php7.4-fpm`
-(or use the correct version for your system, php7.4-fpm is for stock Debian 11).
-
-3. Enable PHP-FPM as the handler for PHP in apache with `a2enconf php7.4-fpm`
-
-4. Enable the proxy_fcgi module to hand off to PHP-FOM with `a2enmod proxy_fcgi`
-
-5. Edit `/etc/php/7.4/fpm/pool.d/www.conf` and set the following values:
-```
-pm = dynamic
-pm.max_children = 25
-pm.start_servers = 5
-pm.min_spare_servers = 5
-pm.max_spare_servers = 10
-pm.max_requests = 1000
-```
-
-6. Restart php-fpm with `systemctl restart php7.4-fpm`
-
-7. Edit `/etc/apache2/sites-available/000-default.conf` to look like the following:
-```
-<VirtualHost *:80>
-    Protocols h2 http/1.1
-	ServerAdmin YOUREMAIL@ADDRESS
-	DocumentRoot /var/www/html
-	ErrorLog ${APACHE_LOG_DIR}/error.log
-	CustomLog ${APACHE_LOG_DIR}/access.log combined env=!nolog
-	SetEnvIf Request_URI "api/asl-statmon.php" nolog
-</VirtualHost>
-```
-
-8. Execute `cp /etc/allmon3/apache.conf /etc/apache2/conf-available/allmon3.conf`
-
-9. Enable the Apache Allmon3 configuration: `a2enconf allmon3`
-
-10. Restart Apache: `systemctl restart apache2`
-
-11. If there is no other content at the root of the webserver Allmon3 is installed
-on, create `/var/www/html/index.html` with the following contents:
-
-```
-<html>
-	<head>
-		<meta http-equiv="Refresh" content="0; URL=/allmon3/" />
-	</head>
-</html>
-```
-
-This will direct people to the Allmon3 index directly.
-
-Note: The file `/etc/allmon3/apache.conf` is NOT a configuration
-file that is preserved/managed across upgrades as it is only
-an example. All site-local customizations of Apache should be
-stored in `/etc/apache/conf-available/allmon3.conf` which is
-never touched by the installer package or the `make install`
-process.
-
-### Important Web Log Performance Consideration
-
-As a "modern" web application, Allmon3 makes *extensive* use of AJAX callbacks
-to the webserver. Depending on your configuration this could results in dozens
-or hundreds of log entries per second in the Apache or NGINX access logs. For 
-a standard PC-type system (normal hard drive or a virtual machine/VPS), this is not 
-a problem. However, as many people install ASL and Allmon on a Raspberry Pi with
-an SD Card, this behavior can quickly wear out the card! In these situations, suppressing
-access logging from the `api/asl-statmon.php` URI is essential.
-
-For Apache you can take the following steps:
-
-1. For every configuration location of `AccessLog` or `CustomLog` append
-the statement `env=!nolog`.
-
-2. Add a single configuration of `SetEnvIf Request_URI "api/asl-statmon.php" nolog`
-
-For example, in a standard vhost-style configuration:
-
-```
-CustomLog ${APACHE_LOG_DIR}/access.log combined env=!nolog
-SetEnvIf Request_URI "api/asl-statmon.php" nolog
-```
-
-## Voter Configuration
-Voting is monitored using the `asl-votermon(1)` daemon and has a different
-configuration file. The file `/etc/allmon3/voter.ini` is the configuration
-for all voter-related elements in both the backend and the frontend.
-
-The most-minimal configuration for `voter.ini` is as follows:
-```
-[1999]
-host=192.0.2.10
-user=admin
-pass=password
-vmonport=6950
-votertitle="This is a Voter"
-```
-
-Voters need a separate invocation of the systemd unit:
-```
-systemctl enable asl-votermon@1999
-systemctl start asl-votermon@1999
-```
-
-The voter viewer is accessed at `allmon3/voter.html` and the URI
-requires a `#NODE` hash suffix. For the example node 1999:
-
-```
-http://localhost/allmon3/voter.html#1999
-```
-
-Specifying nothing after `voter.html` will result in an error.
-Links to voters should be created in `menu.ini` using as relative
-target. For example:
-```
-[ W1AW ]
-type = menu
-1999 = 1999
-'Voter 1999' = 'voter.html#1999'
-```
-
-It's important to note that `asl-votermon` differs from `asl-statmon`
-and `asl-cmdlink` in that rather than a 0MQ mesasge bus that is polled
-from the web, it is a websockets server. The websocket connection is
-proxied through Apache.
-
-## Three-Tier Structure
-Allmon3 is organized around a tiered structure: Asterisk AMI, message poller daemons (asl-statmon
-and asl-cmdlink), and the web client. In order to reduce webserver and Asterisk AMI load experience
-in Allmon2 (especially for systems using workers with php-fpm) and on Asterisk AMI calls, 
-one asl-statmon and asl-cmdlink process operates against each Asterisk AMI port as a 
-[0MQ Messaging Publisher](https://www.zeromq.org/) messaging bus. This results in 
-polling AMI one time per cycle and distributing the information to many web clients 
-efficiently. It also allows for interesting things such as different views and abstractions 
-of clusters of Asterisk servers and it permits polling of many nodes running on the same
-Asterisk server to be efficient. This structure results in load reductions against busy
-nodes of up to 91% in real-world testing.
-
-A generalized architecture is as follows:
-
-![Allmon3 Diagram](https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/.github/Allmon3%20Tier.jpg)
