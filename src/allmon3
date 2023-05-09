@@ -53,9 +53,9 @@ async def start_tasks():
         for n, c in node_configuration.nodes.items():
             c.monport = web_configuration.ws_port_start + len(tasks)
             log.info("starting status ws %s@%s on port %s", n, c.host, c.monport)
-            ami = ami_conn.AMI(c.host, c.port, c.user, c.password)
-            ami_connections.add(ami)
-            status_ws =  allmon3_ws_status.NodeStatusWS(n, c, allmon_db, ami)
+  #          ami = ami_conn.AMI(c.host, c.port, c.user, c.password)
+  #          ami_connections.add(ami)
+            status_ws =  allmon3_ws_status.NodeStatusWS(n, c, allmon_db)
             tasks.append(asyncio.create_task(status_ws.main()))
 
             c.cmdport = web_configuration.ws_port_start + len(tasks)

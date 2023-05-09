@@ -24,11 +24,11 @@ log = logging.getLogger(__name__)
 class NodeStatusWS:
     """ Node status WS client """
 
-    def __init__(self, node, node_config, nodedb, ami):
+    def __init__(self, node, node_config, nodedb):
         self.node_id = node
         self.node_config = node_config
         self.nodedb = nodedb
-        self.ami = ami
+        self.ami = None
         self.connections = set()
         self.bcast_ws = ws_broadcaster.WebsocketBroadcaster()
 
@@ -125,6 +125,8 @@ class NodeStatusWS:
     async def main(self):
         log.debug("enter node_status_main(%s)", self.node_config.node)
     
+        self.ami = ami_conn.AMI(self.node_config.host, self.node_config.port, 
+            self.node_config.user, self.node_config.password)
         loop = asyncio.get_event_loop()
         self.bcast_ws.set_waiter(asyncio.Future(loop=loop))
         async with websockets.serve(
