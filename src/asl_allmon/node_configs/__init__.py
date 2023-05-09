@@ -93,26 +93,13 @@ class AllmonNodeConfig:
         if "retrycount" in config:
             self.retrycount = int(config["retrycount"])
     
-#        if not "cmdport" in config:
-#            raise ASLNodeConfigException("Missing required attribute cmdport= for %s" % (self.node))
-#        self.cmdport = int(config["cmdport"])
-#    
-#        if not "monport" in config:
-#            raise ASLNodeConfigException("Missing required attribute monport= for %s" % (self.node))
-#        self.monport = int(config["monport"])
-#    
-#        if "vmonport" in config:
-#            self.vmonport = int(config["vmonport"])
-#        else:
-#            log.info("no vmonport specified - disabling votermon on %s", node)
-#    
         if "voter" in config:
             self.voter = True
         else:
             self.voter = False
 
         if "votertitle" in config:
-            self.votertitle = config["votertitle"]
+            self.votertitle = config["votertitle"].replace("'","")
         else:
             self.votertitle = f"{node} Voter"
     
