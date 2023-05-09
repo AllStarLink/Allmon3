@@ -71,7 +71,7 @@ class NodeStatusWS:
                             parser.parse_xstat(c_node, self.nodedb.node_database, self.node_config.node_mon_list)
                             parser.parse_saw_stat(c_node, self.node_config.node_mon_list)
                             message = json.dumps(self.node_config.node_mon_list[c_node])
-                            self.bcast_ws.publish(f"{c_node},{message}")
+                            self.bcast_ws.publish(f"{{ \"{c_node}\" : {message} }}")
     
                     except BrokenPipeError as e:
                         log.error("received BrokenPipeError; trying to reconnect")
