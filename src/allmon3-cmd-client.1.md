@@ -17,7 +17,7 @@ positional arguments:
   cmd         Command to execute enclosed in double quotes
 
 optional arguments:
-  -h, --help  show this help message and exit
+  -h, \-\-help  show this help message and exit
 
 # DESCRIPTION
 **allmon3-cmd-client** executes an AMI command 

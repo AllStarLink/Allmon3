@@ -6,7 +6,8 @@
 allmon3 - Monitor and communicate with AllStarLink Asterisk node
 
 # SYNOPSIS
-usage: allmon3 [-h] [--debug] [--version] [--config FILE] node 
+usage: allmon3 [-h] [\-\-nodes NODES] [\-\-config CONFIG]
+ [\-\-webconfig WEBCONFIG] [\-\-menuconfig MENUCONFIG] [\-\-debug] [\-\-version]
 
 Connect to an ASL Asterisk server and print rpt stats
 
@@ -14,10 +15,17 @@ positional arguments:
   node        Node ID
 
 optional arguments:
-  -h, --help  show this help message and exit
-  --debug     enable debug-level logging output
-  --version   get the version of the software
-  --config    path to INI configuration for the node
+  -h, \-\-help  show this help message and exit
+
+  \-\-nodes NODES         Only start the node(s) listed as \-\-node NODE[,NODE,...]
+
+  \-\-config CONFIG       path to INI configuration allmon3 nodes (default /etc/allmon3/allmon3.ini)
+
+  \-\-webconfig WEBCONFIG path to INI configuration for web services (default /etc/allmon3/web.ini
+
+  \-\-menuconfig MENUCONFIG path to INI configuration for menus (default /etc/allmon3/menu.ini
+
+  \-\-version   get the version of the software
 
 
 # DESCRIPTION

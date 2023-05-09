@@ -6,7 +6,7 @@
 allmon3-passwd - Manage the users table for Allmon3
 
 # SYNOPSIS
-usage: allmon3-passwd [-h] [--delete] [--debug] [--file FILE] [--version] user
+usage: allmon3-passwd [-h] [\-\-delete] [\-\-debug] [\-\-file FILE] [\-\-version] user
 
 Manage Allmon3 password file
 
@@ -14,11 +14,15 @@ positional arguments:
   user         username to create/modify
 
 optional arguments:
-  -h, --help   show this help message and exit
-  --delete     delete the user specified by 'user'
-  --debug      enable debug-level logging output
-  --file FILE  alternate file to edit; default /etc/allmon3/users
-  --version    get the version of the software
+  -h, \-\-help   show this help message and exit
+
+  \-\-delete     delete the user specified by 'user'
+
+  \-\-debug      enable debug-level logging output
+
+  \-\-file FILE  alternate file to edit; default /etc/allmon3/users
+
+  \-\-version    get the version of the software
 
 # DESCRIPTION
 Allmon3's user database is managed by `allmon3-passwd`. Adding a new user
@@ -36,10 +40,10 @@ $
 That's all there is to it. The `/etc/allmon3/users` file is readable to see that the
 Argon2 hash changed for the user.
 
-Deleting a user is simply adding the `--delete` flag to the command:
+Deleting a user is simply adding the `\-\-delete` flag to the command:
 
 ```
-$ allmon3-passwd --delete allmon3
+$ allmon3-passwd \-\-delete allmon3
 ```
 
 # BUGS

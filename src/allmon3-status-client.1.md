@@ -6,7 +6,7 @@
 allmon3-status-client - monitor the output of an asl-statmon ZMQ port
 
 # SYNOPSIS
-usage: allmon3-status-client [-h] [--node NODE] host port
+usage: allmon3-status-client [-h] [\-\-node NODE] host port
 
 Simple client to see that an asl-statmon instance. Dumps 0MQ messages from the
 specified port
@@ -16,13 +16,13 @@ positional arguments:
   port           TCP port of asl-statmon to test
 
 optional arguments:
-  -h, --help     show this help message and exit
-  --node NODE  Topic to subscribe to
+  -h, \-\-help     show this help message and exit
+  \-\-node NODE  Topic to subscribe to
 _
 # DESCRIPTION
 **allmon3-status-client** simply listens to an allmon3
 on the status broadcast websocket port and prints
-all output, moderated by --node if specified.
+all output, moderated by \-\-node if specified.
 Terminate with ^c.
 
 # BUGS
