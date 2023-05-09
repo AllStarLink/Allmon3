@@ -19,6 +19,7 @@ class NodeConfigs:
     def __init__(self, config_file, filter_list = None):
         config_full = configparser.ConfigParser()
         config_full.read(config_file)
+        self.all_nodes = list()
         self.nodes = dict()
         self.colo_nodes = dict()
 
@@ -30,10 +31,12 @@ class NodeConfigs:
 
         for k_node in config_full:
             if k_node != "DEFAULT" and not "colocated_on" in config_full[k_node] and k_node in filter_list:
+                self.all_nodes.append(k_node)
                 node_config = AllmonNodeConfig(k_node, config_full[k_node])
                 self.nodes.update({ k_node : node_config })
             elif "colocated_on" in config_full[k_node] and k_node in filter_list:
                 self.colo_nodes.update({ k_node : config_full[k_node]["colocated_on"] })
+                self.all_nodes.append(k_node)
 
 class AllmonNodeConfig:
     """ a signle node's configuration """

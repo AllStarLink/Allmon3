@@ -80,7 +80,7 @@ class ServerWS:
 
     def __proc_node_listall(self):
         ret = []
-        for n in self.config_nodes.nodes:
+        for n in self.config_nodes.all_nodes:
             ret.append(int(n))
         return json.dumps(ret)
 
