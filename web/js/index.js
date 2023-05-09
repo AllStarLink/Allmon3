@@ -13,8 +13,6 @@
 // Global Variables
 //
 var monNodes = [ ];			// node(s) to monitor in Array
-var nodeWebPollIntervals = new Map();
-var nodePollErrors = new Map();
 var nodeDescOverrides = new Map();
 var loggedIn = false;
 var tooltipTriggerList;
@@ -33,8 +31,13 @@ document.onreadystatechange = () => {
 		} else {
 			getAPIJSON("master/node/listall")
 				.then((result) => {
-					monNodes = result;
-					startup();
+					if(result){
+						monNodes = result;
+						startup();
+					} else {
+						window.alert("SEVERE: Could not contact the allmon3 manager." +
+							" Check the allmon3 service, webserver config, and reload the window.");
+					}
 				});
 		}
 	}
@@ -53,6 +56,7 @@ function startup(){
 		});
 
 	// setup the initial polling intervals
+	WSRunners = [];
 	for(const n of monNodes){
 		getAPIJSON(`master/node/${n}/config`)
 			.then((result) => {
@@ -62,9 +66,10 @@ function startup(){
 		    const wsuri = window.location.pathname.replace("index.html", "").concat(`ws/${port}`)
 		    const wsurl = `${wsproto}//${wshost}${wsuri}`;
 		    nodeWS = new WebSocket(wsurl);
-			nodeStatus(n, nodeWS);	
+			WSRunners.push(new Promise(nodeStatus(n, nodeWS), null));	
 		});
 	}
+	Promise.all(WSRunners);
 }
 
 // Get the configs
@@ -118,7 +123,7 @@ function updateDashboardAreaStructure(){
 	}
 }
 
-function nodeStatus(node, nodeWS){
+async function nodeStatus(node, nodeWS){
     nodeWS.addEventListener("message", nodeEntryHandler);
     nodeWS.onclose = (event) => { nodeEntrySetError(node); }
     nodeWS.onerror = (event) => { nodeEntrySetError(node); }

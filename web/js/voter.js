@@ -14,10 +14,7 @@
 //
 var node = 0;
 var nodeTitle = "";
-var nodeVoterPollInterval = 1000;
-var nodePass = "";
 var nodeVMonPort = 0;
-var nodePollErrors = 0;
 var votermon = null;
 
 const max_poll_errors = 10;
@@ -38,18 +35,17 @@ document.onreadystatechange = () => {
 // Things to do when the page loads
 function startup(){
 	uiConfigs();
-	getAPIJSON(`api/uiconfig.php?e=voter&n=${node}`).then((result) => {
-    	if(result["SUCCESS"]){
-			nodeVoterPollInterval = Number(result["SUCCESS"]["POLLTIME"]);
-			nodePass = result["SUCCESS"]["PASS"];
-			nodeVMonPort = result["SUCCESS"]["VMONPORT"]
-			drawVoterPanelFamework(result["SUCCESS"]["TITLE"]);
-			getVotes();
-		} else {
-			drawVoterPanelFamework("ERROR");
-			displayError(result["ERROR"]);			
-		}
-	});
+	getAPIJSON(`master/node/${node}/config`)
+		.then((result) => {
+    		if(result){
+				nodeVMonPort = result["voterport"];
+				drawVoterPanelFamework(result["votertitle"]);
+				getVotes();
+			} else {
+				drawVoterPanelFamework("ERROR");
+				displayError(result["ERROR"]);			
+			}
+		});
 }
 
 // Get the configs
@@ -60,7 +56,7 @@ function uiConfigs(){
 
 // Update Customizations
 async function customizeUI(){
-	let customElements = await getAPIJSON("api/uiconfig.php?e=customize");
+	let customElements = await getAPIJSON("master/ui/custom/html");
 	document.getElementById("navbar-midbar").innerHTML = customElements.HEADER_TITLE;
 	if( customElements.HEADER_LOGO !== "" ){
 		document.getElementById("header-banner-img").src = `img/${customElements.HEADER_LOGO}`;
@@ -108,13 +104,10 @@ y-1 px-2 mt-1 mb-1 border-bottom nodeline-header rounded">
 function getVotes(){
 	const wsproto = window.location.protocol.replace("http", "ws");
 	const wshost = window.location.host;
-	const wsuri = window.location.pathname.replace("voter.html", `/ws/voter/${nodeVMonPort}`)
+	const wsuri = window.location.pathname.replace("voter.html", `/ws/${nodeVMonPort}`)
 	const wsurl = `${wsproto}//${wshost}${wsuri}`;
 	votermon = new WebSocket(wsurl);
 	votermon.addEventListener("message", displayResults);
-	votermon.onopen = (event) => {
-		getNextVoterData();
-	}
 	votermon.onclose = (event) => {
 		document.getElementById(`asl-votermon-${node}-data`).innerHTML = `
             <div class="p-3 my-2 text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded-3">
@@ -134,10 +127,6 @@ function getVotes(){
 
 }
 
-function getNextVoterData(){
-	votermon.send(nodePass);
-}
-
 function displayResults(voterEvent){
 	if(voterEvent.returnValue){
 		document.getElementById(`asl-votermon-${node}-data`).innerHTML = voterEvent.data;
@@ -148,7 +137,6 @@ function displayResults(voterEvent){
 			</div>
 		`;
 	}
-	setTimeout(getNextVoterData, nodeVoterPollInterval);
 }
 
 function displayError(errormsg){
