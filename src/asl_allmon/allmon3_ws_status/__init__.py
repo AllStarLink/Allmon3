@@ -36,6 +36,7 @@ class NodeStatusWS:
          for connection in self.connections:
             log.info("closing an AMI connection: %s", connection.ami_host)
             connection.close()
+            self.ami.close()
 
     # Websocket handler
     async def handler(self, websocket):
@@ -124,11 +125,10 @@ class NodeStatusWS:
     # Primary broadcaster
     async def main(self):
         log.debug("enter node_status_main(%s)", self.node_config.node)
-    
-        self.ami = ami_conn.AMI(self.node_config.host, self.node_config.port, 
-            self.node_config.user, self.node_config.password)
         loop = asyncio.get_event_loop()
         self.bcast_ws.set_waiter(asyncio.Future(loop=loop))
+        self.ami = ami_conn.AMI(self.node_config.host, self.node_config.port, 
+            self.node_config.user, self.node_config.password)
         async with websockets.serve(
             self.handler,
             host = None,

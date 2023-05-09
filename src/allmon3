@@ -12,11 +12,9 @@ import configparser
 import logging
 import logging.handlers
 import os
-import pprint
 import signal
 import sys
 from asl_allmon import allmon3_server, allmon3_ws_status, allmon3_ws_cmd, allmon3_ws_voter
-from asl_allmon import ami_conn
 from asl_allmon import node_configs, node_db, web_configs
 
 _BUILD_ID = "@@HEAD-DEVELOP@@"
@@ -53,8 +51,6 @@ async def start_tasks():
         for n, c in node_configuration.nodes.items():
             c.monport = web_configuration.ws_port_start + len(tasks)
             log.info("starting status ws %s@%s on port %s", n, c.host, c.monport)
-  #          ami = ami_conn.AMI(c.host, c.port, c.user, c.password)
-  #          ami_connections.add(ami)
             status_ws =  allmon3_ws_status.NodeStatusWS(n, c, allmon_db)
             tasks.append(asyncio.create_task(status_ws.main()))
 
@@ -66,9 +62,7 @@ async def start_tasks():
             if c.voter:
                 c.vmonport = web_configuration.ws_port_start + len(tasks)
                 log.info("starting voter ws %s@%s on port %s", n, c.host, c.vmonport)
-                ami = ami_conn.AMI(c.host, c.port, c.user, c.password)
-                ami_connections.add(ami)
-                voter_ws =  allmon3_ws_voter.NodeVoterWS(n, c, ami)
+                voter_ws =  allmon3_ws_voter.NodeVoterWS(n, c)
                 tasks.append(asyncio.create_task(voter_ws.main()))
 
         log.info("starting allmon3 master ws on port %s", web_configuration.http_port)
@@ -81,6 +75,7 @@ async def start_tasks():
         log.debug("ending asyncio tasks")
         for t in tasks:
             t.cancel()
+            tasks = []
 
     except Exception as e:
         log.debug("exception of start_tasks()")
@@ -91,9 +86,6 @@ async def start_tasks():
         for t in tasks:
             t.cancel()
 
-        for conn in ami_connections:
-            log.info("closing an AMI connection: %s", conn.ami_host)
-            conn.close()
 
 ######## MAIN PROGRAM ########
 

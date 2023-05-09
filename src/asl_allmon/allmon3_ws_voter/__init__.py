@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 class NodeVoterWS:
     """ Node voter WS client """
 
-    def __init__(self, node, node_config, ami):
+    def __init__(self, node, node_config):
         self.node_id = node
         self.node_config = node_config
         self.ami = ami
@@ -113,6 +113,8 @@ class NodeVoterWS:
         log.debug("enter node_voter_main()")
         loop = asyncio.get_event_loop()
         self.voter_ws.set_waiter(asyncio.Future(loop=loop))
+        self.ami = ami_conn.AMI(self.node_config.host, self.node_config.port,
+            self.node_config.user, self.node_config.password)
         async with websockets.serve(
             self.handler,
             host = None,
