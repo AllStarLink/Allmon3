@@ -15,9 +15,9 @@ import os
 import pprint
 import signal
 import sys
-from asl import allmon3_server, allmon3_ws_status, allmon3_ws_cmd, allmon3_ws_voter
-from asl import ami_conn
-from asl import node_configs, node_db, web_configs
+asl-allmon import allmon3_server, allmon3_ws_status, allmon3_ws_cmd, allmon3_ws_voter
+asl-allmon import ami_conn
+asl-allmon import node_configs, node_db, web_configs
 
 _BUILD_ID = "@@HEAD-DEVELOP@@"
 

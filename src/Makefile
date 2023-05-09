@@ -1,17 +1,13 @@
 BINS = \
+	allmon3 \
 	allmon3-passwd \
 	allmon3-procmgr \
-	asl-statmon \
-	asl-statmon-client \
-	asl-cmdlink \
-	asl-cmdlink-cli \
-	asl-votermon \
-	asl-votermon-client
+	allmon3-cmd-client \
+	allmon3-status-client \
+	allmon3-voter-client 
 
 SYSDS = \
-	asl-statmon@.service \
-	asl-cmdlink@.service \
-	asl-votermon@.service
+	allmon3@.service \
 
 MANS_SRC = $(wildcard *.1.md)
 
