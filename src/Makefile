@@ -6,7 +6,7 @@ BINS = \
 	allmon3-voter-client 
 
 SYSDS = \
-	allmon3@.service \
+	allmon3.service \
 
 MANS_SRC = $(wildcard *.1.md)
 
