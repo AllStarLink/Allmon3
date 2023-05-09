@@ -89,6 +89,7 @@ class ServerWS:
         nc.update({ "statport" : self.config_nodes.nodes[node].monport })
         nc.update({ "cmdport" : self.config_nodes.nodes[node].cmdport })
         nc.update({ "voterport" : self.config_nodes.nodes[node].vmonport })
+        nc.update({ "votertitle" : self.config_nodes.nodes[node].votertitle })
         return json.dumps(nc)
 
             
