@@ -8,10 +8,11 @@ Allmon is the standard web-based monitoring and management for the AllStarLink
 application. Allmon3 is the next generation of the venerable Allmon2 that is 
 rewritten for performance, scalability, and responsiveness.
 
-# IMPORTANT NODE
+# IMPORTANT NOTE
 
 Allmon3 is undergoing a radical rewrite after the beta 0.9 feedback. It is
-**strongly** suggested to wait for beta 0.10 at this point.
+**strongly** suggested to wait for beta 0.10 at this point. Beta v0.10
+is targeted for a mid-May release.
 
 # STOP STOP STOP
 
