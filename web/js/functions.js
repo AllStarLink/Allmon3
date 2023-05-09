@@ -36,11 +36,13 @@ function toHMS(totalSeconds) {
 async function getAPIJSON(url){
 	let response = await fetch(url);
 	if(response.ok){
-		return await response.json();
-	} else {
-		console.log(`getAPIJSON error status ${response.status} ${response.statusText}`);
-		return false;
+		let resp =  await response.json();
+		if(resp['SUCCESS']){
+			return resp['SUCCESS'];
+		} 
 	}
+	console.log(`getAPIJSON error status ${response.status} ${response.statusText}`);
+	return false;
 }
 
 async function postAPIForm(url, form){
@@ -88,7 +90,7 @@ async function checkLogonStatus(){
 
 // Generate and Draw Menus
 async function createSidebarMenu(){
-	let customMenu = await getAPIJSON("api/uiconfig.php?e=custmenu");
+	let customMenu = await getAPIJSON("master/ui/custom/menu");
 	let navMenu = `<div class="vstack d-grid gap-2 col-9 mx-auto">`;
 
 	let pageName = "";

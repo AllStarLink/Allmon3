@@ -31,7 +31,7 @@ document.onreadystatechange = () => {
 			monNodes = nodeHash.split(",");
 			startup();
 		} else {
-			getAPIJSON("api/uiconfig.php?e=nodelist")
+			getAPIJSON("master/node/listall")
 				.then((result) => {
 					monNodes = result;
 					startup();
@@ -44,24 +44,25 @@ document.onreadystatechange = () => {
 function startup(){
 	uiConfigs();
 	updateDashboardAreaStructure();
-	setInterval(checkLogonStatus, 900000);
+//	setInterval(checkLogonStatus, 900000);
 
 	// Load the overrides
-	getAPIJSON(`api/uiconfig.php?e=overrides`)
+	getAPIJSON('master/ui/custom/overrides')
 		.then((result) => {
 			nodeDescOverrides = result;
 		});
 
 	// setup the initial polling intervals
 	for(const n of monNodes){
-		pollNode(n);
-		getAPIJSON(`api/uiconfig.php?e=pollint&n=${n}`).then((result) => {
-			if(result["SUCCESS"]){
-				const interval = Number(result["SUCCESS"]);
-				nodeWebPollIntervals.set(n, interval);
-				pollNode(n);
-				nodePollErrors[n] = 0;
-			}
+		getAPIJSON(`master/node/${n}/config`)
+			.then((result) => {
+			const port = result["statport"];
+			const wsproto = window.location.protocol.replace("http", "ws");
+		    const wshost = window.location.host;
+		    const wsuri = window.location.pathname.replace("index.html", "").concat(`ws/${port}`)
+		    const wsurl = `${wsproto}//${wshost}${wsuri}`;
+		    nodeWS = new WebSocket(wsurl);
+			nodeStatus(n, nodeWS);	
 		});
 	}
 }
@@ -70,13 +71,12 @@ function startup(){
 function uiConfigs(){
 	customizeUI();
 	createSidebarMenu();
-	checkLogonStatus();
-
+//	checkLogonStatus();
 }
 
 // Update Customizations
 async function customizeUI(){
-	let customElements = await getAPIJSON("api/uiconfig.php?e=customize");
+	let customElements = await getAPIJSON("master/ui/custom/html");
 	document.getElementById("navbar-midbar").innerHTML = customElements.HEADER_TITLE;
 	if( customElements.HEADER_LOGO !== "" ){
 		document.getElementById("header-banner-img").src = `img/${customElements.HEADER_LOGO}`;
@@ -118,38 +118,19 @@ function updateDashboardAreaStructure(){
 	}
 }
 
-async function pollNode(n){
-	let response = await fetch(`api/asl-statmon.php?node=${n}`);
-	if(response.ok){
-		const result = await response.json();
-		if(result["ERROR"]){
-			console.log(result["ERROR"]);
-			nodePollErrors[n] =  nodePollErrors[n] + 1;
-		} else {
-			nodePollErrors[n] = 0;
-			nodeEntry(n, result);
-		}
-	} else {
-		console.log(response);
-		nodePollErrors[n] =  nodePollErrors[n] + 1;
-	}
-
-	if( nodePollErrors[n] < max_poll_errors ){
-		const interval = nodeWebPollIntervals[n];
-		setTimeout(pollNode, interval, n);
-	} else {
-		nodeEntrySetError(n);
-	}
-}
-
-// Re-add node to the monNodes list
-function reAddNode(n){
-	nodePollErrors[n] = 0;
-	monNodes.push(n);
-	pollNode(n);
+function nodeStatus(node, nodeWS){
+    nodeWS.addEventListener("message", nodeEntryHandler);
+    nodeWS.onclose = (event) => { nodeEntrySetError(node); }
+    nodeWS.onerror = (event) => { nodeEntrySetError(node); }
 }
 
 // Each node
+function nodeEntryHandler(WSResult){
+	const nodeinfoHash = JSON.parse(WSResult.data);
+	for( n in nodeinfoHash ){
+		nodeEntry(n, nodeinfoHash[n]);
+	}
+}
 function nodeEntry(nodeid, nodeinfo){
 	const node = nodeinfo;
 	const divTxStat = document.getElementById(`asl-statmon-dashboard-${nodeid}-txstat`);
@@ -359,7 +340,7 @@ function changedLocationHash(){
 	}
 
 	if( location.hash === "" || location.hash === "#" ){
-		getAPIJSON("api/uiconfig.php?e=nodelist")
+		getAPIJSON("master/node/listall")
 		.then((result) => {
 			changeNodeList(result);
 		});
