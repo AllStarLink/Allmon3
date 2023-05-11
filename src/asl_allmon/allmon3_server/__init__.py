@@ -61,14 +61,15 @@ class ServerWS:
 
             elif re.match(r"^[0-9]+$", c[2]):
                 if c[3] == "config":
-                    if c[2] in self.config_nodes.colo_nodes:
-                        node = self.config_nodes.colo_nodes[c[2]]
+                    if self.config_nodes.colo_nodes[int(c[2])]:
+                        node = self.config_nodes.colo_nodes[int(c[2])]
                     else:
                         node = c[2]
                     if self.config_nodes.nodes[node]:
                         r_txt = self.__proc_node_config(node)
     
         except (IndexError, KeyError):
+            log.debug("IndexError/KeyError")
             r_txt = None
         
         finally:

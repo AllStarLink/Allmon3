@@ -34,9 +34,13 @@ class NodeConfigs:
                 self.all_nodes.append(k_node)
                 node_config = AllmonNodeConfig(k_node, config_full[k_node])
                 self.nodes.update({ k_node : node_config })
+                log.debug("nodes_on_host: %d", len(node_config.nodes_on_host))
                 if len(node_config.nodes_on_host) > 1:
                     for m_node in node_config.nodes_on_host:
-                        if m_node != k_node:
+                        log.debug("m_node: %d", m_node)
+                        log.debug("%s != %s", m_node, k_node)
+                        if int(m_node) != int(k_node):
+                            log.debug("colo!")
                             self.colo_nodes.update({ m_node : k_node })
                             self.all_nodes.append(m_node)
 
