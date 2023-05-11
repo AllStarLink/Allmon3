@@ -25,7 +25,6 @@ class NodeVoterWS:
     def __init__(self, node, node_config):
         self.node_id = node
         self.node_config = node_config
-        self.ami = ami
         self.connections = set()
         self.voter_ws = ws_broadcaster.WebsocketBroadcaster()
 
