@@ -105,9 +105,8 @@ lf = logging.Formatter(fmt="%(levelname)s: (%(name)s) %(message)s")
 lh.setFormatter(lf)
 log.addHandler(lh)
 
-mlog = logging.getLogger("asl")
+mlog = logging.getLogger("asl_allmon")
 mlog.addHandler(lh)
-mlog.setLevel(logging.DEBUG)
 
 if args.debug:
     log.setLevel(logging.DEBUG)
