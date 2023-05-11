@@ -34,9 +34,11 @@ class NodeConfigs:
                 self.all_nodes.append(k_node)
                 node_config = AllmonNodeConfig(k_node, config_full[k_node])
                 self.nodes.update({ k_node : node_config })
-            elif "colocated_on" in config_full[k_node] and k_node in filter_list:
-                self.colo_nodes.update({ k_node : config_full[k_node]["colocated_on"] })
-                self.all_nodes.append(k_node)
+                if len(node_config.nodes_on_host) > 1:
+                    for m_node in node_config.nodes_on_host:
+                        if m_node != k_node:
+                            self.colo_nodes.update({ m_node : k_node })
+                            self.all_nodes.append(m_node)
 
 class AllmonNodeConfig:
     """ a signle node's configuration """
@@ -62,7 +64,7 @@ class AllmonNodeConfig:
         self.node_mon_list = dict()
 
         if "colocated_on" in config:
-            raise ASLNodeConfigException("ASLNodeConfig was called on a colocated_on node")
+            raise ASLNodeConfigException("colocated_on no longer supported; remove from configuration")
     
         if not "host" in config:
             raise ASLNodeConfigException(f"Missing required attribute host= for {self.node}")
