@@ -10,7 +10,7 @@ SYSDS = \
 
 MANS_SRC = $(wildcard *.1.md)
 
-PY_SRC = $(wildcard asl-allmon/*/__init__.py)
+PY_SRC = $(wildcard asl_allmon/*/__init__.py)
 
 prefix ?= /usr
 exec_prefix ?= $(prefix)
@@ -24,7 +24,7 @@ SYSDS_EXP = $(patsubst %, $(DESTDIR)$(sysd_service)/%, $(SYSDS))
 MANS_EXP = $(patsubst %.md, $(DESTDIR)$(mandir)/man1/%, $(MANS_SRC))
 PY_EXP = $(patsubst %, $(DESTDIR)$(pylibdir)/%, $(PY_SRC))
 
-test:
+showpy:
 	echo $(PY_EXP)
 
 install: $(BINS_EXP) $(SYSDS_EXP) $(MANS_EXP) $(PY_EXP)
