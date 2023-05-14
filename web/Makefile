@@ -5,7 +5,7 @@ CSS_DIR = css
 IMG_DIR = img
 JS_DIR = js
 
-ROOT_FILES = index.html
+ROOT_FILES = index.html voter.html
 
 CSS_FILES = $(wildcard $(CSS_DIR)/*.css)
 IMG_FILES = $(wildcard $(IMG_DIR)/*.png)
