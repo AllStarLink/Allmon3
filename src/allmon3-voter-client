@@ -32,7 +32,6 @@ ap = argparse.ArgumentParser(
     "to commands to  the specified WS port")
 ap.add_argument("host", type=str, help="FQDN or IP address of the allmon3 to test")
 ap.add_argument("port", type=int, help="WS port of allmon3 to test")
-ap.add_argument("passwd", type=str, help="AMI password")
 args = ap.parse_args()
 
 async def main():
