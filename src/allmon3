@@ -96,6 +96,7 @@ ap.add_argument("--config", help="path to INI configuration allmon3 nodes (defau
 ap.add_argument("--webconfig", help="path to INI configuration for web services (default /etc/allmon3/web.ini")
 ap.add_argument("--menuconfig", help="path to INI configuration for menus (default /etc/allmon3/menu.ini")
 ap.add_argument("--debug", help="enable debug-level logging output", action="store_true")
+ap.add_argument("--debugmodule", type=str, help="enable debugging only for module specified")
 ap.add_argument("--version", help="get the version of the software", action="version", version='%(prog)s {}'.format(_BUILD_ID))
 args = ap.parse_args()
 
@@ -105,7 +106,10 @@ lf = logging.Formatter(fmt="%(levelname)s: (%(name)s) %(message)s")
 lh.setFormatter(lf)
 log.addHandler(lh)
 
-mlog = logging.getLogger("asl_allmon")
+if args.debugmodule:
+    mlog = logging.getLogger(args.debugmodule)
+else:
+    mlog = logging.getLogger("asl_allmon")
 mlog.addHandler(lh)
 
 if args.debug:
