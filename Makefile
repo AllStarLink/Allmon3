@@ -27,7 +27,7 @@ default:
 
 install: $(ROOT_INSTALLABLES)
 	@echo DESTDIR=$(DESTDIR)
-	$(foreach dir, $(BUILDABLES), $(MAKE) -C $(dir);)
+	$(foreach dir, $(BUILDABLES), $(MAKE) -C $(dir) install;)
 
 $(DESTDIR)$(docdir)/%: %
 	install -D -m 0644  $< $@
