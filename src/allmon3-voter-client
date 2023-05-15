@@ -39,8 +39,6 @@ async def main():
         url = f"ws://{args.host}:{args.port}"
         print("Creating websoocket connection to {url}")
         async with websockets.connect(url, ping_timeout=None) as websocket:
-            cmd = crypt_msg("poll4votes", args.passwd).decode("UTF-8")
-            await websocket.send(cmd)
             async for message in websocket:
                 print(message)
     
