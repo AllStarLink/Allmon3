@@ -35,7 +35,7 @@ document.onreadystatechange = () => {
 // Things to do when the page loads
 function startup(){
 	uiConfigs();
-	getAPIJSON(`master/node/${node}/config`)
+	getAPIJSON(`master/node/${node}/voter`)
 		.then((result) => {
     		if(result){
 				nodeVMonPort = result["voterport"];
