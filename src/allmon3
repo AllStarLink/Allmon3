@@ -59,7 +59,7 @@ async def start_tasks():
             node_ws = allmon3_ws_cmd.NodeCmdWS(n, c)
             tasks.append(asyncio.create_task(node_ws.main()))
 
-            if hasattr(c, "voterports")
+            if hasattr(c, "voterports"):
                 for v in c.voterports.keys():
                     vport = web_configuration.ws_port_start + len(tasks)
                     c.voterports.update({ v : vport })
