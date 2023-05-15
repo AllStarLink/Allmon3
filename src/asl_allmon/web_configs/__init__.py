@@ -57,6 +57,10 @@ class WebConfigs:
         for k in config["node-overrides"]:
             self.node_overrides.update({ k : config["node-overrides"][k] })       
 
+        self.voter_titles = dict()
+        for k in config["voter-titles"]:
+            self.voter_titles.update({ int(k) : config["voter-titles"][k] })
+
         self.menu = dict()
             
 class CommandTemplate:
