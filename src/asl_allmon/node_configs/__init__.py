@@ -39,13 +39,9 @@ class NodeConfigs:
                 if len(node_config.nodes_on_host) > 1:
                     for m_node in node_config.nodes_on_host:
                         m_node = int(m_node)
-                        log.debug("m_node: %d", m_node)
-                        log.debug("%s != %s", m_node, k_node)
                         if m_node != k_node:
                             self.colo_nodes.update({ m_node : k_node })
                             self.all_nodes.append(m_node)
-
-        log.debug(self.colo_nodes)
 
 class AllmonNodeConfig:
     """ a signle node's configuration """
@@ -61,7 +57,7 @@ class AllmonNodeConfig:
         self.password = str()
         self.monport = int(0)
         self.cmdport = int(0)
-        self.vmonport = -1
+        self.voterports = dict()
         self.pollinterval = float(1)
         self.vpollinterval = float(1)
         self.retryinterval = int(15)
@@ -102,15 +98,12 @@ class AllmonNodeConfig:
         if "retrycount" in config:
             self.retrycount = int(config["retrycount"])
     
-        if "voter" in config:
+        if "voters" in config:
             self.voter = True
+            for v in re.split(r',', config["voters"]):
+                self.voterports.update({ int(v) : -1 }) 
         else:
             self.voter = False
-
-        if "votertitle" in config:
-            self.votertitle = config["votertitle"].replace("'","")
-        else:
-            self.votertitle = f"{node} Voter"
     
         if "multinodes" in config:
             for mn in re.split(r',', config["multinodes"]):

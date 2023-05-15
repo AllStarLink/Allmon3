@@ -60,15 +60,18 @@ class ServerWS:
                 r_txt = self.__proc_node_listall()
 
             elif re.match(r"^[0-9]+$", c[2]):
+                node = int(c[2])
+                if int(c[2]) in self.config_nodes.colo_nodes:
+                    node = self.config_nodes.colo_nodes[int(c[2])]
+ 
                 if c[3] == "config":
-                    if int(c[2]) in self.config_nodes.colo_nodes:
-                        node = self.config_nodes.colo_nodes[int(c[2])]
-                    else:
-                        node = int(c[2])
-                    if node in self.config_nodes.nodes:
-                        log.debug("self.__proc_node_config(%s)", node)
-                        r_txt = self.__proc_node_config(node)
-    
+                    log.debug("self.__proc_node_config(%s)", node)
+                    r_txt = self.__proc_node_config(node)
+
+                if c[3] == "voter":
+                    log.debug("self.__proc_voter_config(%s, %s)", node, int(c[2]))
+                    r_txt = self.__proc_voter_config(node, int(c[2]))
+
         except (IndexError, KeyError):
             log.debug("IndexError/KeyError")
             r_txt = None
@@ -90,11 +93,17 @@ class ServerWS:
         nc = dict()
         nc.update({ "statport" : self.config_nodes.nodes[node].monport })
         nc.update({ "cmdport" : self.config_nodes.nodes[node].cmdport })
-        nc.update({ "voterport" : self.config_nodes.nodes[node].vmonport })
-        nc.update({ "votertitle" : self.config_nodes.nodes[node].votertitle })
         return json.dumps(nc)
 
-            
+    def __proc_voter_config(self, conf_node, voter_node):
+        try: 
+            vc = dict()
+            vc.update({ "voterport" : self.config_nodes.nodes[conf_node].voterports[voter_node] })
+            vc.update({ "votertitle" : "unimplemented" })
+            return json.dumps(vc)
+
+        except Exception as e:
+            log.error(e)
 
     ##
     ## UI Customizations

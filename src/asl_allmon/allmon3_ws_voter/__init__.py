@@ -117,7 +117,7 @@ class NodeVoterWS:
         async with websockets.serve(
             self.handler,
             host = None,
-            port = self.node_config.vmonport,
+            port = self.node_config.voterports[self.node_id],
             logger = log
         ):
             await self.broadcast()

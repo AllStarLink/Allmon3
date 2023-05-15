@@ -60,10 +60,12 @@ async def start_tasks():
             tasks.append(asyncio.create_task(node_ws.main()))
 
             if c.voter:
-                c.vmonport = web_configuration.ws_port_start + len(tasks)
-                log.info("starting voter ws %s@%s on port %s", n, c.host, c.vmonport)
-                voter_ws =  allmon3_ws_voter.NodeVoterWS(n, c)
-                tasks.append(asyncio.create_task(voter_ws.main()))
+                for v in c.voterports.keys():
+                    vport = web_configuration.ws_port_start + len(tasks)
+                    c.voterports.update({ v : vport })
+                    log.info("starting voter ws %s@%s on port %s", v, c.host, vport)
+                    voter_ws =  allmon3_ws_voter.NodeVoterWS(v, c)
+                    tasks.append(asyncio.create_task(voter_ws.main()))
 
         log.info("starting allmon3 master ws on port %s", web_configuration.http_port)
         a3server = allmon3_server.ServerWS(web_configuration, node_configuration)
