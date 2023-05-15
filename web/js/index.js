@@ -40,6 +40,9 @@ document.onreadystatechange = () => {
 					}
 				});
 		}
+
+		// hook the hash changes
+		window.onhashchange = changedLocationHash;
 	}
 };
 
@@ -65,8 +68,13 @@ function startup(){
 		    const wshost = window.location.host;
 		    const wsuri = window.location.pathname.replace("index.html", "").concat(`ws/${port}`)
 		    const wsurl = `${wsproto}//${wshost}${wsuri}`;
-		    nodeWS = new WebSocket(wsurl);
-			WSRunners.push(new Promise(nodeStatus(n, nodeWS), null));	
+			p = new Promise(function(resolve, reject) {
+			    nodeWS = new WebSocket(wsurl);
+			    nodeWS.addEventListener("message", nodeEntryHandler);
+				nodeWS.onopen = (event) => { resolve(nodeWS); }
+				nodeWS.onerror = (event) => { nodeEntrySetError(node); }
+			});
+			WSRunners.push(p);
 		});
 	}
 	Promise.all(WSRunners);
@@ -121,12 +129,6 @@ function updateDashboardAreaStructure(){
 		tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
 		tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 	}
-}
-
-async function nodeStatus(node, nodeWS){
-    nodeWS.addEventListener("message", nodeEntryHandler);
-    nodeWS.onclose = (event) => { nodeEntrySetError(node); }
-    nodeWS.onerror = (event) => { nodeEntrySetError(node); }
 }
 
 // Each node
@@ -336,39 +338,8 @@ function nodeConnTable(conns, keyed, keyednode) {
 //
 function changedLocationHash(){
 	document.getElementById("asl-statmon-dashboard-area").innerHTML = "";
-
-	let navbutton = document.getElementById("collapse-navbar-button");
-	if( navbutton.classList.contains("collapsed") == false ){
-		let menu = document.getElementById("sidebarMenu");
-		menu.classList.remove("show");
-		navbutton.classList.add("collapsed");
-	}
-
-	if( location.hash === "" || location.hash === "#" ){
-		getAPIJSON("master/node/listall")
-		.then((result) => {
-			changeNodeList(result);
-		});
-	} else {
-		nodeHash = location.hash.replace("#","");
-		changeNodeList(nodeHash.split(","));
-	}
+	window.location.reload(true);
 }
-
-function changeNodeList(nodeList){
-	monNodes = nodeList;
-	// redraw the dashboard page area
-	updateDashboardAreaStructure();
-	tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-	tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-
-    // setup the polling intervals
-    for(const n of monNodes){
-        pollNode(n);
-    }
-}
-
-window.onhashchange = changedLocationHash;
 
 //
 // Handle logins

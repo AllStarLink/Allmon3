@@ -29,6 +29,7 @@ document.onreadystatechange = () => {
 		} else {
 			alert("One node ID must be passed as voter.html#NODE");
 		}
+		window.onhashchange = changedLocationHash;
 	}
 };
 
@@ -69,22 +70,9 @@ async function customizeUI(){
 //
 function changedLocationHash(){
 	document.getElementById("asl-votermon-area").innerHTML = "";
-
-	let navbutton = document.getElementById("collapse-navbar-button");
-	if( navbutton.classList.contains("collapsed") == false ){
-		let menu = document.getElementById("sidebarMenu");
-		menu.classList.remove("show");
-		navbutton.classList.add("collapsed");
-	}
-
-	if( location.hash === "" || location.hash === "#" ){
-		alert("One node must be specified as voter.html#NODE")
-	} else {
-		node = location.hash.replace("#","");
-	}
+	window.location.reload(true);
 }
 
-window.onhashchange = changedLocationHash;
 
 
 //

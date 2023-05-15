@@ -98,7 +98,7 @@ async function createSidebarMenu(){
 		pageName = "index.html";
 	}
 
-	if(!customMenu["ERROR"]){
+	if(Object.keys(customMenu).length > 0){
 		for(let dd of Object.keys(customMenu)){
 			if(customMenu[dd]["type"] === "menu"){
 				navMenu = navMenu.concat(`
@@ -134,7 +134,7 @@ async function createSidebarMenu(){
 			}
 		}
 	} else {
-		let allNodes = await getAPIJSON("api/uiconfig.php?e=nodelist");
+		let allNodes = await getAPIJSON("master/node/listall")
 		for(const n of allNodes){
         navMenu = navMenu.concat(`
 			<div class="btn-group">
