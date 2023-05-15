@@ -8,6 +8,7 @@
 import configparser
 import logging
 import re
+import sys
 
 _BUILD_ID = "@@HEAD-DEVELOP@@"
 log = logging.getLogger(__name__)
@@ -49,19 +50,24 @@ class WebConfigs:
         else:
             self.ws_port_start = 16700
 
-        self.commands = set()
-        for k in config["syscmds"]:
-            self.commands.add(CommandTemplate(k, config["syscmds"][k]))
+        try:
+            self.commands = set()
+            for k in config["syscmds"]:
+                self.commands.add(CommandTemplate(k, config["syscmds"][k]))
+    
+            self.node_overrides = dict()
+            for k in config["node-overrides"]:
+                self.node_overrides.update({ k : config["node-overrides"][k] })       
+    
+            self.voter_titles = dict()
+            for k in config["voter-titles"]:
+                self.voter_titles.update({ int(k) : config["voter-titles"][k].replace("'","") })
 
-        self.node_overrides = dict()
-        for k in config["node-overrides"]:
-            self.node_overrides.update({ k : config["node-overrides"][k] })       
-
-        self.voter_titles = dict()
-        for k in config["voter-titles"]:
-            self.voter_titles.update({ int(k) : config["voter-titles"][k] })
-
-        self.menu = dict()
+            self.menu = dict()
+        
+        except (KeyError, NameError) as e:
+            log.error("Missing required web.ini configuration section %s", e)
+            sys.exit(1)
             
 class CommandTemplate:
     """ command templates for the web interface """

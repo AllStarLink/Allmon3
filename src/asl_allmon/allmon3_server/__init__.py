@@ -99,7 +99,10 @@ class ServerWS:
         try: 
             vc = dict()
             vc.update({ "voterport" : self.config_nodes.nodes[conf_node].voterports[voter_node] })
-            vc.update({ "votertitle" : "unimplemented" })
+            if voter_node in self.config_web.voter_titles:
+                vc.update({ "votertitle" : self.config_web.voter_titles[voter_node] }) 
+            else:
+                vc.update({ "votertitle" : f"Voter {voter_node}" })
             return json.dumps(vc)
 
         except Exception as e:
