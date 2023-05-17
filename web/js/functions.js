@@ -123,8 +123,8 @@ async function createSidebarMenu(){
 			} else if(customMenu[dd]["type"] === "single"){
 				for(let ml of Object.keys(customMenu[dd])){
 					if( ml !== "type" ){
-						ml = ml.replace(/'/g,"");
 						let href = customMenu[dd][ml];
+						ml = ml.replace(/'/g,"");
 						navMenu = navMenu.concat(`
 							<div class="btn-group">
 								<a href="${href}" class="btn btn-secondary" role="button">${ml}</a>
