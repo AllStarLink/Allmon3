@@ -12,6 +12,7 @@ import configparser
 import logging
 import logging.handlers
 import os
+import pprint
 import signal
 import sys
 from asl_allmon import allmon3_server, allmon3_ws_status, allmon3_ws_cmd, allmon3_ws_voter
@@ -158,6 +159,7 @@ try:
         log.info("no %s found; no menu data available")
     else:
         menu_ini = configparser.ConfigParser()
+        menu_ini.optionxform = str
         menu_ini.read(menu_config_file)
         for m in menu_ini:
             if m != "DEFAULT":
