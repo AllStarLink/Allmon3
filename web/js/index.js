@@ -50,7 +50,7 @@ document.onreadystatechange = () => {
 function startup(){
 	uiConfigs();
 	updateDashboardAreaStructure();
-//	setInterval(checkLogonStatus, 900000);
+	setInterval(checkLogonStatus, 900000);
 
 	// Load the overrides
 	getAPIJSON('master/ui/custom/overrides')
@@ -84,7 +84,7 @@ function startup(){
 function uiConfigs(){
 	customizeUI();
 	createSidebarMenu();
-//	checkLogonStatus();
+	checkLogonStatus();
 }
 
 // Update Customizations
@@ -340,80 +340,5 @@ function changedLocationHash(){
 	document.getElementById("asl-statmon-dashboard-area").innerHTML = "";
 	window.location.reload(true);
 }
-
-//
-// Handle logins
-//
-
-var originalLoginBox = "";
-
-async function doLogin(){
-	let loginResponse = await postAPIForm("api/session-handler.php", new FormData(document.getElementById("loginBox")));
-	originalLoginBox = document.getElementById("loginModal").innerHTML;
-	if( loginResponse["SUCCESS"] ){
-		document.getElementById("login-modal-body").innerHTML = `
-<div class="login-form-success">
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-square-fill" viewBox="0 0 16 16">
-  <path d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm10.03 4.97a.75.75 0 0 1 .011 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.75.75 0 0 1 1.08-.022z"/>
-</svg>
-Login Successful
-</div>
-`;
-		document.getElementById("login-modal-footer").innerHTML = `
-	<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="clearLogin()">OK</button>
-`;
-		loggedIn = true;
-	} else {
-		document.getElementById("loginModalLabel").innerHTML = "Login Failed";
-		document.getElementById("loginModalLabel").classList.add("login-form-failure-header");
-	}	
-	checkLogonStatus();
-}
-
-//
-// Reset Login Box
-//
-function clearLogin(){
-	if( ! originalLoginBox === "" ){
-		document.getElementById("loginModal").innerHTML = originalLoginBox;	
-		checkLogonStatus();
-	}
-}
-
-//
-// Handle Logout
-//
-
-var originalLogoutBox = "";
-
-async function doLogout(){
-    let logoutResponse = await postAPIForm("api/session-handler.php", new FormData(document.getElementById("logoutBox")));
-	originalLogoutBox = document.getElementById("logoutModal").innerHTML;
-	if( logoutResponse["SUCCESS"] ){
-		document.getElementById("logout-modal-body").innerHTML = `
-<div class="login-form-success">
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-square-fill" viewBox="0 0 16 16">
-  <path d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm10.03 4.97a.75.75 0 0 1 .011 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.75.75 0 0 1 1.08-.022z"/>
-</svg>
-Logout Successful
-</div>
-`;
-		document.getElementById("logout-modal-footer").innerHTML = `
-	<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="clearLogout()">OK</button>
-`;
-		loggedIn= false;
-	} else {
-		document.getElementById("logout-modal-body").innerHTML = res;
-	}
-	checkLogonStatus();
-}
-
-function clearLogout(){
-	if( ! originalLogoutBox === "" ){
-		document.getElementById("logoutModal").innerHTML = originalLogoutBox;
-		checkLogonStatus();
-	}
-}
-
 
 

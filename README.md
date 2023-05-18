@@ -47,7 +47,7 @@ apt update
 
 2. Install the dependencies
 ```
-apt install -y -t bullseye-backports python3-websockets python3-aiohttp
+apt install -y -t bullseye-backports python3-websockets python3-aiohttp python3-aiohttp-session
 apt install -y apache2 wget
 wget https://github.com/AllStarLink/Allmon3/releases/download/
 dpkg -i allmon3_

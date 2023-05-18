@@ -9,6 +9,7 @@
 import argparse
 import asyncio
 import configparser
+import errno
 import logging
 import logging.handlers
 import os
@@ -16,7 +17,7 @@ import pprint
 import signal
 import sys
 from asl_allmon import allmon3_server, allmon3_ws_status, allmon3_ws_cmd, allmon3_ws_voter
-from asl_allmon import node_configs, node_db, web_configs
+from asl_allmon import node_configs, node_db, security, web_configs
 
 _BUILD_ID = "@@HEAD-DEVELOP@@"
 
@@ -69,7 +70,8 @@ async def start_tasks():
                     tasks.append(asyncio.create_task(voter_ws.main()))
 
         log.info("starting allmon3 master ws on port %s", web_configuration.http_port)
-        a3server = allmon3_server.ServerWS(web_configuration, node_configuration)
+        a3server = allmon3_server.ServerWS(web_configuration, 
+            node_configuration, server_security)
         tasks.append(asyncio.create_task(a3server.main()))
 
         await asyncio.gather(*tasks)
@@ -140,7 +142,7 @@ else:
 try:
     # Config Parse
     if not os.path.exists(config_file):
-        raise Exception("file not found: %s" % (config_file))
+        raise FileNotFoundError(errno.ENOENT, os.strerr(errno.ENOENT), config_file)
     log.debug("config file is %s", config_file)
 
     if args.nodes:
@@ -151,7 +153,7 @@ try:
     node_configuration = node_configs.NodeConfigs(config_file, filter_list)    
 
     if not os.path.exists(web_config_file):
-        raise Exception("file not found: %s" % (web_config_file))
+        raise FileNotFoundError(errno.ENOENT, os.strerr(errno.ENOENT), web_config_file)
     log.debug("web config file is %s", web_config_file)
     web_configuration = web_configs.WebConfigs(web_config_file)
 
@@ -164,6 +166,11 @@ try:
         for m in menu_ini:
             if m != "DEFAULT":
                 web_configuration.menu.update({ m : dict(menu_ini[m]) })
+
+    if not os.path.exists(web_configuration.user_table):
+        raise FileNotFoundError(errno.ENOENT, os.strerr(errno.ENOENT), web_configuration.user_table)
+    log.debug("user_table file is %s", web_configuration.user_table)
+    server_security = security.Security(web_configuration.user_table)
 
     # Get Database
     allmon_db = node_db.ASLNodeDB()

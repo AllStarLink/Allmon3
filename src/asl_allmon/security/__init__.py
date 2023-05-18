@@ -58,7 +58,7 @@ class Security:
     def create_session(self, ipaddr):
         ss = SecuritySession(ipaddr)
         self.session_db.update({ ss.session_id : ss })
-        return True
+        return ss.session_id
 
     def destroy_session(self, session_id):
         try:
