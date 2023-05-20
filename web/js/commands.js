@@ -21,7 +21,7 @@ async function sendCommand(node, cmdStr) {
 	cmdForm.append('node', node);
 	cmdForm.append('cmd', cmdStr);
 
-	let cmdout = await postAPIForm("api/asl-cmdlink.php", cmdForm);
+	let cmdout = await postAPIForm("master/cmd", cmdForm);
 	let res = "";
 	if( cmdout["SUCCESS"] ){
 		let out = atob(cmdout["SUCCESS"]);
@@ -188,7 +188,7 @@ function executeNodeLinkCmd(node){
 //
 async function getCLICommandModalForm(node){
 	
-	const commands = await getAPIJSON("api/uiconfig.php?e=syscmd");
+	const commands = await getAPIJSON("master/ui/custom/commands");
 	let cmdopts = "";
 	for(let c in commands){
 		let cmdstr = c.replace("'", "").replace("'","").replace("@",node);

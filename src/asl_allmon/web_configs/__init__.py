@@ -51,9 +51,9 @@ class WebConfigs:
             self.ws_port_start = 16700
 
         try:
-            self.commands = set()
+            self.commands = dict()
             for k in config["syscmds"]:
-                self.commands.add(CommandTemplate(k, config["syscmds"][k]))
+                self.commands.update({ k : config["syscmds"][k] })
     
             self.node_overrides = dict()
             for k in config["node-overrides"]:
@@ -69,15 +69,5 @@ class WebConfigs:
             log.error("Missing required web.ini configuration section %s", e)
             sys.exit(1)
             
-class CommandTemplate:
-    """ command templates for the web interface """
-
-    def __init__(self, cmd_tmpl, cmd_label):
-        self.label = cmd_label
-        self.tmpl = cmd_tmpl
-
-    def get_cmd_node(self, node):
-        return self.tmpl.replace("@", str(node))
-
 class WebConfigsException(Exception):
     """ Exception for ASLNodeConfig{,s} """

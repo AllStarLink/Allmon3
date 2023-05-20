@@ -9,10 +9,13 @@ from aiohttp import web
 from aiohttp_session import get_session, setup
 from aiohttp_session import SimpleCookieStorage
 import asyncio
-import logging
+import base64
+from itertools import cycle
 import json
+import logging
 import re
 import time
+import websockets
 from .. import node_configs, security, web_configs
 
 __BUILD_ID = "@@HEAD-DEVELOP@@"
@@ -176,6 +179,8 @@ class ServerWS:
                         r_txt = "NONE"
                 elif c[3] == "overrides":
                     r_txt = json.dumps(self.config_web.node_overrides)
+                elif c[3] == "commands":
+                    r_txt = json.dumps(self.config_web.commands)
     
         except (IndexError, KeyError):
             r_txt = None
@@ -195,6 +200,38 @@ class ServerWS:
         return json.dumps(ui_html)
 
     ##
+    ## Cmd Prep Process
+    ##
+    async def __proc_cmd(self, request):
+        try:
+            req = await request.post()
+            session = await get_session(request)
+            r_json = None
+            if "auth_sess" in session:
+                    if session["auth_sess"] in self.server_security.session_db:
+                        cmd = req.get("cmd")
+                        node = int(req.get("node"))
+                        key = self.config_nodes.nodes[node].password
+                        cmd_x = ''.join(chr(ord(x) ^ ord(y)) for (x,y) in zip(cmd, cycle(key)))
+                        cmd_x_b = base64.b64encode(cmd_x.encode("UTF-8")).decode("UTF-8")
+                        log.debug("cmd: %s", cmd_x_b)
+                        cmdport = self.config_nodes.nodes[node].cmdport
+                        log.debug('port: %s', cmdport)
+                        url = f"ws://localhost:{cmdport}"
+                        async with websockets.connect(url, ping_timeout=None) as websocket:
+                            await websocket.send(cmd_x_b)
+                            async for message in websocket:
+                                r_json = f"{{ \"SUCCESS\" : \"{message}\" }}"
+                        
+            if r_json:
+                return web.Response(text=r_json, content_type="text/json")
+    
+            return web.Response(status=400)
+   
+        except Exception:
+            pass 
+
+    ##
     ## Server Logic
     ##
     async def main(self):
@@ -204,6 +241,7 @@ class ServerWS:
 
         # Handlers for different API commands
         api_routes = [
+            web.post("/cmd", self.__proc_cmd),
             web.post("/login", self.__proc_login),
             web.get(r"/auth/{cmd:.*}", self.__proc_auth),
             web.get(r"/node/{cmd:.*}", self.__proc_node),
