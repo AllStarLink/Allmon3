@@ -110,17 +110,25 @@ class NodeVoterWS:
     # Primary broadcaster
     async def main(self):
         log.debug("enter node_voter_main()")
-        loop = asyncio.get_event_loop()
-        self.voter_ws.set_waiter(asyncio.Future(loop=loop))
-        self.ami = ami_conn.AMI(self.node_config.host, self.node_config.port,
-            self.node_config.user, self.node_config.password)
-        async with websockets.serve(
-            self.handler,
-            host = None,
-            port = self.node_config.voterports[self.node_id],
-            logger = log
-        ):
-            await self.broadcast()
+        try:
+	        loop = asyncio.get_event_loop()
+	        self.voter_ws.set_waiter(asyncio.Future(loop=loop))
+	        self.ami = ami_conn.AMI(self.node_config.host, self.node_config.port,
+	            self.node_config.user, self.node_config.password)
+	        async with websockets.serve(
+	            self.handler,
+	            host = None,
+	            port = self.node_config.voterports[self.node_id],
+	            logger = log
+	        ):
+	            await self.broadcast()
 
+        except ami_conn.AMIException:
+            log.error("Terminating asyncio worker for %s:%s on %s due to unreachable AMI",
+                self.node_config.host, self.node_config.port, self.node_config.monport)
+            log.error("AMI instances must be available at start. See --nodes or remove the config")
+            return None
+
+	
 class NodeVoterWSException(Exception):
     """ exception for class """

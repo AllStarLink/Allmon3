@@ -57,6 +57,11 @@ class NodeCmdWS:
             a.close()
             response_b64 = base64.b64encode(response.encode("UTF-8"))
             await websocket.send(response_b64.decode("UTF-8"))
+
+        except ami_conn.AMIException:
+            log.error("Could not connect to AMI interface %s:%s",
+                self.node_config.host, self.node_config.port)
+            log.error("Command was ignored")
     
         except asyncio.exceptions.IncompleteReadError:
             log.info("Other side went away: %x", websocket.remote_address)
