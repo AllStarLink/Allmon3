@@ -58,9 +58,9 @@ class AMIParser:
                 output = re.split("\r\n", c_response)
                 log.debug(output[3])
                 if not re.match(r"No such command", output[3]) and not re.match(r"Unknown action name", output[3]):
-                    return "OK:\r\n{output[3]}"
+                    return f"OK:\r\n{output[3]}"
                 
-                return "ERR:\r\n{output[3]}"
+                return f"ERR:\r\n{output[3]}"
     
             return "ERR: command output responded with something I didn't understand"
     
