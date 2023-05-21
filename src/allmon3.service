@@ -8,6 +8,7 @@ User=allmon3
 Group=allmon3
 Environment="PATH=/usr/bin:/bin:/usr/sbin:/sbin"
 ExecStart=allmon3
+ExecReload=kill -USR1 $MAINPID
 
 [Install]
 WantedBy=multi-user.target
