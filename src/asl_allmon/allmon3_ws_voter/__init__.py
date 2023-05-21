@@ -125,7 +125,7 @@ class NodeVoterWS:
 
         except ami_conn.AMIException:
             log.error("Terminating asyncio worker for %s:%s on %s due to unreachable AMI",
-                self.node_config.host, self.node_config.port, self.node_config.monport)
+                self.node_config.host, self.node_config.port, self.node_config.voterports[self.node_id])
             log.error("AMI instances must be available at start. See --nodes or remove the config")
             return None
 
