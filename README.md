@@ -51,6 +51,12 @@ dpkg -i allmon3_
 
 ### Install Debian 10 / Raspian 10 Software
 
+Note: The version of Python available on Debian 10 is old and does not support
+reasonably-modern conventions of the core Pythong Asynchronous I/O subsystem that
+is heavily used throughout Allmon3. Notably some of the error-handling features
+are not available and you may get strange error messages in your syslog. This issue
+cannot be fixed.
+
 1. Enable the Debian 10 `buster-backports` package repository:
 
 ```
