@@ -5,10 +5,12 @@
 # see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
 #
 
+import asyncio
 import logging
 import re
 import time
 import urllib.request
+from .. import node_configs
 
 _BUILD_ID = "@@HEAD-DEVELOP@@"
 log = logging.getLogger(__name__)
@@ -53,3 +55,10 @@ class ASLNodeDB:
             else:
                 node_conf.node_mon_list[n]["DESC"] = "Unavailable"
         log.debug("exiting set_my_info()")
+
+    async def db_updater(self, node_configuration):
+        while True:
+            await asyncio.sleep(15*60)
+            self.get_allmon_db()
+            for n, c in node_configuration.nodes.items():
+                self.set_my_info(c)
