@@ -2,19 +2,11 @@
 
 ![GitHub](https://img.shields.io/github/license/AllStarLink/Allmon3)
 
-![Bootstrap](https://img.shields.io/badge/bootstrap-%23563D7C.svg?style=for-the-badge&logo=bootstrap&logoColor=white) ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) ![Bootstrap](https://img.shields.io/badge/bootstrap-%23563D7C.svg?style=for-the-badge&logo=bootstrap&logoColor=white)
 
 Allmon is the standard web-based monitoring and management for the AllStarLink
 application. Allmon3 is the next generation of the venerable Allmon2 that is 
 rewritten for performance, scalability, and responsiveness.
-
-# IMPORTANT NOTE
-
-Allmon3 is undergoing a radical rewrite after the beta 0.9 feedback. It is
-**strongly** suggested to wait for beta 0.10 at this point. Beta v0.10
-is targeted for a mid-May release.
-
-# STOP STOP STOP
 
 ## Design Goals
 Allmon3 features and functionality shall be governed by the following guidelines:
@@ -36,7 +28,7 @@ Note: This software is currently only supported on Debian 11 with the
 `bullseye-backports` enabled. Debian 10 support will be added in the near
 future.
 
-### Install Debian 11 / Raspian 11 Software
+### Install on Debian 11 / Raspian 11 Software
 
 1. Enable the Debian 11 `bullseye-backports` package repositorty:
 
@@ -47,27 +39,61 @@ apt update
 
 2. Install the dependencies
 ```
+apt install -y apache2
 apt install -y -t bullseye-backports python3-websockets python3-aiohttp python3-aiohttp-session
-apt install -y apache2 wget
+```
+
+3. Install Allmon3
+```
 wget https://github.com/AllStarLink/Allmon3/releases/download/
 dpkg -i allmon3_
 ```
 
 ### Install Debian 10 / Raspian 10 Software
 
-Coming soon
+1. Enable the Debian 10 `buster-backports` package repository:
+
+```
+echo "deb https://deb.debian.org/debian buster-backports main" > /etc/apt/sources.list.d/buster-backports.list
+apt update
+```
+
+2. Install the DEB/APT-support dependendencies
+```
+apt install -y apache2
+apt install -y -t buster-backports python3-async-timeout python3-attr python3-multidict python3-yarl
+```
+
+3. Install Python modules using PIP3
+```
+apt remove python3-aiohttp python3-websockets
+pip3 install aiohttp
+pip3 install websockets
+```
+
+4. Install Allmon3
+```
+wget https://github.com/AllStarLink/Allmon3/releases/download/
+dpkg -i allmon3_
+```
 
 ### Configure Allmon
 
 1. Edit `/etc/allmon3/allmon3.ini` for the basic node configuration as explained in the file.
 
-2. Configure Apache using the following commands:
+2. Edit `/etc/allmon3/web.ini` as desired.
+
+3. Configure Apache using the following commands:
 ```
-a2enmod proxy_http
+a2enmod proxy_http proxy_wstunnel rewrite
 cp /etc/allmon3/apache.conf /etc/apache2/conf-available/allmon3.conf
 a2enconf allmon3
 systemctl restart apache2
 ```
+
+If you would prefer to configure Apache differently or have other existing configuration
+such as NamedVirtualHosts, use the configuration found in 
+`/etc/apache2/conf-available/allmon3.conf` to build a working configuration.
 
 3. Enable and start the services
 ```
@@ -136,6 +162,9 @@ Deleting a user is simply adding the `--delete` flag to the command:
 ```
 $ allmon3-passwd --delete allmon3
 ```
+
+After changing a user password, the allmon3 damon must be reloaded
+with `systemctl reload allmon3`.
 
 ## Server Customization
 
