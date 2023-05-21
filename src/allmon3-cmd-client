@@ -39,7 +39,7 @@ args = ap.parse_args()
 async def main():
     try:
         url = f"ws://{args.host}:{args.port}"
-        print("Creating websoocket connection to {url}")
+        print(f"Creating websoocket connection to {url}")
         async with websockets.connect(url, ping_timeout=None) as websocket:
             cmd = crypt_msg(args.cmd, args.passwd).decode("UTF-8")
             await websocket.send(cmd)
