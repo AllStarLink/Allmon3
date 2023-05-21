@@ -150,4 +150,4 @@ class NodeStatusWS:
             return None
 
 class NodeStatusWSException(Exception):
-    "" exception class """
+    """ exception class """
