@@ -2,7 +2,7 @@
 # Build variables
 #
 RELVER = 0.10.0
-DEBVER = 1
+DEBVER = 3
 
 BUILDABLES = \
 	doc \

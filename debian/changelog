@@ -1,4 +1,4 @@
-allmon3 (0.10.0-1) unstable; urgency=medium
+allmon3 (0.10.0-3) unstable; urgency=medium
 
   * Nearly-complete rewrite from Beta 0.9
   * Configuration files from Beta 0.9 are likely incompatible
@@ -7,7 +7,7 @@ allmon3 (0.10.0-1) unstable; urgency=medium
   * Apache configuration is fundamentally different
   * Debian 10 / Raspian 10 is now semi-supported
 
- -- Jason McCormick <jason@mfamily.org>  Mon, 22 May 2023 11:48:43 -0400
+ -- Jason McCormick <jason@mfamily.org>  Mon, 22 May 2023 12:14:06 -0400
 
 allmon3 (0.9.7-1) unstable; urgency=medium
 
