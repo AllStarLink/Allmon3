@@ -1,7 +1,7 @@
 #
 # Build variables
 #
-RELVER = 0.9.7
+RELVER = 0.10.0
 DEBVER = 1
 
 BUILDABLES = \

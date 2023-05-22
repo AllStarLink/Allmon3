@@ -17,7 +17,7 @@ from time import sleep
 import websockets
 from .. import ami_conn, ami_parser, node_configs, node_db, ws_broadcaster
 
-__BUILD_ID = "@@HEAD-DEVELOP@@"
+__BUILD_ID = "0.10.0"
 log = logging.getLogger(__name__)
 
 class NodeCmdWS:
