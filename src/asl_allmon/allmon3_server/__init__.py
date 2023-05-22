@@ -210,13 +210,18 @@ class ServerWS:
             if "auth_sess" in session:
                     if session["auth_sess"] in self.server_security.session_db:
                         cmd = req.get("cmd")
+                        log.debug("cmd: %s", cmd)
                         node = int(req.get("node"))
+                        if node in self.config_nodes.colo_nodes:
+                            node = self.config_nodes.colo_nodes[node]
+                        log.debug("actionable node: %s", node)
                         key = self.config_nodes.nodes[node].password
+                        log.debug("key: %s", key)
                         cmd_x = ''.join(chr(ord(x) ^ ord(y)) for (x,y) in zip(cmd, cycle(key)))
                         cmd_x_b = base64.b64encode(cmd_x.encode("UTF-8")).decode("UTF-8")
                         log.debug("cmd: %s", cmd_x_b)
                         cmdport = self.config_nodes.nodes[node].cmdport
-                        log.debug('port: %s', cmdport)
+                        log.debug("cmdport: %s", cmdport)
                         url = f"ws://localhost:{cmdport}"
                         async with websockets.connect(url, ping_timeout=None) as websocket:
                             await websocket.send(cmd_x_b)
