@@ -1,4 +1,5 @@
 /etc/allmon3/allmon3.ini
+/etc/allmon3/apache.conf
 /etc/allmon3/custom.css
 /etc/allmon3/menu.ini
 /etc/allmon3/users

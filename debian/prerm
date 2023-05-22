@@ -17,8 +17,7 @@
 
 case "$1" in
 	remove)
-	allmon3-procmgr stop
-	allmon3-procmgr purge
+	allmon3 stop
 	;;
 
     upgrade|deconfigure)
