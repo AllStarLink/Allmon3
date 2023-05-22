@@ -101,15 +101,16 @@ If you would prefer to configure Apache differently or have other existing confi
 such as NamedVirtualHosts, use the configuration found in 
 `/etc/apache2/conf-available/allmon3.conf` to build a working configuration.
 
-3. Enable and start the services
-```
-systemctl enable allmon3 
-systemctl start allmon3
-
-```
-4. Set a password for the default user allmon3:
+3. Set a password for the default user allmon3:
 ```
 allmon3-passwd allmon3
+```
+
+4. Enable and restart the services
+```
+systemctl enable allmon3 
+systemctl restart allmon3
+
 ```
 
 5. Open your web browser to the IP or hostname - for example: http://192.0.2.10/allmon3/
@@ -176,13 +177,14 @@ with `systemctl reload allmon3`.
 
 Allmon3 has multiple configuration files to consider:
 
-* `/etc/allmon3/web.ini` - Has three configuration sections - *web*, 
-*syscmds*, and *node-overrides*. The *web* section has the basic
+* `/etc/allmon3/web.ini` - Has four configuration sections - *web*, 
+*syscmds*, *node-overrides*, and *voter-titles*. The *web* section has the basic
 customizations for the Allmon3 site. The *syscmds* section defines
 the templates in the "system commands" menu. Add or remove as
 desired. The token `@` will be expanded into the selected node 
 on which to execute the command. The *node-overrides* section
-can be used to override information from the ASL database.
+can be used to override information from the ASL database. The *voter-titles*
+section is used to set display names for voters.
 
 * `/etc/allmon3/custom.css` - Certain CSS customizations to change
 colors in the application.
