@@ -45,8 +45,8 @@ apt install -y -t bullseye-backports python3-websockets python3-aiohttp python3-
 
 3. Install Allmon3
 ```
-wget https://github.com/AllStarLink/Allmon3/releases/download/
-dpkg -i allmon3_
+wget https://github.com/AllStarLink/Allmon3/releases/download/rel_t_0_10_0/allmon3_0.10.0-3_all.deb
+dpkg -i allmon3_0.10.0-3_all.deb
 ```
 
 ### Install Debian 10 / Raspian 10 Software
@@ -79,8 +79,8 @@ pip3 install websockets
 
 4. Install Allmon3
 ```
-wget https://github.com/AllStarLink/Allmon3/releases/download/
-dpkg -i allmon3_
+wget https://github.com/AllStarLink/Allmon3/releases/download/rel_t_0_10_0/allmon3_0.10.0-3_all.deb
+dpkg -i allmon3_0.10.0-3_all.deb
 ```
 
 ### Configure Allmon
