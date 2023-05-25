@@ -52,28 +52,35 @@ class NodeVoterWS:
         log.debug("enter node_voter_broadcast()")
         asl_ok = True
         parser = ami_parser.AMIParser(self.ami)
-    
+        last_socket_send = time.time()
+ 
         while True:
             if asl_ok:
-                if len(self.connections) > 0:
-                    log.debug("node %s voter connections: %d", self.node_id, len(self.connections))
-                    try:
+                try:
+                    if len(self.connections) > 0:
+                        log.debug("node %s voter connections: %d", self.node_id, len(self.connections))
+                        last_socket_send = time.time()
                         message = parser.parse_voter_data(self.node_id)
                         self.voter_ws.publish(message)
-    
-                    except BrokenPipeError:
-                        log.error("received BrokenPipeError; trying to reconnect")
-                        asl_ok = False
-                    except socket.timeout:
-                        log.error("received socket.timeout; trying to reconnect")
-                        asl_ok = False
-                    except ConnectionResetError:
-                        log.error("received ConnectionResetError; trying to reconnect")
-                        asl_ok = False
-    
-                else:
-                    log.debug("node %s voter connections: %s", self.node_id, len(self.connections))
-    
+
+                    else:
+                        log.debug("node %s voter connections: %s", self.node_id, len(self.connections))
+                        now = time.time()
+                        if ( now - last_socket_send ) > 60 :
+                            log.debug("Node %s: sending keepalive command", self.node_id)
+                            parser.asl_cmd("core show version")
+                            last_socket_send = time.time()
+
+                except BrokenPipeError:
+                    log.error("received BrokenPipeError; trying to reconnect")
+                    asl_ok = False
+                except socket.timeout:
+                    log.error("received socket.timeout; trying to reconnect")
+                    asl_ok = False
+                except ConnectionResetError:
+                    log.error("received ConnectionResetError; trying to reconnect")
+                    asl_ok = False
+
                 # Sleep for the polling time
                 log.debug("voter asyncio.sleep(%s)", self.node_config.vpollinterval)
                 await asyncio.sleep(self.node_config.vpollinterval)

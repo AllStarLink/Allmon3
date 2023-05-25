@@ -61,35 +61,41 @@ class NodeStatusWS:
         log.debug("enter node_status_broadcast()")
         asl_ok = True
         parser = ami_parser.AMIParser(self.ami)
-    
+        last_socket_send = time.time()
+ 
         while True:
             if asl_ok:
-                if len(self.connections) > 0:
-                    log.debug("Node %s - status_connections: %s", self.node_id, len(self.connections))
-                    try:
+                try: 
+                    if len(self.connections) > 0:
+                        log.debug("Node %s - status_connections: %s", self.node_id, len(self.connections))
+                        last_socket_send = time.time()
                         for c_node in self.node_config.node_mon_list:
                             log.debug("broadcasting %s", c_node)
                             parser.parse_xstat(c_node, self.nodedb.node_database, self.node_config.node_mon_list)
                             parser.parse_saw_stat(c_node, self.node_config.node_mon_list)
                             message = json.dumps(self.node_config.node_mon_list[c_node])
                             self.bcast_ws.publish(f"{{ \"{c_node}\" : {message} }}")
-    
-                    except BrokenPipeError as e:
-                        log.error("received BrokenPipeError; trying to reconnect")
-                        asl_ok = False
-                    except socket.timeout as e:
-                        log.error("received socket.timeout; trying to reconnect")
-                        asl_ok = False
-                    except ConnectionResetError as e:
-                        log.error("received ConnectionResetError; trying to reconnect")
-                        asl_ok = False
-                    except Exception as e:
-                        log.error(e)
-                        raise e
-    
-                else:
-                    log.debug("Node %s: status_connections: 0", self.node_id)
-    
+                    else:
+                        log.debug("Node %s: status_connections: 0", self.node_id)
+                        now = time.time()
+                        if ( now - last_socket_send ) > 60 :
+                            log.debug("Node %s: sending keepalive command", self.node_id)
+                            parser.asl_cmd("core show version")
+                            last_socket_send = time.time()
+
+                except BrokenPipeError as e:
+                    log.error("received BrokenPipeError; trying to reconnect")
+                    asl_ok = False
+                except socket.timeout as e:
+                    log.error("received socket.timeout; trying to reconnect")
+                    asl_ok = False
+                except ConnectionResetError as e:
+                    log.error("received ConnectionResetError; trying to reconnect")
+                    asl_ok = False
+                except Exception as e:
+                    log.error(e)
+                    raise e
+ 
                 # Sleep for the polling time
                 log.debug("status asyncio.sleep(%d)", self.node_config.pollinterval)
                 await asyncio.sleep(self.node_config.pollinterval)

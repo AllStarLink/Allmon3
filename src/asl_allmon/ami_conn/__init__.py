@@ -85,7 +85,7 @@ class AMI:
         log.debug("enter asl_cmd_response()")
         try:
             aid = uuid.uuid4()
-            cmd += "ActionID: %s\r\n\r\n" % aid
+            cmd += " ActionID: %s\r\n\r\n" % aid
             self.socket.settimeout(5)
             if not cmd is None:
                 log.debug("command >> %s", self.__rern.sub(" ", cmd))
