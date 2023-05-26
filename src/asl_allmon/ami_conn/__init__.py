@@ -11,7 +11,7 @@ import re
 import socket
 import uuid
 
-_BUILD_ID = "@@HEAD-DEVELOP@@"
+_BUILD_ID = "0.10.1"
 log = logging.getLogger(__name__)
 
 class AMI:

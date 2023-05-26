@@ -12,7 +12,7 @@ import csv
 import logging
 import sys
 
-_BUILD_ID = "@@HEAD-DEVELOP@@"
+_BUILD_ID = "0.10.1"
 
 # Args and Log Setup
 ap = argparse.ArgumentParser(description="Manage Allmon3 password file")
