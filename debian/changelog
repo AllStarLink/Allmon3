@@ -1,13 +1,20 @@
+allmon3 (0.10.1-1) unstable; urgency=medium
+
+  * Fix .deb packaging issues
+  * Implement keepalive cycles
+
+ -- Jason McCormick <jdm@copper.mfamily.org>  Fri, 26 May 2023 18:22:46 -0400
+
 allmon3 (0.9.7-1) unstable; urgency=medium
 
   * INCOMPATIBLE CHANGE: ip= fields in allmon3.ini and
-    votermon.ini are now host= (or related names) and 
-    can specify an IPv4, IPv6, or DNS item
+  *  votermon.ini are now host= (or related names) and 
+  *  can specify an IPv4, IPv6, or DNS item
   * Private node labels supported in web.ini
   * asl-{statmon,cmdlink,votermon} now support DNS and IPv6
   * All stock configs and readme info now in /usr/share/doc/allmon3
 
- -- Jason McCormick <jason@mfamily.org>  Sat, 15 Apr 2023 16:07:33 -0400
+ -- Jason McCormick <jdm@copper.mfamily.org>  Fri, 26 May 2023 18:18:01 -0400
 
 allmon3 (0.9.6-1) unstable; urgency=medium
 

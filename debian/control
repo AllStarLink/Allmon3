@@ -1,5 +1,5 @@
 Source: allmon3
-Section: Miscellaneous
+Section: miscellaneous
 Priority: optional
 Maintainer: Jason McCormick <jason@mfamily.org>
 Build-Depends: debhelper-compat (= 13)
@@ -11,7 +11,7 @@ Rules-Requires-Root: binary-targets
 
 Package: allmon3
 Architecture: all
-Depends: apache2, php-zmq, python3-argon2, python3-zmq, python3
+Depends: python3-argon2, python3
 Description: Web monitoring interface for AllStarLink
   Allmon is the standard web-based montitoring
   and management for the AllStarLink application.

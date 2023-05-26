@@ -1,7 +1,7 @@
 #
 # Build variables
 #
-RELVER = 0.9.7
+RELVER = 0.10.1
 DEBVER = 1
 
 BUILDABLES = \
@@ -45,6 +45,7 @@ debchange:
 
 
 debprep:	debclean
+	find . -type d -name __pycache__ -exec rm -rf {} \;
 	(cd .. && \
 		rm -f allmon3-$(RELVER) && \
 		rm -f allmon3-$(RELVER).tar.gz && \
