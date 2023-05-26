@@ -3,8 +3,6 @@ allmon3 (0.10.1-1) unstable; urgency=medium
   * Fix .deb packaging issues
   * Implement keepalive cycles
 
- -- Jason McCormick <jdm@copper.mfamily.org>  Fri, 26 May 2023 18:22:46 -0400
-
 allmon3 (0.9.7-1) unstable; urgency=medium
 
   * INCOMPATIBLE CHANGE: ip= fields in allmon3.ini and
@@ -14,7 +12,7 @@ allmon3 (0.9.7-1) unstable; urgency=medium
   * asl-{statmon,cmdlink,votermon} now support DNS and IPv6
   * All stock configs and readme info now in /usr/share/doc/allmon3
 
- -- Jason McCormick <jdm@copper.mfamily.org>  Fri, 26 May 2023 18:18:01 -0400
+ -- Jason McCormick <jason@mfamily.org>  Fri, 26 May 2023 19:39:12 -0400
 
 allmon3 (0.9.6-1) unstable; urgency=medium
 
