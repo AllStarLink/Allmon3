@@ -74,6 +74,7 @@ apt install -y -t buster-backports python3-async-timeout python3-attr python3-mu
 ```
 apt remove python3-aiohttp python3-websockets
 pip3 install aiohttp
+pip3 install aiohttp_session
 pip3 install websockets
 ```
 
