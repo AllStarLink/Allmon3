@@ -181,9 +181,18 @@ class ServerWS:
                     r_txt = json.dumps(self.config_web.node_overrides)
                 elif c[3] == "commands":
                     r_txt = json.dumps(self.config_web.commands)
-    
+                elif c[3] == "nodecommands":
+                    if c[4] in self.config_web.per_node_commands:
+                        r_txt = json.dumps(self.config_web.per_node_commands[c[4]])
+                    else:
+                        r_txt = json.dumps("")
+ 
         except (IndexError, KeyError):
+            log.debug("index error")
             r_txt = None
+
+        except Exception as e:
+            log.debug(e)
 
         finally:
             if r_txt:
