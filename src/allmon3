@@ -13,6 +13,7 @@ import errno
 import logging
 import logging.handlers
 import os
+import re
 import signal
 import sys
 from asl_allmon import allmon3_server, allmon3_ws_status, allmon3_ws_cmd, allmon3_ws_voter
@@ -39,9 +40,19 @@ def sigusr1_handler(_signo, _stack_frame):
             menu_ini = configparser.ConfigParser()
             menu_ini.optionxform = str
             menu_ini.read(menu_config_file)
+            # build this as a string to preserve ordering later
+            # in Javascript
+            full_menu = "[ "
             for m in menu_ini:
                 if m != "DEFAULT":
-                    web_configuration.menu.update({ m : dict(menu_ini[m]) })
+                    menu_string = "[";
+                    for sm in menu_ini[m]:
+                        menu_string += f"{{\"{sm}\" : \"{menu_ini[m][sm]}\"}}, "
+                    menu_string = re.sub(r",\s$", "] ", menu_string)
+                    menu_string = f"{{ \"{m}\" : {menu_string} }}";
+                    full_menu += f"{menu_string} ,"
+            full_menu = re.sub(r",$", "]", full_menu)
+            web_configuration.menu = full_menu
         server_security = security.Security(web_configuration.user_table)
         log.info("reloaded node, web, menu, and sercurity configs")
 
@@ -181,9 +192,20 @@ try:
         menu_ini = configparser.ConfigParser()
         menu_ini.optionxform = str
         menu_ini.read(menu_config_file)
+
+        # build this as a string to preserve ordering later
+        # in Javascript
+        full_menu = "[ "
         for m in menu_ini:
             if m != "DEFAULT":
-                web_configuration.menu.update({ m : dict(menu_ini[m]) })
+                menu_string = "[";
+                for sm in menu_ini[m]:
+                    menu_string += f"{{\"{sm}\" : \"{menu_ini[m][sm]}\"}}, "
+                menu_string = re.sub(r",\s$", "] ", menu_string)
+                menu_string = f"{{ \"{m}\" : {menu_string} }}";
+                full_menu += f"{menu_string} ,"
+        full_menu = re.sub(r",$", "]", full_menu)
+        web_configuration.menu = full_menu
 
     if not os.path.exists(web_configuration.user_table):
         raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), web_configuration.user_table)
