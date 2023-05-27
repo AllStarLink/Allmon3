@@ -160,7 +160,7 @@ function nodeEntry(nodeid, nodeinfo){
 	} else if( node.TXKEYED === true && node.RXKEYED === false && node.CONNKEYED === false ){
 		divTxStat.innerHTML = "<div class=\"alert alert-warning am3-alert-keyed mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Telemetry/Playback</div>";
 	} else if( node.TXKEYED === false && node.RXKEYED === false && node.TXEKEYED === false && node.CONNKEYED === true ){
-		divTxStat.innerHTML = `<div class="alert alert-warning am3-alert-keyed mx-3 py-0 nodetxline nodetxline-keyed">Transmit - Playback from Remote Node %{node.CONNKEYEDNODE}</div>`;
+		divTxStat.innerHTML = `<div class="alert alert-warning am3-alert-keyed mx-3 py-0 nodetxline nodetxline-keyed">Transmit - Playback from Remote Node ${node.CONNKEYEDNODE}</div>`;
 	} else {
 		divTxStat.innerHTML = "<div class=\"alert alert-success am3-alert-idle mx-3 py-0 nodetxline nodetxline-unkeyed\">Transmit - Idle</div>";
 	}
