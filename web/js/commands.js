@@ -194,6 +194,12 @@ async function getCLICommandModalForm(node){
 		let cmdstr = c.replace("'", "").replace("'","").replace("@",node);
 		cmdopts = cmdopts.concat(`<option value="${cmdstr}">`, commands[c], "</option>\n");
 	}
+
+	const nodeCommands = await getAPIJSON(`master/ui/custom/nodecommands/${node}`);
+	for(let c in nodeCommands){
+        let cmdstr = c.replace("'", "").replace("'","").replace("@",node);
+        cmdopts = cmdopts.concat(`<option value="${cmdstr}">`, nodeCommands[c], "</option>\n");
+    }
 			
 	const modal = `
 <div id="cmd-exec-cmd" class="container">

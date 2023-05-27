@@ -68,6 +68,15 @@ class WebConfigs:
         except (KeyError, NameError) as e:
             log.error("Missing required web.ini configuration section %s", e)
             sys.exit(1)
+
+        self.per_node_commands = dict()
+        for k in config:
+            if re.match(r"syscmds\-", k):
+                cmds_node = re.sub(r"syscmds\-([0-9]+)", r"\1", k)
+                cmds_node_dict = dict()
+                for kn in config[k]:
+                    cmds_node_dict.update({ kn : config[k][kn] })
+                self.per_node_commands.update({ cmds_node : cmds_node_dict })
             
 class WebConfigsException(Exception):
     """ Exception for ASLNodeConfig{,s} """
