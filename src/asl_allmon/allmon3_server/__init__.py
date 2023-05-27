@@ -174,7 +174,7 @@ class ServerWS:
                     r_txt = self.__proc_ui_html()
                 elif c[3] == "menu":
                     if self.config_web:
-                        r_txt = json.dumps(self.config_web.menu)
+                        r_txt = self.config_web.menu
                     else:
                         r_txt = "NONE"
                 elif c[3] == "overrides":

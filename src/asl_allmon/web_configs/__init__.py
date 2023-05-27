@@ -63,7 +63,7 @@ class WebConfigs:
             for k in config["voter-titles"]:
                 self.voter_titles.update({ int(k) : config["voter-titles"][k].replace("'","") })
 
-            self.menu = dict()
+            self.menu = str()
         
         except (KeyError, NameError) as e:
             log.error("Missing required web.ini configuration section %s", e)

@@ -167,47 +167,55 @@ function clearLogout(){
 
 // Generate and Draw Menus
 async function createSidebarMenu(){
-	let customMenu = await getAPIJSON("master/ui/custom/menu");
 	let navMenu = `<div class="vstack d-grid gap-2 col-9 mx-auto">`;
 
-	let pageName = "";
+	let pageName = "index.html";
 	if( document.location.pathname.match("voter.html") ){
-		pageName = "index.html";
+		pageName = "voter.html";
 	}
 
+	let customMenu = await getAPIJSON("master/ui/custom/menu");
 	if(Object.keys(customMenu).length > 0){
-		for(let dd of Object.keys(customMenu)){
-			if(customMenu[dd]["type"] === "menu"){
-				navMenu = navMenu.concat(`
-					<div class="btn-group">
-						<button class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">${dd}</button>
-						<div class="dropdown-menu">`);
-					for(let ml of Object.keys(customMenu[dd])){
-						if( ml !== "type" ){
-							ml = ml.replace(/'/g,"");
-							if(customMenu[dd][ml].match(/^[0-9]+$/)){
-								let nn = customMenu[dd][ml];
-								navMenu = navMenu.concat(`<a class="dropdown-item" href="${pageName}#${nn}">${ml}</a>`);
-							} else {
-								let href = customMenu[dd][ml];
-								navMenu = navMenu.concat(`<a class="dropdown-item" href="${href}">${ml}</a>`);
+		for(let majMenu of Object.keys(customMenu)){
+			let majMenuObj = customMenu[majMenu];
+			for(let majMenuLabel of Object.keys(majMenuObj)){
+				let menuType = true;
+				let menuObjArr = new Array(majMenuObj[majMenuLabel]);
+				while(menuObjArr[0].length > 0){
+					let menuItem = menuObjArr[0].shift();
+					if( menuItem["type"] ){
+						if(menuItem["type"] === "menu"){
+							navMenu = navMenu.concat(`<div class="btn-group">
+								<button class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">${majMenuLabel}</button>
+	    	                    <div class="dropdown-menu">`);
+							menuType = true;
+						} else {
+							menuType = false;
+						}
+					} else {
+						if(menuType){
+							for( let ml of Object.keys(menuItem)){
+								mo = menuItem[ml];
+								if(mo.match(/^[0-9]+$/)){
+									navMenu = navMenu.concat(`<a class="dropdown-item" href="${pageName}#${mo}">${ml}</a>`);
+						        } else {
+	                                let href = menuItem[ml];
+									navMenu = navMenu.concat(`<a class="dropdown-item" href="${href}">${ml}</a>`);
+								}
+							}
+						} else {
+							for( let ml of Object.keys(menuItem)){
+								let href = menuItem[ml];
+								navMenu = navMenu.concat(`<div class="btn-group">
+									<a href="${href}" class="btn btn-secondary" role="button">${ml}</a>
+									</div>`);
 							}
 						}
 					}
-				navMenu = navMenu.concat(`
-						</div>
-					</div>`);
-			} else if(customMenu[dd]["type"] === "single"){
-				for(let ml of Object.keys(customMenu[dd])){
-					if( ml !== "type" ){
-						let href = customMenu[dd][ml];
-						ml = ml.replace(/'/g,"");
-						navMenu = navMenu.concat(`
-							<div class="btn-group">
-								<a href="${href}" class="btn btn-secondary" role="button">${ml}</a>
-							</div>`);
-					}
 				}
+				if(menuType){
+					navMenu = navMenu.concat(`</div></div>`);
+				} 
 			}
 		}
 	} else {
