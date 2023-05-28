@@ -36,6 +36,7 @@ document.onreadystatechange = () => {
 // Things to do when the page loads
 function startup(){
 	uiConfigs();
+	setInterval(checkLogonStatus, 900000);
 	getAPIJSON(`master/node/${node}/voter`)
 		.then((result) => {
     		if(result){
@@ -53,6 +54,7 @@ function startup(){
 function uiConfigs(){
 	customizeUI();
 	createSidebarMenu();
+	checkLogonStatus();
 }
 
 // Update Customizations
@@ -81,12 +83,44 @@ function changedLocationHash(){
 function drawVoterPanelFamework(title){
 	let votermonArea = document.getElementById("asl-votermon-area");
 	let votermonAreaHeader = `
-<div id="node-header-${node}" class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center p
-y-1 px-2 mt-1 mb-1 border-bottom nodeline-header rounded">
+<div id="node-header-${node}" class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-1 px-2 mt-1 mb-1 border-bottom nodeline-header rounded">
 	<span id="asl-votermon-${node}-header-desc" class="align-middle">${node} - ${title}</span>
+
+	<div class="btn-toolbar mb-2 mb-md-0">
+		<div class="btn-group me-2">
+        	<a id="btn-bubble-${node}" class="btn btn-sm btn-outline-secondary node-bi"
+            	data-bs-toggle="tooltip" data-bs-title="View ASL Node Map for this node" data-bs-placement="bottom"
+                 href="http://stats.allstarlink.org/stats/${node}/networkMap" target="_blank">
+            	<svg class="node-bi flex-shrink-0" width="16" height="16" role="img" aria-label="Network Map ${node}">
+                	<use xlink:href="#bubble-chart"/>
+                </svg>
+            </a>
+            <a class="btn btn-sm btn-outline-secondary node-bi"
+                data-bs-toggle="tooltip" data-bs-title="View ASL Stats for this node" data-bs-placement="bottom"
+                href="http://stats.allstarlink.org/stats/${node}/" target="_blank">
+                <svg class="node-bi flex-shrink-0" width="16" height="16" role="img" aria-label="Node Details ${node}">
+					<use xlink:href="#details"/>
+                </svg>
+            </a>
+            <button class="btn btn-sm btn-outline-secondary node-bi" onclick="openCmdModalLink(${node})"
+                data-bs-toggle="tooltip" data-bs-title="Execute linking commands for this node" data-bs-placement="bottom">
+                <svg class="node-bi flex-shrink-0" width="16" height="16" role="img" aria-label="Manage Node ${node}">
+                    <use xlink:href="#link-45"/>
+                </svg>
+            </button>
+            <button class="btn btn-sm btn-outline-secondary node-bi" onclick="openCmdModalCLI(${node})"
+                data-bs-toggle="tooltip" data-bs-title="Execute system commands for this node" data-bs-placement="bottom">
+                <svg class="node-bi flex-shrink-0" width="16" height="16" role="img" aria-label="Manage Node ${node}">
+                    <use xlink:href="#settings"/>
+                </svg>
+            </button>
+        </div>
+	</div>
 </div>`;
 	let votermonAreaData = `<div id="asl-votermon-${node}-data" class="px-2">`
 	votermonArea.innerHTML = votermonAreaHeader + votermonAreaData;
+	tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 }
 
 function getVotes(){
