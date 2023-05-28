@@ -185,7 +185,7 @@ class ServerWS:
                     if c[4] in self.config_web.per_node_commands:
                         r_txt = json.dumps(self.config_web.per_node_commands[c[4]])
                     else:
-                        r_txt = json.dumps("")
+                        r_txt = "{}"
  
         except (IndexError, KeyError):
             log.debug("index error")
