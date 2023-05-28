@@ -90,7 +90,7 @@ class ServerWS:
             session_id = self.server_security.create_session(client_ip)
             session["auth_sess"] = session_id
             r_txt = self.__get_json_success("OK")
-            log.info("successul login by user %s from %s", 
+            log.info("successful login by user %s from %s", 
                 req.get("user"), client_ip)
         else:
             r_txt = self.__get_json_security("invalid user or pass")
