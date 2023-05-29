@@ -264,7 +264,9 @@ class ServerWS:
         self.httpserver.add_routes(api_routes)
         runner = web.AppRunner(self.httpserver)
         await runner.setup()
-        site = web.TCPSite(runner, "localhost", self.config_web.http_port)
+        site = web.TCPSite(runner, 
+            self.config_web.ws_bind_addr,
+            self.config_web.http_port)
         await site.start()
 
 

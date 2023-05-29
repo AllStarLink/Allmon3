@@ -22,10 +22,12 @@ log = logging.getLogger(__name__)
 class NodeVoterWS:
     """ Node voter WS client """
 
-    def __init__(self, node, node_config):
+    def __init__(self, node, node_config, web_config):
         self.node_id = node
         self.node_config = node_config
+        self.ami = None
         self.connections = set()
+        self.web_config = web_config
         self.voter_ws = ws_broadcaster.WebsocketBroadcaster()
 
     async def handler(self, websocket):
@@ -124,7 +126,7 @@ class NodeVoterWS:
 	            self.node_config.user, self.node_config.password)
 	        async with websockets.serve(
 	            self.handler,
-	            host = None,
+	            host = self.web_config.ws_bind_addr,
 	            port = self.node_config.voterports[self.node_id],
 	            logger = log
 	        ):

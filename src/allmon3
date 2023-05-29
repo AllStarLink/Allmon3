@@ -79,12 +79,12 @@ async def start_tasks():
         for n, c in node_configuration.nodes.items():
             c.monport = web_configuration.ws_port_start + len(tasks)
             log.info("starting status ws %s@%s on port %s", n, c.host, c.monport)
-            status_ws =  allmon3_ws_status.NodeStatusWS(n, c, allmon_db)
+            status_ws =  allmon3_ws_status.NodeStatusWS(n, c, allmon_db, web_configuration)
             tasks.append(asyncio.create_task(status_ws.main()))
 
             c.cmdport = web_configuration.ws_port_start + len(tasks)
             log.info("starting cmd ws %s@%s on port %s", n, c.host, c.cmdport)
-            node_ws = allmon3_ws_cmd.NodeCmdWS(n, c)
+            node_ws = allmon3_ws_cmd.NodeCmdWS(n, c, web_configuration)
             tasks.append(asyncio.create_task(node_ws.main()))
 
             if hasattr(c, "voterports"):
@@ -92,7 +92,7 @@ async def start_tasks():
                     vport = web_configuration.ws_port_start + len(tasks)
                     c.voterports.update({ v : vport })
                     log.info("starting voter ws %s@%s on port %s", v, c.host, vport)
-                    voter_ws =  allmon3_ws_voter.NodeVoterWS(v, c)
+                    voter_ws =  allmon3_ws_voter.NodeVoterWS(v, c, web_configuration)
                     tasks.append(asyncio.create_task(voter_ws.main()))
 
         log.info("starting allmon3 master ws on port %s", web_configuration.http_port)

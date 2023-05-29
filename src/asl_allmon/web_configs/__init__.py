@@ -44,11 +44,20 @@ class WebConfigs:
             self.http_port = config["web"]["HTTP_PORT"]
         else:
             self.http_port = 16080
+        log.info("Allmon3 Master HTTP port is %s", self.http_port)
 
         if "WS_PORT_START" in config["web"]:
             self.ws_port_start = int(config["web"]["WS_PORT_START"])
         else:
             self.ws_port_start = 16700
+        log.info("Allmon3 websockets starting port is %s", self.ws_port_start)
+
+        if "WS_BIND_ADDR" in config["web"]:
+            self.ws_bind_addr = str(config["web"]["WS_BIND_ADDR"])
+            log.info("Binding services to %s", self.ws_bind_addr)
+        else:
+            self.ws_bind_addr = None
+            log.info("Binding sevices to all addresses")
 
         try:
             self.commands = dict()
