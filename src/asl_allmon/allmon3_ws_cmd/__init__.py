@@ -25,9 +25,10 @@ class NodeCmdWS:
 
     __MAX_MSG_LEN = 256
 
-    def __init__(self, node, node_config):
+    def __init__(self, node, node_config, web_config):
         self.node_id = node
         self.node_config = node_config
+        self.web_config = web_config
         self.cmd_ws = ws_broadcaster.WebsocketBroadcaster()
 
     async def handler(self, websocket):
@@ -92,7 +93,7 @@ class NodeCmdWS:
         self.cmd_ws.set_waiter(asyncio.Future(loop=loop))
         async with websockets.serve(
             self.handler,
-            host = None,
+            host = self.web_config.ws_bind_addr,
             port = self.node_config.cmdport,
             logger = log,
             compression = None,

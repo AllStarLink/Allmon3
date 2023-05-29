@@ -24,12 +24,13 @@ log = logging.getLogger(__name__)
 class NodeStatusWS:
     """ Node status WS client """
 
-    def __init__(self, node, node_config, nodedb):
+    def __init__(self, node, node_config, nodedb, web_config):
         self.node_id = node
         self.node_config = node_config
         self.nodedb = nodedb
         self.ami = None
         self.connections = set()
+        self.web_config = web_config
         self.bcast_ws = ws_broadcaster.WebsocketBroadcaster()
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -139,7 +140,7 @@ class NodeStatusWS:
                 self.node_config.user, self.node_config.password)
             async with websockets.serve(
                 self.handler,
-                host = None,
+                host = self.web_config.ws_bind_addr,
                 port = self.node_config.monport,
                 logger = log,
                 compression = None,
