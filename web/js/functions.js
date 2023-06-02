@@ -168,11 +168,7 @@ function clearLogout(){
 // Generate and Draw Menus
 async function createSidebarMenu(){
 	let navMenu = `<div class="vstack d-grid gap-2 col-9 mx-auto">`;
-
-	let pageName = "index.html";
-	if( document.location.pathname.match("voter.html") ){
-		pageName = "voter.html";
-	}
+	const pageName = "index.html";
 
 	let customMenu = await getAPIJSON("master/ui/custom/menu");
 	if(Object.keys(customMenu).length > 0){
