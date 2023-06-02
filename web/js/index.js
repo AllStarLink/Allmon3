@@ -71,8 +71,13 @@ function startup(){
 			p = new Promise(function(resolve, reject) {
 			    nodeWS = new WebSocket(wsurl);
 			    nodeWS.addEventListener("message", nodeEntryHandler);
-				nodeWS.onopen = (event) => { resolve(nodeWS); }
-				nodeWS.onerror = (event) => { nodeEntrySetError(node); }
+				nodeWS.onopen = (e) => { resolve(nodeWS); }
+				nodeWS.onerror = (e) => { nodeEntrySetError(n); }
+				nodeWS.onclose = (e) => { 
+					if(e.code === 1006){
+						nodeEntrySetError(n);
+					}
+				}
 			});
 			WSRunners.push(p);
 		});
@@ -175,7 +180,7 @@ function nodeEntrySetError(nodeid){
 	const divConntable = document.getElementById(`asl-statmon-dashboard-${nodeid}-conntable`);
 
 	divHeader.innerHTML = nodeLineHeader(nodeid, "Unavailable Node")
-	divTxStat.innerHTML = `<div class="alert alert-danger am3-alert-error mx-3 py-0"><b>Node Response Error - Node disabled<b> <button class="btn btn-danger" style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .5rem;" onclick="reAddNode(${nodeid})">Reload Node</button></div>`;
+	divTxStat.innerHTML = `<div class="alert alert-danger am3-alert-error mx-3 py-0">Websocket is not available or went away</div>`
 	divConntable.innerHTML = "";
 
 	const i = monNodes.indexOf(nodeid);
