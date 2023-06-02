@@ -1,3 +1,17 @@
+allmon3 (0.10.2-2) unstable; urgency=medium
+
+  * Support per-node command templates (see web.ini)
+  * Retain order of menu.ini submenus in the HTML dropdown 
+  * Add the command modals to the voter display page
+  * Implement binding IP configuration directive (see web.ini)
+  * allmon3_server objects now listen on all IPs by default
+  * Fix apache.conf RewriteRule for v0.10
+  * Expose in-browser websocket errors to the UI
+  * Fix string formatting error for remote transmission status
+  * Fix dependency issues in allmon3.service systemd service
+
+ -- Jason McCormick <jason@mfamily.org>  Fri, 02 Jun 2023 16:54:39 -0400
+
 allmon3 (0.10.1-1) unstable; urgency=medium
 
   * Fix .deb packaging issues
