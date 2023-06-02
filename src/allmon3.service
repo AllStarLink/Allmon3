@@ -1,6 +1,8 @@
 [Unit]
 Description=Allmon3 daemon
-After=asl-asterisk asterisk
+After=network.target
+After=syslog.target
+After=asterisk.service
 
 [Service]
 Type=exec
