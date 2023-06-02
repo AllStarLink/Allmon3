@@ -27,7 +27,7 @@ do_configure() {
 	sysd_units=`systemctl | grep asl- | wc -l`
 	if [ $sysd_units -gt 0 ]; then
 		systemctl daemon-reload
-		allmon3 restart
+		systemctl restart allmon3
 	fi
 }
 
