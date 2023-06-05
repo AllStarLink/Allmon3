@@ -17,62 +17,60 @@ var nodeTitle = "";
 var nodeVMonPort = 0;
 var votermon = null;
 
-const max_poll_errors = 10;
-
 // Hook on the documnet complete load
 document.onreadystatechange = () => {
-	if(document.readyState === "complete") {
-		// was this called with #node[,node,node]
-		if( location.hash !== "" ){
-			node = location.hash.replace("#","");
-			startup();
-		} else {
-			alert("One node ID must be passed as voter.html#NODE");
-		}
-		window.onhashchange = changedLocationHash;
-	}
+    if(document.readyState === "complete") {
+        // was this called with #node[,node,node]
+        if( location.hash !== "" ){
+            node = location.hash.replace("#","");
+            startup();
+        } else {
+            alert("One node ID must be passed as voter.html#NODE");
+        }
+        window.onhashchange = changedLocationHash;
+    }
 };
 
 // Things to do when the page loads
 function startup(){
-	uiConfigs();
-	setInterval(checkLogonStatus, 900000);
-	getAPIJSON(`master/node/${node}/voter`)
-		.then((result) => {
-    		if(result){
-				nodeVMonPort = result["voterport"];
-				drawVoterPanelFamework(result["votertitle"]);
-				getVotes();
-			} else {
-				drawVoterPanelFamework("ERROR");
-				displayError(result["ERROR"]);			
-			}
-		});
+    uiConfigs();
+    setInterval(checkLogonStatus, 900000);
+    getAPIJSON(`master/node/${node}/voter`)
+        .then((result) => {
+            if(result){
+                nodeVMonPort = result["voterport"];
+                drawVoterPanelFamework(result["votertitle"]);
+                getVotes();
+            } else {
+                drawVoterPanelFamework("ERROR");
+                displayError(result["ERROR"]);            
+            }
+        });
 }
 
 // Get the configs
 function uiConfigs(){
-	customizeUI();
-	createSidebarMenu();
-	checkLogonStatus();
+    customizeUI();
+    createSidebarMenu();
+    checkLogonStatus();
 }
 
 // Update Customizations
 async function customizeUI(){
-	let customElements = await getAPIJSON("master/ui/custom/html");
-	document.getElementById("navbar-midbar").innerHTML = customElements.HEADER_TITLE;
-	if( customElements.HEADER_LOGO !== "" ){
-		document.getElementById("header-banner-img").src = `img/${customElements.HEADER_LOGO}`;
-	}
-	document.getElementById("nav-home-button").href = customElements.HOME_BUTTON_URL;
-};
+    let customElements = await getAPIJSON("master/ui/custom/html");
+    document.getElementById("navbar-midbar").innerHTML = customElements.HEADER_TITLE;
+    if( customElements.HEADER_LOGO !== "" ){
+        document.getElementById("header-banner-img").src = `img/${customElements.HEADER_LOGO}`;
+    }
+    document.getElementById("nav-home-button").href = customElements.HOME_BUTTON_URL;
+}
 
 //
 // Monitor and Address Hash/Navagation elements
 //
 function changedLocationHash(){
-	document.getElementById("asl-votermon-area").innerHTML = "";
-	window.location.reload(true);
+    document.getElementById("asl-votermon-area").innerHTML = "";
+    window.location.reload(true);
 }
 
 
@@ -81,25 +79,25 @@ function changedLocationHash(){
 // Voter displays
 //
 function drawVoterPanelFamework(title){
-	let votermonArea = document.getElementById("asl-votermon-area");
-	let votermonAreaHeader = `
+    let votermonArea = document.getElementById("asl-votermon-area");
+    let votermonAreaHeader = `
 <div id="node-header-${node}" class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-1 px-2 mt-1 mb-1 border-bottom nodeline-header rounded">
-	<span id="asl-votermon-${node}-header-desc" class="align-middle">${node} - ${title}</span>
+    <span id="asl-votermon-${node}-header-desc" class="align-middle">${node} - ${title}</span>
 
-	<div class="btn-toolbar mb-2 mb-md-0">
-		<div class="btn-group me-2">
-        	<a id="btn-bubble-${node}" class="btn btn-sm btn-outline-secondary node-bi"
-            	data-bs-toggle="tooltip" data-bs-title="View ASL Node Map for this node" data-bs-placement="bottom"
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a id="btn-bubble-${node}" class="btn btn-sm btn-outline-secondary node-bi"
+                data-bs-toggle="tooltip" data-bs-title="View ASL Node Map for this node" data-bs-placement="bottom"
                  href="http://stats.allstarlink.org/stats/${node}/networkMap" target="_blank">
-            	<svg class="node-bi flex-shrink-0" width="16" height="16" role="img" aria-label="Network Map ${node}">
-                	<use xlink:href="#bubble-chart"/>
+                <svg class="node-bi flex-shrink-0" width="16" height="16" role="img" aria-label="Network Map ${node}">
+                    <use xlink:href="#bubble-chart"/>
                 </svg>
             </a>
             <a class="btn btn-sm btn-outline-secondary node-bi"
                 data-bs-toggle="tooltip" data-bs-title="View ASL Stats for this node" data-bs-placement="bottom"
                 href="http://stats.allstarlink.org/stats/${node}/" target="_blank">
                 <svg class="node-bi flex-shrink-0" width="16" height="16" role="img" aria-label="Node Details ${node}">
-					<use xlink:href="#details"/>
+                    <use xlink:href="#details"/>
                 </svg>
             </a>
             <button class="btn btn-sm btn-outline-secondary node-bi" onclick="openCmdModalLink(${node})"
@@ -115,58 +113,58 @@ function drawVoterPanelFamework(title){
                 </svg>
             </button>
         </div>
-	</div>
+    </div>
 </div>`;
-	let votermonAreaData = `<div id="asl-votermon-${node}-data" class="px-2">`
-	votermonArea.innerHTML = votermonAreaHeader + votermonAreaData;
-	tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    let votermonAreaData = `<div id="asl-votermon-${node}-data" class="px-2">`
+    votermonArea.innerHTML = votermonAreaHeader + votermonAreaData;
+    tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 }
 
 function getVotes(){
-	const wsproto = window.location.protocol.replace("http", "ws");
-	const wshost = window.location.host;
-	const wsuri = window.location.pathname.replace("voter.html", `/ws/${nodeVMonPort}`)
-	const wsurl = `${wsproto}//${wshost}${wsuri}`;
-	votermon = new WebSocket(wsurl);
-	votermon.addEventListener("message", displayResults);
-	votermon.onclose = (event) => {
-		document.getElementById(`asl-votermon-${node}-data`).innerHTML = `
+    const wsproto = window.location.protocol.replace("http", "ws");
+    const wshost = window.location.host;
+    const wsuri = window.location.pathname.replace("voter.html", `/ws/${nodeVMonPort}`)
+    const wsurl = `${wsproto}//${wshost}${wsuri}`;
+    votermon = new WebSocket(wsurl);
+    votermon.addEventListener("message", displayResults);
+    votermon.onclose = (event) => {
+        document.getElementById(`asl-votermon-${node}-data`).innerHTML = `
             <div class="p-3 my-2 text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded-3">
-            	The websocket could not be contacted or unexpectedly closed. Check the server config.
+                The websocket could not be contacted or unexpectedly closed. Check the server config.
             </div>
         `;
 
-	}
-	votermon.onerror = (event) => {
-		document.getElementById(`asl-votermon-${node}-data`).innerHTML = `
+    }
+    votermon.onerror = (event) => {
+        document.getElementById(`asl-votermon-${node}-data`).innerHTML = `
             <div class="p-3 my-2 text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded-3">
-            	The websocket had an error. Check the server config.
+                The websocket had an error. Check the server config.
             </div>
         `;
 
-	}
+    }
 
 }
 
 function displayResults(voterEvent){
-	if(voterEvent.returnValue){
-		document.getElementById(`asl-votermon-${node}-data`).innerHTML = voterEvent.data;
-	} else {
-		document.getElementById(`asl-votermon-${node}-data`).innerHTML = `
-			<div class="p-3 my-2 text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded-3">
-				No voter data available from system
-			</div>
-		`;
-	}
+    if(voterEvent.returnValue){
+        document.getElementById(`asl-votermon-${node}-data`).innerHTML = voterEvent.data;
+    } else {
+        document.getElementById(`asl-votermon-${node}-data`).innerHTML = `
+            <div class="p-3 my-2 text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded-3">
+                No voter data available from system
+            </div>
+        `;
+    }
 }
 
 function displayError(errormsg){
-	const voterDataArea = document.getElementById(`asl-votermon-area`);
-	voterDataArea.innerHTML = `
-		<div class="p-3 my-2 text-danger-emphasis bg-danger-subtle border border-danger-subtle rounded-3">
-			<p>The API returned an error:</p>
-			<pre>${errormsg}</pre>
-		</div>
-	`;
+    const voterDataArea = document.getElementById(`asl-votermon-area`);
+    voterDataArea.innerHTML = `
+        <div class="p-3 my-2 text-danger-emphasis bg-danger-subtle border border-danger-subtle rounded-3">
+            <p>The API returned an error:</p>
+            <pre>${errormsg}</pre>
+        </div>
+    `;
 }
