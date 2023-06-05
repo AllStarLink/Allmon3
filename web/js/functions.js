@@ -8,20 +8,6 @@
  *
  */
 
-// Returns the value of the specified HTTP GET parameter
-function findGetParameter(parameterName) {
-	var result = null,
-	tmp = [];
-	location.search
-		.substr(1)
-		.split("&")
-		.forEach(function (item) {
-		  tmp = item.split("=");
-		  if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
-		});
-	return result;
-}
-
 // Convert elapsed seconds to HH:MM:SS
 function toHMS(totalSeconds) {
   const totalMinutes = Math.floor(totalSeconds / 60);
@@ -34,29 +20,29 @@ function toHMS(totalSeconds) {
 
 // Generic AJAX functions
 async function getAPIJSON(url){
-	let response = await fetch(url);
-	if(response.ok){
-		let resp =  await response.json();
-		if(resp['SUCCESS']){
-			return resp['SUCCESS'];
-		} 
-		if(resp['SECURITY']){
-			return resp;
-		}
-	}
-	console.log(`getAPIJSON error status ${response.status} ${response.statusText}`);
-	return false;
+    let response = await fetch(url);
+    if(response.ok){
+        let resp =  await response.json();
+        if(resp['SUCCESS']){
+            return resp['SUCCESS'];
+        } 
+        if(resp['SECURITY']){
+            return resp;
+        }
+    }
+    console.log(`getAPIJSON error status ${response.status} ${response.statusText}`);
+    return false;
 }
 
 async function postAPIForm(url, form){
-	const formData = new URLSearchParams(form);
-	let response = await fetch(url, { method: "post", body: formData });
-	if(response.ok){
-		return await response.json();
-	} else {
-		console.log(`postAPIForm error status ${response.stats} ${response.statusText}`);
-		return false;
-	}
+    const formData = new URLSearchParams(form);
+    let response = await fetch(url, { method: "post", body: formData });
+    if(response.ok){
+        return await response.json();
+    } else {
+        console.log(`postAPIForm error status ${response.stats} ${response.statusText}`);
+        return false;
+    }
 
 }
 
@@ -66,31 +52,31 @@ async function postAPIForm(url, form){
 
 // Check Logon Status
 async function checkLogonStatus(){
-	let sessionStatus = await getAPIJSON("master/auth/check")
-	let loginRegion = document.getElementById("login-out-region");
-	if(sessionStatus === "Logged In"){
-		loginRegion.innerHTML = `
-			<div class="d-grid gap-2 col-6 mx-auto">
-				<button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#logoutModal">
-					Logout
-				</button>
-			</div>
-		`;
-		loggedIn = true;
-	} 
-	else if(sessionStatus["SECURITY"]){
-		loginRegion.innerHTML = `
-			<div class="d-grid gap-2 col-6 mx-auto">
-				<button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
-					Login
-				</button>	
-			</div>
-		`;
-		loggedIn = false;
-	} else {
-		loginRegion.innerHTML = "ERROR";
-		loggedIn = false;
-	}
+    let sessionStatus = await getAPIJSON("master/auth/check")
+    let loginRegion = document.getElementById("login-out-region");
+    if(sessionStatus === "Logged In"){
+        loginRegion.innerHTML = `
+            <div class="d-grid gap-2 col-6 mx-auto">
+                <button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                    Logout
+                </button>
+            </div>
+        `;
+        loggedIn = true;
+    } 
+    else if(sessionStatus["SECURITY"]){
+        loginRegion.innerHTML = `
+            <div class="d-grid gap-2 col-6 mx-auto">
+                <button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
+                    Login
+                </button>    
+            </div>
+        `;
+        loggedIn = false;
+    } else {
+        loginRegion.innerHTML = "ERROR";
+        loggedIn = false;
+    }
 }
 
 
@@ -167,63 +153,63 @@ function clearLogout(){
 
 // Generate and Draw Menus
 async function createSidebarMenu(){
-	let navMenu = `<div class="vstack d-grid gap-2 col-9 mx-auto">`;
-	const pageName = "index.html";
+    let navMenu = `<div class="vstack d-grid gap-2 col-9 mx-auto">`;
+    const pageName = "index.html";
 
-	let customMenu = await getAPIJSON("master/ui/custom/menu");
-	if(Object.keys(customMenu).length > 0){
-		for(let majMenu of Object.keys(customMenu)){
-			let majMenuObj = customMenu[majMenu];
-			for(let majMenuLabel of Object.keys(majMenuObj)){
-				let menuType = true;
-				let menuObjArr = new Array(majMenuObj[majMenuLabel]);
-				while(menuObjArr[0].length > 0){
-					let menuItem = menuObjArr[0].shift();
-					if( menuItem["type"] ){
-						if(menuItem["type"] === "menu"){
-							navMenu = navMenu.concat(`<div class="btn-group">
-								<button class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">${majMenuLabel}</button>
-	    	                    <div class="dropdown-menu">`);
-							menuType = true;
-						} else {
-							menuType = false;
-						}
-					} else {
-						if(menuType){
-							for( let ml of Object.keys(menuItem)){
-								mo = menuItem[ml];
-								if(mo.match(/^[0-9]+$/)){
-									navMenu = navMenu.concat(`<a class="dropdown-item" href="${pageName}#${mo}">${ml}</a>`);
-						        } else {
-	                                let href = menuItem[ml];
-									navMenu = navMenu.concat(`<a class="dropdown-item" href="${href}">${ml}</a>`);
-								}
-							}
-						} else {
-							for( let ml of Object.keys(menuItem)){
-								let href = menuItem[ml];
-								navMenu = navMenu.concat(`<div class="btn-group">
-									<a href="${href}" class="btn btn-secondary" role="button">${ml}</a>
-									</div>`);
-							}
-						}
-					}
-				}
-				if(menuType){
-					navMenu = navMenu.concat(`</div></div>`);
-				} 
-			}
-		}
-	} else {
-		let allNodes = await getAPIJSON("master/node/listall")
-		for(const n of allNodes){
+    let customMenu = await getAPIJSON("master/ui/custom/menu");
+    if(Object.keys(customMenu).length > 0){
+        for(let majMenu of Object.keys(customMenu)){
+            let majMenuObj = customMenu[majMenu];
+            for(let majMenuLabel of Object.keys(majMenuObj)){
+                let menuType = true;
+                let menuObjArr = new Array(majMenuObj[majMenuLabel]);
+                while(menuObjArr[0].length > 0){
+                    let menuItem = menuObjArr[0].shift();
+                    if( menuItem["type"] ){
+                        if(menuItem["type"] === "menu"){
+                            navMenu = navMenu.concat(`<div class="btn-group">
+                                <button class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">${majMenuLabel}</button>
+                                <div class="dropdown-menu">`);
+                            menuType = true;
+                        } else {
+                            menuType = false;
+                        }
+                    } else {
+                        if(menuType){
+                            for( let ml of Object.keys(menuItem)){
+                                const mo = menuItem[ml];
+                                if(mo.match(/^[0-9]+$/)){
+                                    navMenu = navMenu.concat(`<a class="dropdown-item" href="${pageName}#${mo}">${ml}</a>`);
+                                } else {
+                                    let href = menuItem[ml];
+                                    navMenu = navMenu.concat(`<a class="dropdown-item" href="${href}">${ml}</a>`);
+                                }
+                            }
+                        } else {
+                            for( let ml of Object.keys(menuItem)){
+                                let href = menuItem[ml];
+                                navMenu = navMenu.concat(`<div class="btn-group">
+                                    <a href="${href}" class="btn btn-secondary" role="button">${ml}</a>
+                                    </div>`);
+                            }
+                        }
+                    }
+                }
+                if(menuType){
+                    navMenu = navMenu.concat(`</div></div>`);
+                } 
+            }
+        }
+    } else {
+        let allNodes = await getAPIJSON("master/node/listall")
+        for(const n of allNodes){
         navMenu = navMenu.concat(`
-			<div class="btn-group">
-				<a href="#" class="btn btn-secondary" role="button" onclick="changeNodeListSingle(${n})">${n}</a>
-			</div>`);
-		}
-	}	
-	
-	navMenu = navMenu.concat(`</div>`); // closes vstack
-	document.getElementById("asl-node-navigation").innerHTML = navMenu;
+            <div class="btn-group">
+                <a href="#" class="btn btn-secondary" role="button" onclick="changeNodeListSingle(${n})">${n}</a>
+            </div>`);
+        }
+    }    
+    
+    navMenu = navMenu.concat(`</div>`); // closes vstack
+    document.getElementById("asl-node-navigation").innerHTML = navMenu;
 }
