@@ -153,7 +153,9 @@ function nodeEntry(nodeid, nodeinfo){
     if(nodeDescOverrides[nodeid]){
         node["DESC"] = nodeDescOverrides[nodeid];
     }
-    headerDescSpan.innerHTML = `${nodeid} - ${node.DESC}`;
+
+	let hdsih = `${nodeid} - ${node.DESC}`;
+    headerDescSpan.innerHTML = hdsih;
 
     // update the tx line
     if(node.RXKEYED === true && node.TXKEYED === true ){    
