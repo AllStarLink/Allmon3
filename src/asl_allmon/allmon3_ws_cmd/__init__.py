@@ -64,7 +64,7 @@ class NodeCmdWS:
                 self.node_config.host, self.node_config.port)
             log.error("Command was ignored")
     
-        except asyncio.exceptions.IncompleteReadError:
+        except asyncio.IncompleteReadError:
             log.info("Other side went away: %x", websocket.remote_address)
     
         except websockets.exceptions.ConnectionClosedError:

@@ -37,7 +37,7 @@ class NodeVoterWS:
             async for message in self.voter_ws:
                 await websocket.send(message)
 
-        except asyncio.exceptions.IncompleteReadError:
+        except asyncio.IncompleteReadError:
             log.info("Other side went away: %s", websocket.remote_address)
 
         except websockets.exceptions.ConnectionClosedError:

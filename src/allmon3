@@ -105,7 +105,7 @@ async def start_tasks():
 
         await asyncio.gather(*tasks)
     
-    except asyncio.exceptions.CancelledError as e:
+    except asyncio.CancelledError as e:
         log.debug("ending asyncio tasks")
         for t in tasks:
             t.cancel()
