@@ -82,6 +82,9 @@ class NodeVoterWS:
                 except ConnectionResetError:
                     log.error("received ConnectionResetError; trying to reconnect")
                     asl_ok = False
+                except OSError as e:
+                    log.error("received OSError: %s; trying to reconnect", e)
+                    asl_ok = False
 
                 # Sleep for the polling time
                 log.debug("voter asyncio.sleep(%s)", self.node_config.vpollinterval)
