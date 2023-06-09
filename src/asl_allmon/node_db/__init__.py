@@ -27,14 +27,20 @@ class ASLNodeDB:
     # Read and load in the ASL Database
     def get_allmon_db(self):
         log.debug("entering get_allmon_db()")
-        try:
-            req = urllib.request.Request(self.__url, data=None, headers={ "User-Agent" : "Mozilla/5.0" })
-            log.info("Retrieving database from %s", self.__url)
-            start_time = time.time()
-            with urllib.request.urlopen(req) as response:
-                dbf = response.read().decode("UTF-8")
-        except Exception as e:
-            raise e
+        retries = 0
+        while retries < 6:
+            try:
+                req = urllib.request.Request(self.__url, data=None, headers={ "User-Agent" : "Mozilla/5.0" })
+                log.info("Retrieving database from %s", self.__url)
+                start_time = time.time()
+                with urllib.request.urlopen(req) as response:
+                    dbf = response.read().decode("UTF-8")
+            except Exception as e:
+                log.error("Failed to retrieve database with error: %s", e)
+                retries += 1
+                log.error("Waiting 5 minutes to try again: attempt %s/5", retries)
+                sleep(300)                 
+        
         nodedb = re.split(r"\n", dbf)
     
         for ni in nodedb:
