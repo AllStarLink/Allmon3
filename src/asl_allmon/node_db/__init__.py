@@ -35,6 +35,7 @@ class ASLNodeDB:
                 start_time = time.time()
                 with urllib.request.urlopen(req) as response:
                     dbf = response.read().decode("UTF-8")
+                retries = 255
             except Exception as e:
                 log.error("Failed to retrieve database with error: %s", e)
                 retries += 1
