@@ -117,6 +117,9 @@ class AMI:
         except ConnectionResetError as e:
             log.error("asl_cmd_response() ConnectionResetError")
             raise e
+        except OSError as e:
+            log.error("asl_cmd_response() OSError: %s", e)
+            raise e
         except Exception as e:
             log.error("asl_cmd_response() Exception: %s", e.__class__)
             log.error("asl_cmd_response() Message: %s", e)
