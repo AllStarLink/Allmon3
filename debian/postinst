@@ -1,5 +1,5 @@
-#!/bin/sh
-# postinst script for #PACKAGE#
+#!/bin/sh -e
+# postinst script for allmon3
 #
 # see: dh_installdeb(1)
 
@@ -15,20 +15,22 @@
 # for details, see https://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
+if [ -e /usr/share/apache2/apache2-maintscript-helper ] ; then
+	. /usr/share/apache2/apache2-maintscript-helper
+fi
+
 do_configure() {
 	## User Management
-	id allmon3 > /dev/null 2>&1
-	if [ $? != 0 ]; then
+	if ! getent passwd allmon3 >/dev/null 2>&1; then
 		adduser --system --no-create-home --home /nonexistent --group \
 		--shell /usr/sbin/nologin --disabled-login --disabled-password allmon3
 	fi
 
-	## Damon Management
-	sysd_units=`systemctl | grep asl- | wc -l`
-	if [ $sysd_units -gt 0 ]; then
-		systemctl daemon-reload
-		systemctl restart allmon3
-	fi
+	## Apache Management
+	apache2_invoke enmod proxy_http || exit $?
+	apache2_invoke enmod proxy_wstunnel || exit $?
+	apache2_invoke enmod rewrite || exit $?
+	apache2_invoke enconf allmon3 || exit $?
 }
 
 case "$1" in

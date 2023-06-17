@@ -1,8 +1,8 @@
-#!/bin/sh
-# prerm script for #PACKAGE#
+#!/bin/sh -e
+# prerm script for allmon3
 #
 # see: dh_installdeb(1)
-
+#
 # summary of how this script can be called:
 #        * <prerm> `remove'
 #        * <old-prerm> `upgrade' <new-version>
@@ -15,10 +15,18 @@
 # the debian-policy package
 
 
+if [ -e /usr/share/apache2/apache2-maintscript-helper ]; then
+    . /usr/share/apache2/apache2-maintscript-helper
+fi
+
+do_unconfigure() {
+	## Apache Management
+	apache2_invoke disconf allmon3 || exit $?
+}
+
 case "$1" in
 	remove)
-	allmon3 stop
-	systemctl disable allmon3
+		do_unconfigure
 	;;
 
     upgrade|deconfigure)
@@ -39,4 +47,5 @@ esac
 #DEBHELPER#
 
 exit 0
+
 
