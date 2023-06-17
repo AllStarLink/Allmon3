@@ -39,7 +39,7 @@ args = ap.parse_args()
 async def main():
     try:
         url = f"ws://{args.host}:{args.port}"
-        print(f"Creating websoocket connection to {url}")
+        print("Creating websoocket connection to {}".format(url))
         async with websockets.connect(url, ping_timeout=None) as websocket:
             cmd = crypt_msg(args.cmd, args.passwd).decode("UTF-8")
             await websocket.send(cmd)
@@ -50,7 +50,7 @@ async def main():
                 print(decm)
     
     except Exception as e:
-        print("Error: " + e)
+        print("Error: {}".format(e))
         sys.exit(1)
 
 if __name__ == "__main__":
