@@ -57,6 +57,7 @@ def sigusr1_handler(_signo, _stack_frame):
         log.info("reloaded node, web, menu, and sercurity configs")
 
         allmon_db.get_allmon_db()
+        allmon_db.add_node_overrides(web_configuration.node_overrides)
         for n, c in node_configuration.nodes.items():
             allmon_db.set_my_info(c)
         log.info("reloaded AllStarLink database")
@@ -101,7 +102,7 @@ async def start_tasks():
         tasks.append(asyncio.create_task(a3server.main()))
 
         log.info("starting node_db updater")
-        tasks.append(asyncio.create_task(allmon_db.db_updater(node_configuration)))
+        tasks.append(asyncio.create_task(allmon_db.db_updater(node_configuration, web_configuration.node_overrides)))
 
         await asyncio.gather(*tasks)
     
@@ -214,6 +215,7 @@ try:
 
     # Get Database
     allmon_db = node_db.ASLNodeDB()
+    allmon_db.add_node_overrides(web_configuration.node_overrides)
     for n, c in node_configuration.nodes.items():
         allmon_db.set_my_info(c)
 

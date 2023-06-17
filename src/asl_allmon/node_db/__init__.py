@@ -63,9 +63,16 @@ class ASLNodeDB:
                 node_conf.node_mon_list[n]["DESC"] = "Unavailable"
         log.debug("exiting set_my_info()")
 
-    async def db_updater(self, node_configuration):
+    def add_node_overrides(self, web_node_overrides):
+        log.debug("entering add_node_overrides()")
+        for k, v in web_node_overrides.items():
+            self.node_database[k]['DESC'] = v
+        log.debug("exiting add_node_overrideS()")
+
+    async def db_updater(self, node_configuration, web_node_overrides):
         while True:
             await asyncio.sleep(15*60)
             self.get_allmon_db()
             for n, c in node_configuration.nodes.items():
                 self.set_my_info(c)
+                self.add_node_overrides(web_node_overrides)
