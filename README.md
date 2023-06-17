@@ -32,7 +32,7 @@ are properly available through the ASL Debian repository.
 ### Install on Debian 12
 1. Install dependencies:
 ```
-apt install -y apache2 python3-websockets python3-aiohttp python3-aiohttp-session
+apt install -y apache2 python3-websockets python3-argon2 python3-aiohttp python3-aiohttp-session
 ```
 2. Install Allmon3
 ```
@@ -51,7 +51,7 @@ apt update
 
 2. Install the dependencies
 ```
-apt install -y apache2
+apt install -y apache2 python3-argon2 
 apt install -y -t bullseye-backports python3-websockets python3-aiohttp python3-aiohttp-session
 ```
 
@@ -72,7 +72,7 @@ apt update
 
 2. Install the dependendencies
 ```
-apt install -y apache2
+apt install -y apache2 python3-argon2 
 apt install -y -t buster-backports python3-async-timeout python3-attr python3-multidict python3-yarl
 ```
 
