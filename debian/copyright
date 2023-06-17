@@ -18,7 +18,7 @@ License: AGPL-3.0-only
  along with this program.  If not, see
  <https://www.gnu.org/licenses/agpl-3.0.txt>.
 
-Files: css/bootstrap* js/bootstrap*
+Files: web/css/bootstrap* web/js/bootstrap*
 Copyright: 2011-2023 The Bootstrap Authors
 License: MIT
  Permission is hereby granted, free of charge, to any person obtaining a copy

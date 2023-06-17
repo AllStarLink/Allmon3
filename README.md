@@ -24,9 +24,21 @@ ASL communities.
 
 ## Quickstart
 
-Note: This software is currently only supported on Debian 11 with the
-`bullseye-backports` enabled. Debian 10 support will be added in the near
-future.
+Allmon3 is only support on Debian 10, Debian 11, and Debian 12 (or the 
+Raspbian/Raspberry Pi OS equivalent - e.g. "Raspbian 11"). Note that
+these directions will change with the 1.0 release when all packages
+are properly available through the ASL Debian repository.
+
+### Install on Debian 12
+1. Install dependencies:
+```
+apt install -y apache2 python3-websockets python3-aiohttp python3-aiohttp-session
+```
+2. Install Allmon3
+```
+wget https://github.com/AllStarLink/Allmon3/releases/download/rel_t_0_11_1/allmon3_0.11.1-1_all.deb
+dpkg -i allmon3_0.11.1-1_all.deb
+```
 
 ### Install on Debian 11 / Raspian 11 Software
 
@@ -45,17 +57,11 @@ apt install -y -t bullseye-backports python3-websockets python3-aiohttp python3-
 
 3. Install Allmon3
 ```
-wget https://github.com/AllStarLink/Allmon3/releases/download/rel_t_0_10_1/allmon3_0.10.1-1_all.deb
-dpkg -i allmon3_0.10.1-1_all.deb
+wget https://github.com/AllStarLink/Allmon3/releases/download/rel_t_0_11_1/allmon3_0.11.1-1_all.deb
+dpkg -i allmon3_0.11.1-1_all.deb
 ```
 
 ### Install Debian 10 / Raspian 10 Software
-
-Note: The version of Python available on Debian 10 is old and does not support
-reasonably-modern conventions of the core Pythong Asynchronous I/O subsystem that
-is heavily used throughout Allmon3. Notably some of the error-handling features
-are not available and you may get strange error messages in your syslog. This issue
-cannot be fixed.
 
 1. Enable the Debian 10 `buster-backports` package repository:
 
@@ -64,7 +70,7 @@ echo "deb https://deb.debian.org/debian buster-backports main" > /etc/apt/source
 apt update
 ```
 
-2. Install the DEB/APT-support dependendencies
+2. Install the dependendencies
 ```
 apt install -y apache2
 apt install -y -t buster-backports python3-async-timeout python3-attr python3-multidict python3-yarl
@@ -80,8 +86,8 @@ pip3 install websockets
 
 4. Install Allmon3
 ```
-wget https://github.com/AllStarLink/Allmon3/releases/download/rel_t_0_10_1/allmon3_0.10.1-1_all.deb
-dpkg -i allmon3_0.10.1-1_all.deb
+wget https://github.com/AllStarLink/Allmon3/releases/download/rel_t_0_11_1/allmon3_0.11.1-1_all.deb
+dpkg -i --force-depends allmon3_0.11.1-1_all.deb
 ```
 
 ### Configure Allmon
@@ -89,18 +95,6 @@ dpkg -i allmon3_0.10.1-1_all.deb
 1. Edit `/etc/allmon3/allmon3.ini` for the basic node configuration as explained in the file.
 
 2. Edit `/etc/allmon3/web.ini` as desired.
-
-3. Configure Apache using the following commands:
-```
-a2enmod proxy_http proxy_wstunnel rewrite
-cp /etc/allmon3/apache.conf /etc/apache2/conf-available/allmon3.conf
-a2enconf allmon3
-systemctl restart apache2
-```
-
-If you would prefer to configure Apache differently or have other existing configuration
-such as NamedVirtualHosts, use the configuration found in 
-`/etc/apache2/conf-available/allmon3.conf` to build a working configuration.
 
 3. Set a password for the default user allmon3:
 ```
@@ -197,74 +191,5 @@ as described in `menu.ini.example`.
 
 # Install From Source
 
-This method is **NOT** recommended.
-`
-1. Install the necessary dependencies using apt, pip, etc.
-
-   Python3 websockets > 11.0 
-   Python3 aiohttp > 3.7 and dependencies (yarl, attr, chardet, multidict) 
-
-2. Install the application using make
-
-If this is the first installation of Allmon3 on a fresh system,
-the software can be installed simply using `make install`:
-
-```
-make install
-```
-
-However if this is an upgrade of an existing installation,
-add `instconf=n` to the command to prevent your configurations
-in `/etc/allmon3` from being overwritten.
-
-```
-make install instconf=n
-```
-
-This will install everything into `/usr`, `/etc`, and `/lib`. 
-The applications will install in `/usr/bin`.
-Configuration will be stored in `/etc/allmon3`.
-The web files will be in `/usr/share/allmon3` while examples and
-other (future) documentation will be in `/usr/share/doc/allmon3`.
-Systemd service files will be installed in `/lib/systemd/system`.
-
-Installation is relocatable using the following make(1) parameters:
-
-* `prefix=` will alter the core prefix of `/usr` files and is most
-commonly used to install into `/usr/local`. This is recommended
-when you care about distro/FHS/packaging fidelity. This relocates
-items installed `/usr/bin` and `/usr/share` to, for example,
-`/usr/local/bin` and `/usr/local/share`.
-
-* `sysconfdir=` will alter the location of the configuration files to 
-`$sysconfdir/allmon3`.
-
-* `sysd_service=` will alter the location of the systemd service files.
-The only practical alternative to `/lib/systemd/system` is `/etc/systemd/system`.
-
-* `datadir=` will relocate the web application portion of Allmon3
-to `$datadir/allmon3`.
-
-* `docdir=` will relocate the documentation and examples to `$docdir/allmon3`.
-
-For example:
-```
-make install prefix=/usr/local sysconfdir=/usr/local/etc datadir=/var/www/html sysd_service=/etc/systemd/system
-```
-
-All the above variables are also modified further by the `destdir=` variable
-which will install the complete system in an alternative location. This is
-only really useful for testing in development.
-
-For example:
-```
-make install destdir=/path/to/temp/location
-```
-
-3. Create the necessary `custom.css`:
-```
-cd /usr/share/allmon3/css && ln -s /etc/allmon3/custom.css
-```
-
-After this, follow the configuration steps above.
-
+Installation from source no longer works and is no longer supported
+in the general use case.

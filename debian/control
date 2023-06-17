@@ -1,5 +1,5 @@
 Source: allmon3
-Section: miscellaneous
+Section: hamradio
 Priority: optional
 Maintainer: Jason McCormick <jason@mfamily.org>
 Build-Depends: debhelper-compat (= 13)
@@ -11,7 +11,9 @@ Rules-Requires-Root: binary-targets
 
 Package: allmon3
 Architecture: all
-Depends: python3-argon2, python3
+Recommends: apache2 | httpd
+Depends: python3-argon2, python3, python3-websockets, python3-aiohttp, python3-aiohttp-session, ${misc:Depends}, adduser
 Description: Web monitoring interface for AllStarLink
-  Allmon is the standard web-based montitoring
-  and management for the AllStarLink application.
+	application. Allmon3 is the next generation of
+	the venerable Allmon2 that is rewritten for
+	performance, scalability, and responsiveness. 

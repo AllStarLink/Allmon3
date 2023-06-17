@@ -1,7 +1,6 @@
 [Unit]
 Description=Allmon3 daemon
 After=network.target
-After=syslog.target
 After=asterisk.service
 
 [Service]
