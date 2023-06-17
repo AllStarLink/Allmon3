@@ -57,7 +57,7 @@ apt install -y -t bullseye-backports python3-websockets python3-aiohttp python3-
 
 3. Install Allmon3
 ```
-wget https://github.com/AllStarLink/Allmon3/releases/download/rel_t_0_11_0/allmon3_0.11.1-0_all.deb
+wget https://github.com/AllStarLink/Allmon3/releases/download/rel_t_0_11_0/allmon3_0.11.0-1_all.deb
 dpkg -i allmon3_0.11.0-1_all.deb
 ```
 
