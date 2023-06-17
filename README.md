@@ -24,7 +24,7 @@ ASL communities.
 
 ## Quickstart
 
-Allmon3 is only support on Debian 10, Debian 11, and Debian 12 (or the 
+Allmon3 is only supported on Debian 10, Debian 11, and Debian 12 (or the 
 Raspbian/Raspberry Pi OS equivalent - e.g. "Raspbian 11"). Note that
 these directions will change with the 1.0 release when all packages
 are properly available through the ASL Debian repository.
@@ -182,7 +182,7 @@ can be used to override information from the ASL database. The *voter-titles*
 section is used to set display names for voters.
 
 * `/etc/allmon3/custom.css` - Certain CSS customizations to change
-colors in the application.
+colors in the application. Follows standard CSS rules and syntax.
 
 * `/etc/allmon3/menu.ini` - Allows for the customization of the
 Allmon3 web menu. By default, the menu is a list of all nodes
@@ -191,5 +191,4 @@ as described in `menu.ini.example`.
 
 # Install From Source
 
-Installation from source no longer works and is no longer supported
-in the general use case.
+Installation from source no longer supported in the general use case.
