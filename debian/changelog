@@ -1,9 +1,15 @@
-allmon3 (0.10.2-10t3) UNRELEASED; urgency=medium
+allmon3 (0.11.0-1) unstable; urgency=medium
 
-  * Correct all debian packaging issues and take over apache
-  * 
+  * Complete installation by apt/dpkg into a basic working Allmon3
+  * Implementation of per-node commands in web.ini
+  * IP binding is now configurable
+  * menu.ini ordering is now preserved in the web interface
+  * Fix compatability in asyncio with Python 3.7 for Debian 10 support
+  * Cleanup of JavaScript code
+  * Handle additional network-related error conditions for AMI connections
 
- -- Jason McCormick <jason@mfamily.org>  Sat, 17 Jun 2023 10:34:55 -0400
+
+ -- Jason McCormick <jason@mfamily.org>  Sat, 17 Jun 2023 15:57:35 -0400
 
 allmon3 (0.10.2-2) unstable; urgency=medium
 

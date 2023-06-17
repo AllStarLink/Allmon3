@@ -10,7 +10,7 @@ import logging
 import re
 import sys
 
-_BUILD_ID = "@@HEAD-DEVELOP@@"
+_BUILD_ID = "0.11.0"
 log = logging.getLogger(__name__)
 
 class WebConfigs:
