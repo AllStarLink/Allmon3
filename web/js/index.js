@@ -334,7 +334,7 @@ function nodeConnTable(conns, keyed, keyednode) {
             </tr>`);
         }
     } else {
-        row = "<tr><td colspan=7>No Conenctions - Repeat Only</td></tr>";
+        row = "<tr><td colspan=7>No Connections - Repeat Only</td></tr>";
     }
 
     return tTop + row + tBottom;
