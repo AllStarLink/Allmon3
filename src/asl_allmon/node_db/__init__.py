@@ -60,12 +60,17 @@ class ASLNodeDB:
                 node_conf.node_mon_list[n]["DESC"] = "{0} {1} {2}".format(self.node_database[str(n)]['CALL'],
                 self.node_database[str(n)]['DESC'], self.node_database[str(n)]['LOC'])
             else:
-                node_conf.node_mon_list[n]["DESC"] = "Unavailable"
+                if int(n) < 2000:
+                    node_conf.node_mon_list[n]["DESC"] = "Private"
+                else:
+                    node_conf.node_mon_list[n]["DESC"] = "Unavailable"
         log.debug("exiting set_my_info()")
 
     def add_node_overrides(self, web_node_overrides):
         log.debug("entering add_node_overrides()")
         for k, v in web_node_overrides.items():
+            if k not in self.node_database:
+                self.node_database.update( { str(k) : {} } )
             self.node_database[k]['DESC'] = v
         log.debug("exiting add_node_overrideS()")
 
