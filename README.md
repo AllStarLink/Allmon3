@@ -87,7 +87,7 @@ pip3 install websockets
 4. Install Allmon3 (debian10 version)
 ```
 wget https://github.com/AllStarLink/Allmon3/releases/download/rel_t_0_11_1/allmon3_0.11.1-1_debian10.deb
-dpkg -i --force-depends allmon3_0.11.0-1_debian10.deb
+dpkg -i --force-depends allmon3_0.11.1-1_debian10.deb
 ```
 
 ### Configure Allmon
