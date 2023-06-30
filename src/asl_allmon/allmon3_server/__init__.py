@@ -18,7 +18,7 @@ import time
 import websockets
 from .. import node_configs, security, web_configs
 
-__BUILD_ID = "0.11.2"
+__BUILD_ID = "@@HEAD-DEVELOP@@"
 log = logging.getLogger(__name__)
 
 class ServerWS:

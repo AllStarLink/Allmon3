@@ -11,7 +11,7 @@ import uuid
 import time
 import argon2
 
-_BUILD_ID = "0.11.2"
+_BUILD_ID = "@@HEAD-DEVELOP@@"
 log = logging.getLogger(__name__)
 
 class Security:
