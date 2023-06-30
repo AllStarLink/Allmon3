@@ -15,6 +15,7 @@ import socket
 import time
 from time import sleep
 from websockets.server import serve
+from websockets import exceptions as ws_exceptions
 from .. import ami_conn, ami_parser, node_configs, node_db, ws_broadcaster
 
 
@@ -50,11 +51,11 @@ class NodeStatusWS:
         except asyncio.IncompleteReadError:
             log.info("Other side went away: %s", websocket.remote_address)
     
-        except websockets.exceptions.ConnectionClosedError:
+        except ws_exceptions.ConnectionClosedError:
             log.info("ConnctionClosed with Error from %s", websocket.remote_address)
             self.connections.remove(websocket)
     
-        except websockets.exceptions.ConnectionClosedOK:
+        except ws_exceptions.ConnectionClosedOK:
             log.info("ConnctionClosed from %s", websocket.remote_address)
             self.connections.remove(websocket)
 
@@ -91,6 +92,8 @@ class NodeStatusWS:
  
                 except ami_conn.AMIException as e:
                     log.warning("ami_conn socket problem for node %s: %s", self.node_id, e)
+                    error_msg = { self.node_id : "ERROR", "ERROR" : "Allmon3 is trying to re-establish this connection..." }
+                    self.bcast_ws.publish(json.dumps(error_msg))
                     asl_ok = False
    
             else:

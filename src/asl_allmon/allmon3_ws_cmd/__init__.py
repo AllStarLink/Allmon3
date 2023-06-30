@@ -30,7 +30,6 @@ class NodeCmdWS:
         self.node_id = node
         self.node_config = node_config
         self.web_config = web_config
-        self.cmd_ws = ws_broadcaster.WebsocketBroadcaster()
 
     async def handler(self, websocket):
         log.debug("entering node_cmd_handler(%s) for %s", self.node_id, websocket.remote_address)
@@ -82,7 +81,6 @@ class NodeCmdWS:
     
     async def main(self):
         loop = asyncio.get_event_loop()
-        self.cmd_ws.set_waiter(asyncio.Future(loop=loop))
         async with serve(
             self.handler,
             host = self.web_config.ws_bind_addr,

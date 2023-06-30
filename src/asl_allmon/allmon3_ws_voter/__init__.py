@@ -9,6 +9,7 @@
 import asyncio
 import base64
 import binascii
+import json
 import logging
 import socket
 import time
@@ -86,6 +87,8 @@ class NodeVoterWS:
 
                 except ami_conn.AMIException as e:
                     log.warning("ami_conn socket problem for node %s: %s", self.node_id, e)
+                    error_msg = "<div class=\"p-3 my-2 text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded-3\"Allmon3 is trying to reconnect...</div>"
+                    self.voter_ws.publish(error_msg)
                     asl_ok = False
     
             else:

@@ -138,9 +138,13 @@ function updateDashboardAreaStructure(){
 
 // Each node
 function nodeEntryHandler(WSResult){
-    const nodeinfoHash = JSON.parse(WSResult.data);
-    for( const n in nodeinfoHash ){
-        nodeEntry(n, nodeinfoHash[n]);
+    const nodeInfoHash = JSON.parse(WSResult.data);
+    for( const n in nodeInfoHash ){
+		if( nodeInfoHash[n] === "ERROR" ){
+			nodeEntrySetRetryMessage(n, nodeInfoHash["ERROR"]);
+		} else {
+	        nodeEntry(n, nodeInfoHash[n]);
+		}
     }
 }
 function nodeEntry(nodeid, nodeinfo){
@@ -190,6 +194,21 @@ function nodeEntrySetError(nodeid){
         monNodes.splice(i, 1);
     }
 }
+
+function nodeEntrySetRetryMessage(nodeid, retryMessage){
+    const divHeader = document.getElementById(`asl-statmon-dashboard-${nodeid}-header`);
+    const divTxStat = document.getElementById(`asl-statmon-dashboard-${nodeid}-txstat`);
+    const divConntable = document.getElementById(`asl-statmon-dashboard-${nodeid}-conntable`);
+
+    divHeader.innerHTML = nodeLineHeader(nodeid, "Unavailable Node")
+    divTxStat.innerHTML = `<div class="alert alert-warning am3-alert-error mx-3 py-0">${retryMessage}</div>`
+	
+	if( divConntable != null ){
+	    divConntable.innerHTML = "";
+	}
+}
+
+
 
 // Draw/update the header row for a node
 function nodeLineHeader(nodeNumber, nodeDescription){
