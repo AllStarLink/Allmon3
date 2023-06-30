@@ -14,7 +14,8 @@ import re
 import socket
 import time
 from time import sleep
-import websockets
+from websockets.server import serve
+from websockets import exceptions as ws_exceptions
 from .. import ami_conn, ami_parser, node_configs, node_db, ws_broadcaster
 
 __BUILD_ID = "@@HEAD-DEVELOP@@"
@@ -62,25 +63,16 @@ class NodeCmdWS:
         except ami_conn.AMIException:
             log.error("Could not connect to AMI interface %s:%s",
                 self.node_config.host, self.node_config.port)
-            log.error("Command was ignored")
+            log.warning("Command was ignored")
     
         except asyncio.IncompleteReadError:
             log.info("Other side went away: %x", websocket.remote_address)
     
-        except websockets.exceptions.ConnectionClosedError:
+        except ws_exceptions.ConnectionClosedError:
             log.info("ConnctionClosed with Error from %s", websocket.remote_address)
     
-        except websockets.exceptions.ConnectionClosedOK:
+        except ws_exceptions.ConnectionClosedOK:
             log.info("ConnctionClosed from %s", websocket.remote_address)
-    
-        except BrokenPipeError as e:
-            log.error("received BrokenPipeError")
-    
-        except socket.timeout as e:
-            log.error("received socket.timeout")
-    
-        except ConnectionResetError as e:
-            log.error("received ConnectionResetError")
     
         except Exception as e:
             log.error(e)
@@ -91,14 +83,12 @@ class NodeCmdWS:
     async def main(self):
         loop = asyncio.get_event_loop()
         self.cmd_ws.set_waiter(asyncio.Future(loop=loop))
-        async with websockets.serve(
+        async with serve(
             self.handler,
             host = self.web_config.ws_bind_addr,
             port = self.node_config.cmdport,
             logger = log,
-            compression = None,
-            ping_timeout = None
-        ):
+            ):
             await asyncio.Future()
 
 class NodeCmdWSException(Exception):

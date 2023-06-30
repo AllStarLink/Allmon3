@@ -14,7 +14,7 @@ import logging
 import socket
 import time
 from time import sleep
-import websockets
+from websockets.server import serve
 from .. import ami_conn, ami_parser, node_configs, node_db, ws_broadcaster
 
 
@@ -34,7 +34,7 @@ class NodeStatusWS:
         self.bcast_ws = ws_broadcaster.WebsocketBroadcaster()
 
     def __exit__(self, exc_type, exc_value, traceback):
-         for connection in self.connections:
+        for connection in self.connections:
             log.info("closing an AMI connection: %s", connection.ami_host)
             connection.close()
             self.ami.close()
@@ -57,7 +57,8 @@ class NodeStatusWS:
         except websockets.exceptions.ConnectionClosedOK:
             log.info("ConnctionClosed from %s", websocket.remote_address)
             self.connections.remove(websocket)
-    
+
+    # Websocket broadcaster 
     async def broadcast(self):
         log.debug("enter node_status_broadcast()")
         asl_ok = True
@@ -83,50 +84,35 @@ class NodeStatusWS:
                             log.debug("Node %s: sending keepalive command", self.node_id)
                             parser.asl_cmd("core show version")
                             last_socket_send = time.time()
-
-                except BrokenPipeError as e:
-                    log.error("received BrokenPipeError; trying to reconnect")
-                    asl_ok = False
-                except socket.timeout as e:
-                    log.error("received socket.timeout; trying to reconnect")
-                    asl_ok = False
-                except ConnectionResetError as e:
-                    log.error("received ConnectionResetError; trying to reconnect")
-                    asl_ok = False
-                except OSError as e:
-                    log.error("received OSError: %s; trying to reconnect", e)
-                    asl_ok = False
-                except Exception as e:
-                    log.error(e)
-                    raise e
+                
+                    # Sleep for the polling time
+                    log.debug("status asyncio.sleep(%d)", self.node_config.pollinterval)
+                    await asyncio.sleep(self.node_config.pollinterval)
  
-                # Sleep for the polling time
-                log.debug("status asyncio.sleep(%d)", self.node_config.pollinterval)
-                await asyncio.sleep(self.node_config.pollinterval)
-    
+                except ami_conn.AMIException as e:
+                    log.warning("ami_conn socket problem for node %s: %s", self.node_id, e)
+                    asl_ok = False
+   
             else:
-                # If we exited out of asl_ok without throwing an exception
-                # then something went wrong with the asl socket. Loop around
-                # here trying to reconnect for the timeout interval and then
-                # let the main_loop continue
                 self.ami.close()
                 asl_dead = True
                 retry_counter = 0
     
                 while asl_dead:
-                    log.debug("sleeping for RETRY_INTERVAL of %s", self.node_config.retryinterval)
-                    sleep(self.node_config.retryinterval)
+                    log.info("node: %s - sleeping for RETRY_INTERVAL of %s", self.node_id, self.node_config.retryinterval)
+                    await asyncio.sleep(self.node_config.retryinterval)
                     retry_counter += 1
     
                     if self.node_config.retrycount == -1 or self.node_config.retrycount <= retry_counter:
-                        log.debug("attempting reconnection retry #%d", retry_counter)
+                        log.info("node: %s - attempting reconnection retry #%d", self.node_id, retry_counter)
     
-                        c_stat = self.ami.asl_create_connection_nofail()
+                        c_stat = self.ami.asl_create_connection()
                         if c_stat:
-                            log.info("connection reestablished after %d retries", retry_counter)
+                            log.info("node: %s - connection reestablished after %d retries", self.node_id, retry_counter)
                             asl_dead = False
                     else:
-                        log.error("count not reestablish connection after %d retries - exiting", retry_counter)
+                        log.error("node: %s - could not reestablish connection after %d retries - exiting", 
+                            self.node_id, retry_counter)
                         raise NodeStatusWSException(f"count not reestablish connection after {retry_counter} retries - exiting")
     
                 # re-enable the innter loop processing
@@ -141,13 +127,11 @@ class NodeStatusWS:
             self.bcast_ws.set_waiter(asyncio.Future(loop=loop))
             self.ami = ami_conn.AMI(self.node_config.host, self.node_config.port, 
                 self.node_config.user, self.node_config.password)
-            async with websockets.serve(
+            async with serve(
                 self.handler,
                 host = self.web_config.ws_bind_addr,
                 port = self.node_config.monport,
                 logger = log,
-                compression = None,
-                ping_timeout = None
                 ):
                 log.info("broadcasting status for %s on port %s", 
                     self.node_config.node, self.node_config.monport)

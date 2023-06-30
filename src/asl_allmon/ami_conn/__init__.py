@@ -26,20 +26,13 @@ class AMI:
         self.ami_port = port
         self.ami_user = user
         self.ami_pass = password
-        self.socket = self.asl_create_connection_fail()
+        self.socket = None
+        
+        if not self.asl_create_connection():
+            raise AMIException(f"could not initialize a connection to {hostname}:{port}")
 
-    ## Use this creator as part of a retry interval
-    def asl_create_connection_nofail(self):
-        return self.asl_create_connection(False)
-    
-    ## Use this creator to fail immediately on any
-    ## network-level connect failure
-    def asl_create_connection_fail(self):
-        return self.asl_create_connection(True)
-    
-    ## If failhard=True then sys.exit() is called on network-level issues
-    def asl_create_connection(self, failhard):
-        log.debug("asl_create_connection(failhard=%s)", failhard)
+    def asl_create_connection(self):
+        log.debug("asl_create_connection()")
         try:
             log.debug("connect() using %s:%s", self.ami_host, self.ami_port)
             self.socket = socket.create_connection((self.ami_host, self.ami_port), timeout=5)
@@ -69,16 +62,14 @@ class AMI:
             log.debug("leaving asl_create_connection()")
     
         except socket.error as error:
-            log.error("connection failed to %s:%s: %s", self.ami_host, self.ami_port, error)
-            if failhard:
-                raise AMIException("connection failed to {self.ami_host}:{self.ami_port}: {error}") from error
+            log.warning("connection failed to %s:%s: %s", self.ami_host, self.ami_port, error)
+            return False
 
         except TypeError as e:
-            log.error("failed connection on connect(): %s", e)
-            if failhard:
-                raise AMIException("connection failed") from e
+            log.warning("failed connection on connect(): %s", e)
+            return False
 
-        return self.socket
+        return True
     
     # Generic construct for sending ASL Manager commands and reading responses
     def asl_cmd_response(self, cmd):
@@ -106,24 +97,24 @@ class AMI:
             return resp
     
         except TimeoutError as e:
-            log.error("asl_cmd_response() TimeoutError")
-            raise e
+            log.warning("asl_cmd_response() TimeoutError")
+            raise AMIException("socket timeout") from e
         except BrokenPipeError as e:
-            log.error("asl_cmd_response() BrokenPipeError")
-            raise e
+            log.warning("asl_cmd_response() BrokenPipeError")
+            raise AMIException("socket broken pipe") from e
         except socket.timeout as e:
-            log.error("asl_cmd_response() socket.timeout")
-            raise e
+            log.warning("asl_cmd_response() socket.timeout")
+            raise AMIException("socket timeout") from e
         except ConnectionResetError as e:
-            log.error("asl_cmd_response() ConnectionResetError")
-            raise e
+            log.warning("asl_cmd_response() ConnectionResetError")
+            raise AMIException("socket connection reset") from e
         except OSError as e:
-            log.error("asl_cmd_response() OSError: %s", e)
-            raise e
+            log.warning("asl_cmd_response() OSError: %s", e)
+            raise AMIException(f"socket os error: {e}") from e
         except Exception as e:
             log.error("asl_cmd_response() Exception: %s", e.__class__)
             log.error("asl_cmd_response() Message: %s", e)
-            raise e
+            raise AMIException("unhandled error") from e
 
         log.debug("exit asl_cmd_response()")
     
@@ -132,14 +123,14 @@ class AMI:
         try:
             self.socket.sendall(str.encode("ACTION: Logoff\r\n\r\n"))
         except Exception as e:
-            log.error(e)
+            log.warning(e)
 
     def close(self):
         try:
             self.__asl_logout()
             self.socket.close()
         except Exception as e:
-            log.error(e)
+            log.warning(e)
 
 class AMIException(Exception):
     """ Exceptions for the AMI class """

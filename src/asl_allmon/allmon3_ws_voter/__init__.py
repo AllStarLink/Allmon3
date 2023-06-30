@@ -13,7 +13,8 @@ import logging
 import socket
 import time
 from time import sleep
-import websockets
+from websockets.server import serve
+from websockets import exceptions as ws_exceptions
 from .. import ami_conn, ami_parser, node_configs, node_db, ws_broadcaster
 
 __BUILD_ID = "@@HEAD-DEVELOP@@"
@@ -30,6 +31,12 @@ class NodeVoterWS:
         self.web_config = web_config
         self.voter_ws = ws_broadcaster.WebsocketBroadcaster()
 
+    def __exit__(self, exc_type, exc_value, traceback):
+        for connection in self.connections:
+            log.info("closing an AMI connection: %s", connection.ami_host)
+            connection.close()
+
+    # Websocket Handler
     async def handler(self, websocket):
         log.debug("entering voter handler(%s} for %s", self.node_id, websocket.remote_address)
         self.connections.add(websocket)
@@ -40,11 +47,11 @@ class NodeVoterWS:
         except asyncio.IncompleteReadError:
             log.info("Other side went away: %s", websocket.remote_address)
 
-        except websockets.exceptions.ConnectionClosedError:
+        except ws_exceptions.ConnectionClosedError:
             log.info("ConnctionClosed with Error from %s", websocket.remote_address)
             self.connections.remove(websocket)
 
-        except websockets.exceptions.ConnectionClosedOK:
+        except ws_exceptions.ConnectionClosedOK:
             log.info("ConnctionClosed from %s", websocket.remote_address)
             self.connections.remove(websocket)
 
@@ -73,46 +80,34 @@ class NodeVoterWS:
                             parser.asl_cmd("core show version")
                             last_socket_send = time.time()
 
-                except BrokenPipeError:
-                    log.error("received BrokenPipeError; trying to reconnect")
-                    asl_ok = False
-                except socket.timeout:
-                    log.error("received socket.timeout; trying to reconnect")
-                    asl_ok = False
-                except ConnectionResetError:
-                    log.error("received ConnectionResetError; trying to reconnect")
-                    asl_ok = False
-                except OSError as e:
-                    log.error("received OSError: %s; trying to reconnect", e)
-                    asl_ok = False
+                    # Sleep for the polling time
+                    log.debug("voter asyncio.sleep(%s)", self.node_config.vpollinterval)
+                    await asyncio.sleep(self.node_config.vpollinterval)
 
-                # Sleep for the polling time
-                log.debug("voter asyncio.sleep(%s)", self.node_config.vpollinterval)
-                await asyncio.sleep(self.node_config.vpollinterval)
+                except ami_conn.AMIException as e:
+                    log.warning("ami_conn socket problem for node %s: %s", self.node_id, e)
+                    asl_ok = False
     
             else:
-                # If we exited out of asl_ok without throwing an exception
-                # then something went wrong with the asl socket. Loop around
-                # here trying to reconnect for the timeout interval and then
-                # let the main_loop continue
                 self.ami.close()
                 asl_dead = True
                 retry_counter = 0
     
                 while asl_dead:
-                    log.debug("sleeping for RETRY_INTERVAL of %s", self.node_config.retryinterval)
-                    sleep(self.node_config.retryinterval)
+                    log.info("node: %s - sleeping for RETRY_INTERVAL of %s", self.node_id, self.node_config.retryinterval)
+                    await asyncio.sleep(self.node_config.retryinterval)
                     retry_counter += 1
     
                     if self.node_config.retrycount == -1 or self.node_config.retrycount <= retry_counter:
-                        log.debug("attempting reconnection retry #%d", retry_counter)
+                        log.info("node: %s - attempting reconnection retry #%d", self.node_id, retry_counter)
     
-                        c_stat = self.ami.asl_create_connection_nofail()
+                        c_stat = self.ami.asl_create_connection()
                         if c_stat:
-                            log.info("connection reestablished after %d retries", retry_counter)
+                            log.info("node: %s - connection reestablished after %d retries", self.node_id, retry_counter)
                             asl_dead = False
                     else:
-                        log.error("count not reestablish connection after %d retries - exiting", retry_counter)
+                        log.error("node: %s - could not reestablish connection after %d retries - exiting",
+                            self.node_id, retry_counter)
                         raise NodeVoterWSException(f"count not reestablish connection after {retry_counter} retries - exiting")
  
                 # re-enable the innter loop processing
@@ -123,17 +118,17 @@ class NodeVoterWS:
     async def main(self):
         log.debug("enter node_voter_main()")
         try:
-	        loop = asyncio.get_event_loop()
-	        self.voter_ws.set_waiter(asyncio.Future(loop=loop))
-	        self.ami = ami_conn.AMI(self.node_config.host, self.node_config.port,
+            loop = asyncio.get_event_loop()
+            self.voter_ws.set_waiter(asyncio.Future(loop=loop))
+            self.ami = ami_conn.AMI(self.node_config.host, self.node_config.port,
 	            self.node_config.user, self.node_config.password)
-	        async with websockets.serve(
+            async with serve(
 	            self.handler,
 	            host = self.web_config.ws_bind_addr,
 	            port = self.node_config.voterports[self.node_id],
 	            logger = log
-	        ):
-	            await self.broadcast()
+    	        ):
+                await self.broadcast()
 
         except ami_conn.AMIException:
             log.error("Terminating asyncio worker for %s:%s on %s due to unreachable AMI",
