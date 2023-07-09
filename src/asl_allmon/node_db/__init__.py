@@ -72,8 +72,8 @@ class ASLNodeDB:
             if k not in self.node_database:
                 self.node_database.update( { str(k) : {} } )
             self.node_database[k]['DESC'] = v
-            self.node_database[k]['CALL'] = None
-            self.node_database[k]['LOC'] = None
+            self.node_database[k]['CALL'] = str("")
+            self.node_database[k]['LOC'] = str("")
         log.debug("exiting add_node_overrideS()")
 
     async def db_updater(self, node_configuration, web_node_overrides):
