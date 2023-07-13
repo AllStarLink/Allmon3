@@ -160,7 +160,7 @@ else:
     config_file = "/etc/allmon3/allmon3.ini"
 
 if args.webconfig:
-    web_config_file = args.web_config
+    web_config_file = args.webconfig
 else:
     web_config_file = "/etc/allmon3/web.ini"
 
