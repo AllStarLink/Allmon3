@@ -55,12 +55,12 @@ class AMIParser:
             # For Asterisk 1.4/Classic ASL we have to assume the ordering
             # and there's no valid command check
             if  re.match(r"^Response\:\s+Follows\s", c_response):
-                output = re.split("\r\n", c_response)
-                log.debug(output[3])
-                if not re.match(r"No such command", output[3]) and not re.match(r"Unknown action name", output[3]):
-                    return f"OK:\r\n{output[3]}"
+                cmd_output = re.sub(r"Response:\s+Follows\s+Privilege:\s+Command\s+", "", c_response)
+                log.debug(cmd_output)
+                if not re.match(r"No such command", cmd_output) and not re.match(r"Unknown action name", cmd_output):
+                    return f"OK:\r\n{cmd_output}"
                 
-                return f"ERR:\r\n{output[3]}"
+                return f"ERR:\r\n{cmd_output}"
     
             return "ERR: command output responded with something I didn't understand"
     
