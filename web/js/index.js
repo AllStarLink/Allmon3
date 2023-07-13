@@ -20,30 +20,30 @@ var tooltipList;
 
 const max_poll_errors = 10;
 
-// Hook on the documnet complete load
-document.onreadystatechange = () => {
-    if(document.readyState === "complete") {
-        // was this called with #node[,node,node]
-        if( location.hash !== "" ){
-            const nodeHash = location.hash.replace("#","");
-            monNodes = nodeHash.split(",");
-            startup();
-        } else {
-            getAPIJSON("master/node/listall")
-                .then((result) => {
-                    if(result){
-                        monNodes = result;
-                        startup();
-                    } else {
-                        window.alert("SEVERE: Could not contact the allmon3 manager." +
-                            " Check the allmon3 service, webserver config, and reload the window.");
-                    }
-                });
-        }
+// Hook page show
+window.addEventListener('pageshow', pageLoad);
 
-        // hook the hash changes
-        window.onhashchange = changedLocationHash;
+function pageLoad(){
+    // was this called with #node[,node,node]
+    if( location.hash !== "" ){
+        const nodeHash = location.hash.replace("#","");
+        monNodes = nodeHash.split(",");
+        startup();
+    } else {
+        getAPIJSON("master/node/listall")
+        .then((result) => {
+            if(result){
+            monNodes = result;
+            startup();
+            } else {
+            window.alert("SEVERE: Could not contact the allmon3 manager." +
+                " Check the allmon3 service, webserver config, and reload the window.");
+            }
+        });
     }
+
+    // hook the hash changes
+    window.onhashchange = changedLocationHash;
 }
 
 // Things to do when the page loads

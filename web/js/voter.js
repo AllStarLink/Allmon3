@@ -17,19 +17,20 @@ var nodeTitle = "";
 var nodeVMonPort = 0;
 var votermon = null;
 
+// Hook page show
+window.addEventListener('pageshow', pageLoad);
+
 // Hook on the documnet complete load
-document.onreadystatechange = () => {
-    if(document.readyState === "complete") {
-        // was this called with #node[,node,node]
-        if( location.hash !== "" ){
-            node = location.hash.replace("#","");
-            startup();
-        } else {
-            alert("One node ID must be passed as voter.html#NODE");
-        }
-        window.onhashchange = changedLocationHash;
-    }
-};
+function pageLoad(){
+     // was this called with #node[,node,node]
+     if( location.hash !== "" ){
+         node = location.hash.replace("#","");
+         startup();
+     } else {
+         alert("One node ID must be passed as voter.html#NODE");
+     }
+     window.onhashchange = changedLocationHash;
+}
 
 // Things to do when the page loads
 function startup(){
