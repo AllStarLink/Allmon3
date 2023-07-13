@@ -1,4 +1,20 @@
-allmon3 (0.11.1-1) UNRELEASED; urgency=medium
+allmon3 (0.11.3-1) unstable; urgency=medium
+
+  * Fix issue with WebKit-based browser (Safari) not reloading
+    websockets on page-back navigation (#151)
+  * Fix parsing of Asterisk 1.4 commands with voter output (#152)
+  * Fix issue with nulls turning into text "None" in JSON API calls (#154)
+
+ -- Jason McCormick <jason@mfamily.org>  Thu, 13 Jul 2023 12:07:50 -0400
+
+allmon3 (0.11.2-2) unstable; urgency=medium
+
+  * Updated the logic of sockets management/retries (#138, #149, #150)
+  * Fix issue for node-overrides not in the core database (#147)
+
+ -- Jason McCormick <jason@mfamily.org>  Fri, 30 Jun 2023 13:11:00 -0400
+
+allmon3 (0.11.1-1) unstable; urgency=medium
 
   * Fix error when node-overrides tries to override a non-existing node
   * Split out Debian 10 packaging
