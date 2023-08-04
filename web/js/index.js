@@ -350,6 +350,9 @@ function nodeConnTable(conns, keyed, keyednode) {
                 rowclass = "node-conn-keyed";
                 lastXmit = "00:00:00";
             }
+			if ( c.CSTATE === "CONNECTING" ){
+				rowclass = "node-conn-noconn";
+			}
 
             row = row.concat(`
             <tr class="${rowclass}" onclick="nodeCmdShortcut(${x})">

@@ -35,6 +35,9 @@
 	    --am3-conntable-conn-keyed-color: rgba(0, 0, 0, 1);
 	    --am3-conntable-conn-keyed-bg-color: rgba(255, 255, 224, 1);
 
+		/* Node connection table stats=Connecting colors */
+		--am3-conntable-conn-noconn-color: rgba(0,0,0,1);
+		--am3-conntable-conn-noconn-bg-color: rgba(255,255,255,1);
 }
 
 body {
@@ -108,6 +111,11 @@ body {
 .node-conn-keyed {
 	background-color: var(--am3-conntable-conn-keyed-bg-color);
 	color: var(--am3-conntable-conn-keyed-color);
+}
+
+.node-conn-noconn {
+	background-color: var(--am3-conntable-conn-noconn-bg-color);
+	color: var(--am3-conntable-conn-noconn-color);
 }
 
 .node-bi {
