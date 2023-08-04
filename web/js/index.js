@@ -70,12 +70,22 @@ function startup(){
             const wsurl = `${wsproto}//${wshost}${wsuri}`;
             let p = new Promise(function(resolve, reject) {
                 const nodeWS = new WebSocket(wsurl);
+				let wasOpen = false;
                 nodeWS.addEventListener("message", nodeEntryHandler);
-                nodeWS.onopen = (e) => { resolve(nodeWS); }
-                nodeWS.onerror = (e) => { nodeEntrySetError(n); }
+                nodeWS.onopen = (e) => { 
+					resolve(nodeWS); 
+					wasOpen = true;
+				}
+                nodeWS.onerror = (e) => { 
+					if(wasOpen){
+						nodeEntrySetError(n, "The server closed the connection or the browser did not reload the page."); 
+					} else {
+						nodeEntrySetError(n, "Allmon3 is not responding to requests for this node. Check server logs.");
+					}
+				}
                 nodeWS.onclose = (e) => { 
-                    if(e.code === 1006){
-                        nodeEntrySetError(n);
+                    if(e.code === 1006 && wasOpen){
+                        nodeEntrySetError(n, "The browser closed the socket for an unknown reason. Reload the page.");
                     }
                 }
             });
@@ -180,13 +190,13 @@ function nodeEntry(nodeid, nodeinfo){
     divConntable.innerHTML = nodeConnTable(node.CONNS, node.CONNKEYED, node.CONNKEYEDNODE);
 }
 
-function nodeEntrySetError(nodeid){
+function nodeEntrySetError(nodeid, errorMessage){
     const divHeader = document.getElementById(`asl-statmon-dashboard-${nodeid}-header`);
     const divTxStat = document.getElementById(`asl-statmon-dashboard-${nodeid}-txstat`);
     const divConntable = document.getElementById(`asl-statmon-dashboard-${nodeid}-conntable`);
 
     divHeader.innerHTML = nodeLineHeader(nodeid, "Unavailable Node")
-    divTxStat.innerHTML = `<div class="alert alert-danger am3-alert-error mx-3 py-0">Websocket is not available or went away</div>`
+    divTxStat.innerHTML = `<div class="alert alert-danger am3-alert-error mx-3 py-0">${errorMessage}</div>`
     divConntable.innerHTML = "";
 
     const i = monNodes.indexOf(nodeid);
