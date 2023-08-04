@@ -87,26 +87,6 @@ function drawVoterPanelFamework(title){
 
     <div class="btn-toolbar mb-2 mb-md-0">
         <div class="btn-group me-2">
-            <a id="btn-bubble-${node}" class="btn btn-sm btn-outline-secondary node-bi"
-                data-bs-toggle="tooltip" data-bs-title="View ASL Node Map for this node" data-bs-placement="bottom"
-                 href="http://stats.allstarlink.org/stats/${node}/networkMap" target="_blank">
-                <svg class="node-bi flex-shrink-0" width="16" height="16" role="img" aria-label="Network Map ${node}">
-                    <use xlink:href="#bubble-chart"/>
-                </svg>
-            </a>
-            <a class="btn btn-sm btn-outline-secondary node-bi"
-                data-bs-toggle="tooltip" data-bs-title="View ASL Stats for this node" data-bs-placement="bottom"
-                href="http://stats.allstarlink.org/stats/${node}/" target="_blank">
-                <svg class="node-bi flex-shrink-0" width="16" height="16" role="img" aria-label="Node Details ${node}">
-                    <use xlink:href="#details"/>
-                </svg>
-            </a>
-            <button class="btn btn-sm btn-outline-secondary node-bi" onclick="openCmdModalLink(${node})"
-                data-bs-toggle="tooltip" data-bs-title="Execute linking commands for this node" data-bs-placement="bottom">
-                <svg class="node-bi flex-shrink-0" width="16" height="16" role="img" aria-label="Manage Node ${node}">
-                    <use xlink:href="#link-45"/>
-                </svg>
-            </button>
             <button class="btn btn-sm btn-outline-secondary node-bi" onclick="openCmdModalCLI(${node})"
                 data-bs-toggle="tooltip" data-bs-title="Execute system commands for this node" data-bs-placement="bottom">
                 <svg class="node-bi flex-shrink-0" width="16" height="16" role="img" aria-label="Manage Node ${node}">

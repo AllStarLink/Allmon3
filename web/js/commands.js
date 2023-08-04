@@ -188,17 +188,34 @@ function executeNodeLinkCmd(node){
 //
 async function getCLICommandModalForm(node){
 	
-	const commands = await getAPIJSON("master/ui/custom/commands");
 	let cmdopts = "";
+	let ppath = window.location.pathname;
+	let ppage = ppath.split("/").pop();
+	isVoter = false;
+	if( ppage === "voter.html" ){
+		isVoter = true;
+	}
+
+	const commands = await getAPIJSON("master/ui/custom/commands");
 	for(let c in commands){
-		let cmdstr = c.replace("'", "").replace("'","").replace("@",node);
-		cmdopts = cmdopts.concat(`<option value="${cmdstr}">`, commands[c], "</option>\n");
+		if(isVoter && c.match(/^voter/)){
+			let cmdstr = c.replace("'", "").replace("'","").replace("@",node);
+			cmdopts = cmdopts.concat(`<option value="${cmdstr}">`, commands[c], "</option>\n");
+		} else if ( !isVoter && !c.match(/^voter/)) {
+			let cmdstr = c.replace("'", "").replace("'","").replace("@",node);
+			cmdopts = cmdopts.concat(`<option value="${cmdstr}">`, commands[c], "</option>\n");
+		}
 	}
 
 	const nodeCommands = await getAPIJSON(`master/ui/custom/nodecommands/${node}`);
 	for(let c in nodeCommands){
-        let cmdstr = c.replace("'", "").replace("'","").replace("@",node);
-        cmdopts = cmdopts.concat(`<option value="${cmdstr}">`, nodeCommands[c], "</option>\n");
+		if(isVoter && c.match(/^voter/)){
+			let cmdstr = c.replace("'", "").replace("'","").replace("@",node);
+			cmdopts = cmdopts.concat(`<option value="${cmdstr}">`, commands[c], "</option>\n");
+		} else if ( !isVoter && !c.match(/^voter/)) {
+			let cmdstr = c.replace("'", "").replace("'","").replace("@",node);
+			cmdopts = cmdopts.concat(`<option value="${cmdstr}">`, commands[c], "</option>\n");
+		}
     }
 			
 	const modal = `
