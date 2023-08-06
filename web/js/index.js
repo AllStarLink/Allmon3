@@ -150,10 +150,12 @@ function updateDashboardAreaStructure(){
 function nodeEntryHandler(WSResult){
     const nodeInfoHash = JSON.parse(WSResult.data);
     for( const n in nodeInfoHash ){
-		if( nodeInfoHash[n] === "ERROR" ){
-			nodeEntrySetRetryMessage(n, nodeInfoHash["ERROR"]);
-		} else {
-	        nodeEntry(n, nodeInfoHash[n]);
+		if( monNodes.includes(n) ){
+			if( nodeInfoHash[n] === "ERROR" ){
+				nodeEntrySetRetryMessage(n, nodeInfoHash["ERROR"]);
+			} else {
+		        nodeEntry(n, nodeInfoHash[n]);
+			}
 		}
     }
 }
