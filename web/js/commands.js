@@ -211,10 +211,10 @@ async function getCLICommandModalForm(node){
 	for(let c in nodeCommands){
 		if(isVoter && c.match(/^voter/)){
 			let cmdstr = c.replace("'", "").replace("'","").replace("@",node);
-			cmdopts = cmdopts.concat(`<option value="${cmdstr}">`, commands[c], "</option>\n");
+			cmdopts = cmdopts.concat(`<option value="${cmdstr}">`, nodeCommands[c], "</option>\n");
 		} else if ( !isVoter && !c.match(/^voter/)) {
 			let cmdstr = c.replace("'", "").replace("'","").replace("@",node);
-			cmdopts = cmdopts.concat(`<option value="${cmdstr}">`, commands[c], "</option>\n");
+			cmdopts = cmdopts.concat(`<option value="${cmdstr}">`, nodeCommands[c], "</option>\n");
 		}
     }
 			
