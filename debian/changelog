@@ -1,3 +1,16 @@
+allmon3 (0.11.4-1) unstable; urgency=medium
+
+  * Attempt to clarify web client errors for different websocket problems
+    (#155)
+  * Add customziation for CONENCTING client lines in main.css/custom.css
+    (#148)
+  * Commands starting with 'voter' are only show on the voter page (#153)
+  * Commands starting with 'voter' are suppressed on the main page (#153)
+  * Removed links from the node header on the voter display (#153)
+  * iNodes multinode= leaking in non-displayed node data (#156)
+
+ -- Jason McCormick <jason@mfamily.org>  Sun, 06 Aug 2023 12:48:53 -0400
+
 allmon3 (0.11.3-1) unstable; urgency=medium
 
   * Fix issue with WebKit-based browser (Safari) not reloading
