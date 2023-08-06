@@ -9,7 +9,7 @@ allmon3 (0.11.4-2) unstable; urgency=medium
   * Removed links from the node header on the voter display (#153)
   * iNodes multinode= leaking in non-displayed node data (#156)
 
- -- Jason McCormick <jason@mfamily.org>  Sun, 06 Aug 2023 12:48:53 -0400
+ -- Jason McCormick <jason@mfamily.org>  Sun, 06 Aug 2023 13:16:50 -0400
 
 allmon3 (0.11.3-1) unstable; urgency=medium
 
