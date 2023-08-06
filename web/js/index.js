@@ -27,14 +27,18 @@ function pageLoad(){
     // was this called with #node[,node,node]
     if( location.hash !== "" ){
         const nodeHash = location.hash.replace("#","");
-        monNodes = nodeHash.split(",");
+        for (const n of nodeHash.split(",")){
+			monNodes.push(parseInt(n));
+		}
         startup();
     } else {
         getAPIJSON("master/node/listall")
         .then((result) => {
             if(result){
-            monNodes = result;
-            startup();
+				for( const n of result ){
+		            monNodes.push(parseInt(n));
+				}
+	            startup();
             } else {
             window.alert("SEVERE: Could not contact the allmon3 manager." +
                 " Check the allmon3 service, webserver config, and reload the window.");
@@ -150,7 +154,7 @@ function updateDashboardAreaStructure(){
 function nodeEntryHandler(WSResult){
     const nodeInfoHash = JSON.parse(WSResult.data);
     for( const n in nodeInfoHash ){
-		if( monNodes.includes(n) ){
+		if( monNodes.includes(parseInt(n)) ){
 			if( nodeInfoHash[n] === "ERROR" ){
 				nodeEntrySetRetryMessage(n, nodeInfoHash["ERROR"]);
 			} else {
