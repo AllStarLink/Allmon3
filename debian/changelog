@@ -1,4 +1,4 @@
-allmon3 (0.11.4-1) unstable; urgency=medium
+allmon3 (0.11.4-2) unstable; urgency=medium
 
   * Attempt to clarify web client errors for different websocket problems
     (#155)
