@@ -70,6 +70,10 @@ dpkg -i allmon3_0.11.3-1_all.deb
 1. Enable the Debian 10 `buster-backports` package repository:
 
 ```
+gpg --keyserver keyserver.ubuntu.com --recv-keys 04EE7237B7D453EC
+gpg --keyserver keyserver.ubuntu.com --recv-keys 648ACFD622F3D138
+gpg --export 04EE7237B7D453EC | sudo apt-key add -
+gpg --export 648ACFD622F3D138 | sudo apt-key add -
 echo "deb https://deb.debian.org/debian buster-backports main" > /etc/apt/sources.list.d/buster-backports.list
 apt update
 ```
