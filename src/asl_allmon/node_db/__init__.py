@@ -40,7 +40,7 @@ class ASLNodeDB:
                 log.error("Failed to retrieve database with error: %s", e)
                 retries += 1
                 log.error("Waiting 5 minutes to try again: attempt %s/5", retries)
-                sleep(300)                 
+                time.sleep(300)                 
         
         nodedb = re.split(r"\n", dbf)
     
