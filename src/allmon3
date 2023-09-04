@@ -25,6 +25,9 @@ _BUILD_ID = "@@HEAD-DEVELOP@@"
 # Handle Signals
 def sigterm_handler(_signo, _stack_frame):
     log.info("exiting on signal %d", _signo)
+    for t in __global_tasks:
+        log.debug("killing task: %s", t.get_name())
+        t.cancel(msg="terminate by signal")
     sys.exit(0)    
 signal.signal(signal.SIGINT, sigterm_handler)
 signal.signal(signal.SIGHUP, sigterm_handler)
@@ -74,8 +77,7 @@ signal.signal(signal.SIGUSR1, sigusr1_handler)
 ## Startup coroutines
 async def start_tasks():
     log.debug("enter start_tasks()")
-    tasks = []
-    
+    tasks = [] 
     try:
         for n, c in node_configuration.nodes.items():
             c.monport = web_configuration.ws_port_start + len(tasks)
@@ -104,7 +106,14 @@ async def start_tasks():
         log.info("starting node_db updater")
         tasks.append(asyncio.create_task(allmon_db.db_updater(node_configuration, web_configuration.node_overrides)))
 
-        await asyncio.gather(*tasks)
+        global __global_tasks
+        __global_tasks = tasks
+
+        try:
+            await asyncio.gather(*tasks)
+        except asyncio.CancelledError:
+            log.info("all tasks in start_tasks() cancelled")
+
     
     except asyncio.CancelledError as e:
         log.debug("ending asyncio tasks")
@@ -123,6 +132,9 @@ async def start_tasks():
 
 
 ######## MAIN PROGRAM ########
+
+# Master Task Array
+__global_tasks = []
 
 # Args and Log Setup
 ap = argparse.ArgumentParser(description="Connect to an ASL Asterisk server and print rpt stats")
