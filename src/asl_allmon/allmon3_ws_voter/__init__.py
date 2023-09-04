@@ -120,25 +120,30 @@ class NodeVoterWS:
     # Primary broadcaster
     async def main(self):
         log.debug("enter node_voter_main()")
-        try:
-            loop = asyncio.get_event_loop()
-            self.voter_ws.set_waiter(asyncio.Future(loop=loop))
-            self.ami = ami_conn.AMI(self.node_config.host, self.node_config.port,
-	            self.node_config.user, self.node_config.password)
-            async with serve(
-	            self.handler,
-	            host = self.web_config.ws_bind_addr,
-	            port = self.node_config.voterports[self.node_id],
-	            logger = log
-    	        ):
-                await self.broadcast()
 
-        except ami_conn.AMIException:
-            log.error("Terminating asyncio worker for %s:%s on %s due to unreachable AMI",
-                self.node_config.host, self.node_config.port, self.node_config.voterports[self.node_id])
-            log.error("AMI instances must be available at start. See --nodes or remove the config")
-            return None
+        have_conn = False
+        while not have_conn:
+            try:
+                self.ami = ami_conn.AMI(self.node_config.host, self.node_config.port,
+                    self.node_config.user, self.node_config.password)
+                have_conn = True
+            except ami_conn.AMIException:
+                log.error("No connection for %s:%s on %s due to unreachable AMI - waiting %d seconds",
+                    self.node_config.host, self.node_config.port, self.node_config.monport,
+                    self.node_config.retryinterval)
+                await asyncio.sleep(self.node_config.retryinterval)
 
-	
+        loop = asyncio.get_event_loop()
+        self.voter_ws.set_waiter(asyncio.Future(loop=loop))
+        async with serve(
+            self.handler,
+            host = self.web_config.ws_bind_addr,
+            port = self.node_config.voterports[self.node_id],
+            logger = log
+            ):
+            log.info("broadcasting voter for %s on port %s",
+                    self.node_config.node, self.node_config.monport)
+            await self.broadcast()
+
 class NodeVoterWSException(Exception):
     """ exception for class """

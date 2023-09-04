@@ -125,26 +125,29 @@ class NodeStatusWS:
     async def main(self):
         log.debug("enter node_status_main(%s)", self.node_config.node)
 
-        try:
-            loop = asyncio.get_event_loop()
-            self.bcast_ws.set_waiter(asyncio.Future(loop=loop))
-            self.ami = ami_conn.AMI(self.node_config.host, self.node_config.port, 
-                self.node_config.user, self.node_config.password)
-            async with serve(
-                self.handler,
-                host = self.web_config.ws_bind_addr,
-                port = self.node_config.monport,
-                logger = log,
-                ):
-                log.info("broadcasting status for %s on port %s", 
-                    self.node_config.node, self.node_config.monport)
-                await self.broadcast()
+        have_conn = False
+        while not have_conn:
+            try:
+                self.ami = ami_conn.AMI(self.node_config.host, self.node_config.port, 
+                    self.node_config.user, self.node_config.password)
+                have_conn = True
+            except ami_conn.AMIException:
+                log.error("No connection for %s:%s on %s due to unreachable AMI - waiting %d seconds",
+                    self.node_config.host, self.node_config.port, self.node_config.monport,
+                    self.node_config.retryinterval)
+                await asyncio.sleep(self.node_config.retryinterval)
 
-        except ami_conn.AMIException:
-            log.error("Terminating asyncio worker for %s:%s on %s due to unreachable AMI",
-                self.node_config.host, self.node_config.port, self.node_config.monport)
-            log.error("AMI instances must be available at start. See --nodes or remove the config")
-            return None
+        loop = asyncio.get_event_loop()
+        self.bcast_ws.set_waiter(asyncio.Future(loop=loop))
+        async with serve(
+            self.handler,
+            host = self.web_config.ws_bind_addr,
+            port = self.node_config.monport,
+            logger = log,
+            ):
+            log.info("broadcasting status for %s on port %s", 
+                self.node_config.node, self.node_config.monport)
+            await self.broadcast()
 
 class NodeStatusWSException(Exception):
     """ exception class """
