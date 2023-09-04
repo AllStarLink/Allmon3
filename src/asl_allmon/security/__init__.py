@@ -49,8 +49,9 @@ class Security:
             if user in self.userdb:
                 ph = argon2.PasswordHasher(type=argon2.Type.ID)
                 ph.verify(self.userdb[user], passwd)
-    
-            return True
+                return True
+        
+            return False
     
         except argon2.exceptions.VerifyMismatchError:
             return False
