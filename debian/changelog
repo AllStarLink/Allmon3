@@ -1,3 +1,11 @@
+allmon3 (0.11.5-1) unstable; urgency=medium
+
+  * Don't fail node(s) that are unreachable on startup (#160)
+  * Pages with the same page#anchor now reload in the menu (#163)
+  * Better close of asyncio Tasks in the signal handler (#158)
+
+ -- Jason McCormick <jason@mfamily.org>  Tue, 05 Sep 2023 11:15:25 -0400
+
 allmon3 (0.11.4-2) unstable; urgency=medium
 
   * Attempt to clarify web client errors for different websocket problems
