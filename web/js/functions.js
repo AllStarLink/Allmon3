@@ -179,17 +179,34 @@ async function createSidebarMenu(){
                             for( let ml of Object.keys(menuItem)){
                                 const mo = menuItem[ml];
                                 if(mo.match(/^[0-9]+$/)){
-                                    navMenu = navMenu.concat(`<a class="dropdown-item" href="${pageName}#${mo}">${ml}</a>`);
+									let currp = window.location.href.split("/").at(-1);
+									let newp = `${pageName}#${mo}`;
+									let onClickSlot = "";
+									if( currp === newp ){
+										onClickSlot = "onclick=\"window.location.reload()\"";
+									}
+	                                navMenu = navMenu.concat(`<a class="dropdown-item" href="${newp}" ${onClickSlot}>${ml}</a>`);
+
                                 } else {
-                                    let href = menuItem[ml];
-                                    navMenu = navMenu.concat(`<a class="dropdown-item" href="${href}">${ml}</a>`);
+									let currp = window.location.href.split("/").at(-1);
+	                                let newp = menuItem[ml];
+	                                let onClickSlot = "";
+	                                if( currp === newp ){
+	                                    onClickSlot = "onclick=\"window.location.reload()\"";
+	                                }
+									navMenu = navMenu.concat(`<a class="dropdown-item" href="${newp} ${onClickSlot}">${ml}</a>`);
                                 }
                             }
                         } else {
                             for( let ml of Object.keys(menuItem)){
-                                let href = menuItem[ml];
-                                navMenu = navMenu.concat(`<div class="btn-group">
-                                    <a href="${href}" class="btn btn-secondary" role="button">${ml}</a>
+								let currp = window.location.href.split("/").at(-1);
+                                let newp = menuItem[ml];
+                                let onClickSlot = "";
+	                            if( currp === newp ){
+                                    onClickSlot = "onclick=\"window.location.reload()\"";
+                                }
+								navMenu = navMenu.concat(`<div class="btn-group">
+                                    <a href="${newp}" ${onClickSlot} class="btn btn-secondary" role="button">${ml}</a>
                                     </div>`);
                             }
                         }
