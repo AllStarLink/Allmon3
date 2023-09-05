@@ -68,9 +68,8 @@ async function customizeUI(){
     let newp = customElements.HOME_BUTTON_URL;
     if( currp === newp ){
         document.getElementById("nav-home-button").setAttribute("onclick","window.location.reload()");
-    } else {
-        document.getElementById("nav-home-button").setAttribute("onclick",`window.location.href="${newp}"`);
     }
+    document.getElementById("nav-home-button").href=newp;
 }
 
 //
