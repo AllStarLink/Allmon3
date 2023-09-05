@@ -176,6 +176,35 @@ $ allmon3-passwd --delete allmon3
 After changing a user password, the allmon3 damon must be reloaded
 with `systemctl reload allmon3`.
 
+## Per-Node Restrictions for Users
+Allmon3 implements a lightweight access control system to restrict commands
+from certain users to certain nodes. Restrictions are configured in
+`/etc/allmon3/user-restrictions`. Given that the average use case is
+all users have similar access, the access control is implemented in
+a named-restrictions model for least configuration complexity.
+
+The logic is as follows when checking the restricted access list:
+
+1. If the user is not listed in `user-restrictions` at all
+than the user is permitted commands on all configured nodes.
+
+2. If the user is listed in `user-restrictions` and is listed
+as restricted to the node being commanded, the user is permitted
+to issue the command.
+
+3. If the user is listed in `user-restrictions` but the node
+is not listed for that user, the user is prohibited from
+issuing the command.
+
+The format of the `user-restrictions` file is:
+
+```
+user1 | NODE[,NODE,NODE...]
+user2 | NODE
+
+```
+Lines beginning with # are comments.
+
 ## Server Customization
 
 Allmon3 has multiple configuration files to consider:
