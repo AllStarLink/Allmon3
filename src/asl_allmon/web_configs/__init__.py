@@ -35,6 +35,12 @@ class WebConfigs:
         else:
             self.user_table = "/etc/allmon3/users"
 
+        if "USERS_RESTRICTIONS_LOCATION" in config["web"]:
+            self.restrictions_table = re.sub(r'[\'\"]', '', config["web"]["USERS_RESTRICTIONS_LOCATION"])
+        else:
+            self.restrictions_table = "/etc/allmon3/user-restrictions"
+
+
         if "HOME_BUTTON_URL" in config["web"]:
             self.home_loc = re.sub(r'[\'\"]', '', config["web"]["HOME_BUTTON_URL"])
         else:

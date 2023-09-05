@@ -1,0 +1,12 @@
+# This file restricts logged-in users to a specific set of nodes
+# to issue commands. Any user not listed below has unrestricted
+# access to all node commands. File is whitespace insensitive.
+# Add users in the format:
+#
+#   USER | NODE [,NODE,NODE]
+#
+# For example:
+#
+#   user1 | 1999
+#   user2 | 1234,1223,1010
+

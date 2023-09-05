@@ -87,7 +87,7 @@ class ServerWS:
 
         is_valid = self.server_security.validate(req.get("user"), req.get("pass"))
         if is_valid:
-            session_id = self.server_security.create_session(client_ip)
+            session_id = self.server_security.create_session(client_ip, req.get("user"))
             session["auth_sess"] = session_id
             r_txt = self.__get_json_success("OK")
             log.info("successful login by user %s from %s", 
@@ -215,35 +215,56 @@ class ServerWS:
         try:
             req = await request.post()
             session = await get_session(request)
+
             r_json = None
+            user_is_authenticated = False
             if "auth_sess" in session:
-                    if session["auth_sess"] in self.server_security.session_db:
-                        cmd = req.get("cmd")
-                        log.debug("cmd: %s", cmd)
-                        node = int(req.get("node"))
-                        if node in self.config_nodes.colo_nodes:
-                            node = self.config_nodes.colo_nodes[node]
-                        log.debug("actionable node: %s", node)
-                        key = self.config_nodes.nodes[node].password
-                        log.debug("key: %s", key)
-                        cmd_x = ''.join(chr(ord(x) ^ ord(y)) for (x,y) in zip(cmd, cycle(key)))
-                        cmd_x_b = base64.b64encode(cmd_x.encode("UTF-8")).decode("UTF-8")
-                        log.debug("cmd: %s", cmd_x_b)
-                        cmdport = self.config_nodes.nodes[node].cmdport
-                        log.debug("cmdport: %s", cmdport)
-                        url = f"ws://localhost:{cmdport}"
-                        async with websockets.connect(url, ping_timeout=None) as websocket:
-                            await websocket.send(cmd_x_b)
-                            async for message in websocket:
-                                r_json = f"{{ \"SUCCESS\" : \"{message}\" }}"
+                if session["auth_sess"] in self.server_security.session_db:
+                    user_is_authenticated = True
+                    cmd = req.get("cmd")
+                    user = self.server_security.session_db[session["auth_sess"]].user
+                    node = int(req.get("node"))
+                    uncombo = f"{user}{node}"
+
+                    user_is_restricted = False
+                    if user in self.server_security.restricted_users:
+                        if uncombo not in self.server_security.restrictdb:
+                            log.info("%s restricted from commands on node %s", user, node)
+                            user_is_restricted = True
+                        else:
+                            log.info("%s has restrictions but permitted to node %s", user, node)
+                    else:
+                        log.info("%s has no node restrictions", user)
+
+            if user_is_authenticated and not user_is_restricted:
+                if node in self.config_nodes.colo_nodes:
+                    node = self.config_nodes.colo_nodes[node]
+                log.debug("actionable node: %s", node)
+                key = self.config_nodes.nodes[node].password
+                log.debug("key: %s", key)
+                cmd_x = ''.join(chr(ord(x) ^ ord(y)) for (x,y) in zip(cmd, cycle(key)))
+                cmd_x_b = base64.b64encode(cmd_x.encode("UTF-8")).decode("UTF-8")
+                log.debug("cmd: %s", cmd_x_b)
+                cmdport = self.config_nodes.nodes[node].cmdport
+                log.debug("cmdport: %s", cmdport)
+                url = f"ws://localhost:{cmdport}"
+                async with websockets.connect(url, ping_timeout=None) as websocket:
+                    await websocket.send(cmd_x_b)
+                    async for message in websocket:
+                        r_json = f"{{ \"SUCCESS\" : \"{message}\" }}"
+            else:
+                r_json = f"{{ \"ERROR\" : \"user not authorized\" }}"
                         
             if r_json:
                 return web.Response(text=r_json, content_type="text/json")
     
             return web.Response(status=400)
-   
+  
+        except KeyError as e:
+            log.debug(e)
+ 
         except Exception:
-            pass 
+            pass
 
     ##
     ## Server Logic

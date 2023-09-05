@@ -56,7 +56,8 @@ def sigusr1_handler(_signo, _stack_frame):
                     full_menu += f"{menu_string} ,"
             full_menu = re.sub(r",$", "]", full_menu)
             web_configuration.menu = full_menu
-        server_security = security.Security(web_configuration.user_table)
+        server_security = security.Security(web_configuration.user_table,
+            web_configuration.restrictions_table)
         log.info("reloaded node, web, menu, and sercurity configs")
 
         allmon_db.get_allmon_db()
@@ -223,7 +224,9 @@ try:
     if not os.path.exists(web_configuration.user_table):
         raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), web_configuration.user_table)
     log.debug("user_table file is %s", web_configuration.user_table)
-    server_security = security.Security(web_configuration.user_table)
+    log.debug("restriction_table file is %s", web_configuration.restrictions_table)
+    server_security = security.Security(web_configuration.user_table,
+        web_configuration.restrictions_table)
 
     # Get Database
     allmon_db = node_db.ASLNodeDB()
