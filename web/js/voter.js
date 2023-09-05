@@ -63,7 +63,14 @@ async function customizeUI(){
     if( customElements.HEADER_LOGO !== "" ){
         document.getElementById("header-banner-img").src = `img/${customElements.HEADER_LOGO}`;
     }
-    document.getElementById("nav-home-button").href = customElements.HOME_BUTTON_URL;
+
+    let currp = window.location.href.split("/").at(-1);
+    let newp = customElements.HOME_BUTTON_URL;
+    if( currp === newp ){
+        document.getElementById("nav-home-button").setAttribute("onclick","window.location.reload()");
+    } else {
+        document.getElementById("nav-home-button").setAttribute("onclick",`window.location.href="${newp}"`);
+    }
 }
 
 //
