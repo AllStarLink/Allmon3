@@ -194,7 +194,7 @@ async function createSidebarMenu(){
 	                                if( currp === newp ){
 	                                    onClickSlot = "onclick=\"window.location.reload()\"";
 	                                }
-									navMenu = navMenu.concat(`<a class="dropdown-item" href="${newp} ${onClickSlot}">${ml}</a>`);
+									navMenu = navMenu.concat(`<a class="dropdown-item" href="${newp}" ${onClickSlot}">${ml}</a>`);
                                 }
                             }
                         } else {
