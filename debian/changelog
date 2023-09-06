@@ -1,3 +1,10 @@
+allmon3 (0.11.6-1) unstable; urgency=medium
+
+  * Implement per-user node restrictions (#161)
+  * Display node uptime in header bar (#162)
+
+ -- Jason McCormick <jason@mfamily.org>  Wed, 06 Sep 2023 13:05:56 -0400
+
 allmon3 (0.11.5-1) unstable; urgency=medium
 
   * Don't fail node(s) that are unreachable on startup (#160)
