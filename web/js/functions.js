@@ -18,6 +18,18 @@ function toHMS(totalSeconds) {
   return `${zeroPad(hours)}:${zeroPad(minutes)}:${zeroPad(seconds)}`;
 }
 
+function secondsToDhms(seconds) {
+	seconds = Number(seconds);
+	const zeroPad = (num) => String(num).padStart(2,'0');
+	let d = Math.floor(seconds / (3600*24));
+	let h = Math.floor(seconds % (3600*24) / 3600);
+	let m = Math.floor(seconds % 3600 / 60);
+	let s = Math.floor(seconds % 60);
+	let dDisplay = d > 0 ? d + "d " : "";
+	return dDisplay + zeroPad(h) + ":" + zeroPad(m) + ":" + zeroPad(s);
+	
+}
+
 // Generic AJAX functions
 async function getAPIJSON(url){
     let response = await fetch(url);

@@ -196,6 +196,11 @@ class AMIParser:
             log.debug("processed %s connections", conn_count)
     
         node_mon_list[curr_node]["CONNS"] = node_conns
+
+        uptimes = self.get_node_uptime()
+        node_mon_list[curr_node]["UPTIME"] = uptimes[0]
+        node_mon_list[curr_node]["RELOADTIME"] = uptimes[1]
+
         log.debug("exiting parse_xstat(%s)", curr_node)
    
     def parse_voter_data(self, curr_node):
@@ -256,6 +261,30 @@ class AMIParser:
     
         return voter_html
 
+    def get_node_uptime(self):
+        log.debug("enter get_node_uptime()")
+        sys_uptime = -1
+        last_reload = -1
+
+        try:
+            uptimecmd = "core show uptime seconds"
+            uptime_info = self.asl_cmd(uptimecmd)
+            ra = re.split(r'[\n\r]+', uptime_info)
+            for l in ra:
+                if re.match(r"^System uptime\:\s+", l):
+                    t = re.split(r"\s+", l)
+                    sys_uptime = int(t[2])
+                    log.debug("system uptime seconds: %d", sys_uptime)
+                if re.match(r"^Last reload\:\s+", l):
+                    t = re.split(r"\s+", l)
+                    last_reload = int(t[2])
+                    log.debug("last reload seconds: %d", last_reload)
+
+            return (sys_uptime, last_reload)
+    
+        except Exception as e:
+            log.error(e)
+ 
 # To prevent casual interception/hacking, the cmd messages
 # are xor'd with the node admin key. The messages are base64-encoded.
 # Note: this is _not_ cryptographically secure... if you're concerned
