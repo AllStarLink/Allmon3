@@ -241,12 +241,12 @@ function nodeEntrySetRetryMessage(nodeid, retryMessage){
 // Draw/update the header row for a node
 function nodeLineHeader(nodeNumber, nodeDescription){
     let nodeLineHeaderStr = `
-        <div id="node-line-header-${nodeNumber}" class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-1 px-2 mt-1 mb-1 border-bottom nodeline-header rounded align-middle">
-            <div id="asl-statmon-dashboard-${nodeNumber}-header-desc" class="align-middle">${nodeNumber} - ${nodeDescription}</div>
-			<div class="align-middle uptime-box">
+        <div id="node-line-header-${nodeNumber}" class="row d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-1 px-2 mt-1 mb-1 border-bottom nodeline-header rounded align-middle">
+            <div id="asl-statmon-dashboard-${nodeNumber}-header-desc" class="col">${nodeNumber} - ${nodeDescription}</div>
+			<div class="col-md-auto align-middle uptime-box">
 				Up:&nbsp;<span id="${nodeNumber}-uptime">0</span><br>
 			</div>
-            <div class="btn-toolbar mb-2 mb-md-0 align-middle">
+            <div class="col col-lg-2 btn-toolbar mb-2 mb-md-0 align-middle">
                 <div class="btn-group me-2">
                     <a id="btn-bubble-${nodeNumber}" class="btn btn-sm btn-outline-secondary node-bi"
                         data-bs-toggle="tooltip" data-bs-title="View ASL Node Map for this node" data-bs-placement="bottom"
