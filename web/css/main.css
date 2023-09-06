@@ -92,6 +92,11 @@ body {
 }
 
 /*** Node Connections Display ***/
+.uptime-box {
+  font-size: 0.8em;
+  font-weight: normal;
+}
+
 .nodeline-header {
   background-color: var(--am3-nodetitle-background);
   color: var(--am3-nodetitle-color);
