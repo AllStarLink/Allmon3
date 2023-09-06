@@ -88,10 +88,10 @@ function changedLocationHash(){
 function drawVoterPanelFamework(title){
     let votermonArea = document.getElementById("asl-votermon-area");
     let votermonAreaHeader = `
-<div id="node-header-${node}" class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-1 px-2 mt-1 mb-1 border-bottom nodeline-header rounded">
-    <span id="asl-votermon-${node}-header-desc" class="align-middle">${node} - ${title}</span>
-
-    <div class="btn-toolbar mb-2 mb-md-0">
+<div id="node-header-${node}" class="row d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-1 px-2 mt-1 mb-1 border-bottom nodeline-header rounded">
+    <div id="asl-votermon-${node}-header-desc" class="col align-middle">${node} - ${title}</div>
+	<div class="col-md-auto align-middle">&nbsp</div>
+    <div class="col col-lg-2 btn-toolbar mb-2 mb-md-0">
         <div class="btn-group me-2">
             <button class="btn btn-sm btn-outline-secondary node-bi" onclick="openCmdModalCLI(${node})"
                 data-bs-toggle="tooltip" data-bs-title="Execute system commands for this node" data-bs-placement="bottom">
