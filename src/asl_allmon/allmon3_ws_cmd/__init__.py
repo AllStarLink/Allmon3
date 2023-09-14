@@ -53,9 +53,10 @@ class NodeCmdWS:
     
             a = ami_conn.AMI(self.node_config.host, self.node_config.port, 
                 self.node_config.user, self.node_config.password)
+            await a.asl_create_connection()
             parser = ami_parser.AMIParser(a)
-            response = parser.asl_cmd(cmd)
-            a.close()
+            response = await parser.asl_cmd(cmd)
+            await a.close()
             response_b64 = base64.b64encode(response.encode("UTF-8"))
             await websocket.send(response_b64.decode("UTF-8"))
 

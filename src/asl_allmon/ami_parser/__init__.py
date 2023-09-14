@@ -5,6 +5,7 @@
 # see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
 #
 
+import asyncio
 import base64
 from datetime import datetime
 from itertools import cycle
@@ -28,12 +29,12 @@ class AMIParser:
         log.debug("enter set_ami_conn()")
         self.__ami_conn = ami_conn
 
-    def asl_cmd(self, cmdstr):
+    async def asl_cmd(self, cmdstr):
         log.debug("enter asl_cmd()")
         
         try:
             cmd = f"ACTION: COMMAND\r\nCOMMAND: {cmdstr}\r\n"
-            c_response = self.__ami_conn.asl_cmd_response(cmd)
+            c_response = await self.__ami_conn.asl_cmd_response(cmd)
     
             # For Asterisk 20/ASL3 look for Output:
             if  re.match(r"^Response\:\s+Error\s", c_response):
@@ -74,7 +75,7 @@ class AMIParser:
     ##
     
     # Parse the (String) response from a SawStat command
-    def parse_saw_stat(self, curr_node, node_mon_list):
+    async def parse_saw_stat(self, curr_node, node_mon_list):
         log.debug("enter parse_saw_stat(%s)", curr_node)
         
         # Clear the CONNKEYED* status
@@ -82,7 +83,7 @@ class AMIParser:
         node_mon_list[curr_node].update( { "CONNKEYEDNODE" : False } )
 
         sawstat_cmd = f"ACTION: RptStatus\r\nCOMMAND: SawStat\r\nNODE: {curr_node}\r\n"
-        response = self.__ami_conn.asl_cmd_response(sawstat_cmd)
+        response = await self.__ami_conn.asl_cmd_response(sawstat_cmd)
         # Process the SawStat message
         ra = re.split(r'[\n\r]+', response)
         for l in ra:
@@ -97,10 +98,10 @@ class AMIParser:
         log.debug("exiting parse_saw_stat(%s)", curr_node)
     
     # Query/Parse Echolink Node Info
-    def get_echolink_name(self, echolink_id):
+    async def get_echolink_name(self, echolink_id):
         log.debug("enter get_echolink_name(%s)", echolink_id)
         elnodecmd = "ACTION: COMMAND\r\nCOMMAND: echolink dbget nodename %s\r\n" % (echolink_id)
-        el_info = self.__ami_conn.asl_cmd_response(elnodecmd)
+        el_info = await self.__ami_conn.asl_cmd_response(elnodecmd)
         ra = re.split(r'[\n\r]+', el_info)
         for l in ra:
             if re.match(r"^[0-9]+\|", l):
@@ -111,7 +112,7 @@ class AMIParser:
         return "No Database Information"
     
     # Parse the (String) response from XStat command
-    def parse_xstat(self, curr_node, node_database, node_mon_list):
+    async def parse_xstat(self, curr_node, node_database, node_mon_list):
         log.debug("entering parse_xstat(%s)", curr_node)
         conn_count = 0
         rens = re.compile(r'\s', re.MULTILINE)
@@ -134,7 +135,7 @@ class AMIParser:
         node_conns = {}
 
         xstat_cmd = f"ACTION: RptStatus\r\nCOMMAND: XStat\r\nNODE: {curr_node}\r\n"
-        xstat = self.__ami_conn.asl_cmd_response(xstat_cmd)
+        xstat = await self.__ami_conn.asl_cmd_response(xstat_cmd)
         ra = re.split(r'[\n\r]+', xstat) 
         for l in ra:
             if re.match("^Conn", l):
@@ -197,20 +198,20 @@ class AMIParser:
     
         node_mon_list[curr_node]["CONNS"] = node_conns
 
-        uptimes = self.get_node_uptime()
+        uptimes = await self.get_node_uptime()
         node_mon_list[curr_node]["UPTIME"] = uptimes[0]
         node_mon_list[curr_node]["RELOADTIME"] = uptimes[1]
 
         log.debug("exiting parse_xstat(%s)", curr_node)
    
-    def parse_voter_data(self, curr_node):
+    async def parse_voter_data(self, curr_node):
         log.debug("entering parse_voter_data()")
         # voters = { VOTED : None , VOTERS : { clientid : RSSI , .... } }
         voters = { "VOTED" : None , "VOTERS" : {} }
         curr_client = 0
 
         voterstatus_cmd = f"ACTION: VoterStatus\r\nNODE: {curr_node}\r\n"
-        response = self.__ami_conn.asl_cmd_response(voterstatus_cmd)    
+        response = await self.__ami_conn.asl_cmd_response(voterstatus_cmd)    
 
         lines = re.split(r'[\n\r]+', response)
         for line in lines:
@@ -261,14 +262,14 @@ class AMIParser:
     
         return voter_html
 
-    def get_node_uptime(self):
+    async def get_node_uptime(self):
         log.debug("enter get_node_uptime()")
         sys_uptime = -1
         last_reload = -1
 
         try:
             uptimecmd = "core show uptime seconds"
-            uptime_info = self.asl_cmd(uptimecmd)
+            uptime_info = await self.asl_cmd(uptimecmd)
             ra = re.split(r'[\n\r]+', uptime_info)
             for l in ra:
                 if re.match(r"^System uptime\:\s+", l):

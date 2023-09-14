@@ -74,8 +74,8 @@ class NodeStatusWS:
                         last_socket_send = time.time()
                         for c_node in self.node_config.node_mon_list:
                             log.debug("broadcasting %s", c_node)
-                            parser.parse_xstat(c_node, self.nodedb.node_database, self.node_config.node_mon_list)
-                            parser.parse_saw_stat(c_node, self.node_config.node_mon_list)
+                            await parser.parse_xstat(c_node, self.nodedb.node_database, self.node_config.node_mon_list)
+                            await parser.parse_saw_stat(c_node, self.node_config.node_mon_list)
                             message = json.dumps(self.node_config.node_mon_list[c_node])
                             self.bcast_ws.publish(f"{{ \"{c_node}\" : {message} }}")
                     else:
@@ -83,7 +83,7 @@ class NodeStatusWS:
                         now = time.time()
                         if ( now - last_socket_send ) > 60 :
                             log.debug("Node %s: sending keepalive command", self.node_id)
-                            parser.asl_cmd("core show version")
+                            await parser.asl_cmd("core show version")
                             last_socket_send = time.time()
                 
                     # Sleep for the polling time
@@ -95,9 +95,11 @@ class NodeStatusWS:
                     error_msg = { self.node_id : "ERROR", "ERROR" : "Allmon3 is trying to re-establish this connection..." }
                     self.bcast_ws.publish(json.dumps(error_msg))
                     asl_ok = False
+                except Exception as e:
+                    log.error("ERROR: %s", e)
    
             else:
-                self.ami.close()
+                await self.ami.close()
                 asl_dead = True
                 retry_counter = 0
     
@@ -109,7 +111,7 @@ class NodeStatusWS:
                     if self.node_config.retrycount == -1 or self.node_config.retrycount <= retry_counter:
                         log.info("node: %s - attempting reconnection retry #%d", self.node_id, retry_counter)
     
-                        c_stat = self.ami.asl_create_connection()
+                        c_stat = await self.ami.asl_create_connection()
                         if c_stat:
                             log.info("node: %s - connection reestablished after %d retries", self.node_id, retry_counter)
                             asl_dead = False
@@ -130,6 +132,7 @@ class NodeStatusWS:
             try:
                 self.ami = ami_conn.AMI(self.node_config.host, self.node_config.port, 
                     self.node_config.user, self.node_config.password)
+                await self.ami.asl_create_connection()
                 have_conn = True
             except ami_conn.AMIException:
                 log.error("No connection for %s:%s on %s due to unreachable AMI - waiting %d seconds",
