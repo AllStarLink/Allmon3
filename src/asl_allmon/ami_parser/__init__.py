@@ -146,7 +146,7 @@ class AMIParser:
                 if re.match(r'^3[0-9]{6}$', ce[1]):
                     node_conns[ce[1]].update( { "IP" : None , "DIR" : ce[3] , "CTIME" : ce[4] ,
                         "CSTATE" : ce[5] , "PTT" : False, "SSK" : -1, "SSU" : -1, "MODE" : "Echolink"} )
-                    ename = self.get_echolink_name(ce[1][-6:])
+                    ename = await self.get_echolink_name(ce[1][-6:])
                     node_conns[ce[1]]["DESC"] = ename
                 else:
                     node_conns[ce[1]].update( { "IP" : ce[2] , "DIR" : ce[4] , "CTIME" : ce[5] ,
