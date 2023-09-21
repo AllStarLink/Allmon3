@@ -70,7 +70,7 @@ class NodeVoterWS:
                     if len(self.connections) > 0:
                         log.debug("node %s voter connections: %d", self.node_id, len(self.connections))
                         last_socket_send = time.time()
-                        message = parser.parse_voter_data(self.node_id)
+                        message = await parser.parse_voter_data(self.node_id)
                         self.voter_ws.publish(message)
 
                     else:
@@ -92,7 +92,7 @@ class NodeVoterWS:
                     asl_ok = False
     
             else:
-                self.ami.close()
+                await self.ami.close()
                 asl_dead = True
                 retry_counter = 0
     
@@ -104,7 +104,7 @@ class NodeVoterWS:
                     if self.node_config.retrycount == -1 or self.node_config.retrycount <= retry_counter:
                         log.info("node: %s - attempting reconnection retry #%d", self.node_id, retry_counter)
     
-                        c_stat = self.ami.asl_create_connection()
+                        c_stat = await self.ami.asl_create_connection()
                         if c_stat:
                             log.info("node: %s - connection reestablished after %d retries", self.node_id, retry_counter)
                             asl_dead = False
@@ -126,6 +126,7 @@ class NodeVoterWS:
             try:
                 self.ami = ami_conn.AMI(self.node_config.host, self.node_config.port,
                     self.node_config.user, self.node_config.password)
+                await self.ami.asl_create_connection()
                 have_conn = True
             except ami_conn.AMIException:
                 log.error("No connection for %s:%s on %s due to unreachable AMI - waiting %d seconds",
