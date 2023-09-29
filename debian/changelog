@@ -1,3 +1,10 @@
+allmon3 (1.0.0-1) UNRELEASED; urgency=medium
+
+  * Release of major version 1.0.0
+  * From 0.11.6, implement asyncio stream code to replace tcp sockets
+
+ -- Jason McCormick <jason@mfamily.org>  Fri, 29 Sep 2023 19:50:48 -0400
+
 allmon3 (0.11.6-1) unstable; urgency=medium
 
   * Implement per-user node restrictions (#161)
