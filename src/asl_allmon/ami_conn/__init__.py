@@ -6,6 +6,7 @@
 # see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
 #
 
+import asyncio
 import logging
 import re
 import socket
@@ -27,36 +28,38 @@ class AMI:
         self.ami_user = user
         self.ami_pass = password
         self.socket = None
-        
-        if not self.asl_create_connection():
-            raise AMIException(f"could not initialize a connection to {hostname}:{port}")
-
-    def asl_create_connection(self):
+        self.ami_reader = None
+        self.ami_writer = None
+    
+    async def asl_create_connection(self):
         log.debug("asl_create_connection()")
         try:
             log.debug("connect() using %s:%s", self.ami_host, self.ami_port)
-            self.socket = socket.create_connection((self.ami_host, self.ami_port), timeout=5)
+            self.ami_reader, self.ami_writer = await asyncio.open_connection(self.ami_host, self.ami_port)
     
             # Check this connected to an Asterisk Call Manager (ACM)
-            part = self.socket.recv(1024).decode("UTF-8")
+            part = await self.ami_reader.read(1024)
+            part = part.decode()
             log.debug("AIM version: %s", self.__rern.sub("",part))
     
             if not re.match("^Asterisk Call Manager", part):
                 log.error("Connection to %s:%d does not appear to be an Asterisk Call Manager", self.ami_host, self.ami_port)
-                self.socket.close()
+                self.ami_writer.close()
+                await self.ami_writer.wait_closed()
                 raise AMIException(f"Connection to {self.ami_host}:{self.ami_port} does not appear to be an Asterisk Call Manager")
         
             # Logon to the ACM
             logon = "ACTION: LOGIN\r\nUSERNAME: %s\r\nSECRET: %s\r\nEVENTS: 0\r\n" % ( self.ami_user, self.ami_pass )
     
-            logon_response = self.asl_cmd_response(logon)
+            logon_response = await self.asl_cmd_response(logon)
             log.debug(self.__rern.sub(" ",logon_response))
             lp = re.compile('Response: Success\r\n', re.MULTILINE)
             logon_success = lp.match(logon_response)
             if not logon_success:
                 lr = self.__rern.sub("  ", logon_response)
                 log.error("Logon failure msg=(%s)", lr)
-                self.socket.close()
+                self.ami_writer.close()
+                await self.ami_writer.wait_closed()
                 raise AMIException(f"Logon failure msg={lr}")
     
             log.debug("leaving asl_create_connection()")
@@ -72,24 +75,24 @@ class AMI:
         return True
     
     # Generic construct for sending ASL Manager commands and reading responses
-    def asl_cmd_response(self, cmd):
+    async def asl_cmd_response(self, cmd):
         log.debug("enter asl_cmd_response()")
         try:
             aid = uuid.uuid4()
             cmd += " ActionID: %s\r\n\r\n" % aid
-            self.socket.settimeout(5)
             if not cmd is None:
                 log.debug("command >> %s", self.__rern.sub(" ", cmd))
-                self.socket.sendall(str.encode(cmd))
+                self.ami_writer.write(cmd.encode())
+                await self.ami_writer.drain()
             
             cont_recv = True
             resp = ""
             while cont_recv:        
-                part = self.socket.recv(1024)
+                part = await self.ami_reader.read(1024)
                 if part == b'':
                     log.debug("asl_cmd_response() socket went away on the far side")
                     raise BrokenPipeError("other side went away")
-                resp += part.decode("UTF-8")
+                resp += part.decode()
                 if resp[-4:] == "\r\n\r\n":
                     cont_recv = False
     
@@ -119,16 +122,19 @@ class AMI:
         log.debug("exit asl_cmd_response()")
     
     # (try) to logout of ASL Manager neatly
-    def __asl_logout(self):    
+    async def __asl_logout(self):    
         try:
-            self.socket.sendall(str.encode("ACTION: Logoff\r\n\r\n"))
+            self.ami_writer.write("ACTION: Logoff\r\n\r\n".encode())
+            await self.ami_writer.drain()
         except Exception as e:
             log.warning(e)
 
-    def close(self):
+    async def close(self):
         try:
-            self.__asl_logout()
-            self.socket.close()
+            await self.__asl_logout()
+            self.ami_writer.close()
+            await self.ami_writer.wait_closed()
+
         except Exception as e:
             log.warning(e)
 
