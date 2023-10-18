@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 class ASLNodeDB:
     """ AllStarLink Node Dadabase """
     
-    __url = "http://allmondb.allstarlink.org/"
+    __url = "https://allmondb.allstarlink.org/"
 
     def __init__(self):
         self.node_database = dict()

@@ -250,14 +250,14 @@ function nodeLineHeader(nodeNumber, nodeDescription){
                 <div class="btn-group me-2">
                     <a id="btn-bubble-${nodeNumber}" class="btn btn-sm btn-outline-secondary node-bi"
                         data-bs-toggle="tooltip" data-bs-title="View ASL Node Map for this node" data-bs-placement="bottom"
-                        href="http://stats.allstarlink.org/stats/${nodeNumber}/networkMap" target="_blank">
+                        href="https://stats.allstarlink.org/stats/${nodeNumber}/networkMap" target="_blank">
                         <svg class="node-bi flex-shrink-0" width="16" height="16" role="img" aria-label="Network Map ${nodeNumber}">
                             <use xlink:href="#bubble-chart"/>
                         </svg>
                     </a>
                     <a class="btn btn-sm btn-outline-secondary node-bi"
                     data-bs-toggle="tooltip" data-bs-title="View ASL Stats for this node" data-bs-placement="bottom"
-                    href="http://stats.allstarlink.org/stats/${nodeNumber}/" target="_blank">
+                    href="https://stats.allstarlink.org/stats/${nodeNumber}/" target="_blank">
                         <svg class="node-bi flex-shrink-0" width="16" height="16" role="img" aria-label="Node Details ${nodeNumber}">
                             <use xlink:href="#details"/>
                         </svg>
