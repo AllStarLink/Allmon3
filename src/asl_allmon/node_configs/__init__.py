@@ -10,7 +10,7 @@ import logging
 import pprint
 import re
 
-_BUILD_ID = "@@HEAD-DEVELOP@@"
+_BUILD_ID = "1.0.1"
 log = logging.getLogger(__name__)
 
 class NodeConfigs:
