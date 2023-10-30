@@ -111,11 +111,14 @@ class NodeStatusWS:
     
                     if self.node_config.retrycount == -1 or self.node_config.retrycount <= retry_counter:
                         log.info("node: %s - attempting reconnection retry #%d", self.node_id, retry_counter)
-    
-                        c_stat = await self.ami.asl_create_connection()
-                        if c_stat:
-                            log.info("node: %s - connection reestablished after %d retries", self.node_id, retry_counter)
-                            asl_dead = False
+   
+                        try: 
+                            c_stat = await self.ami.asl_create_connection()
+                            if c_stat:
+                                log.info("node: %s - connection reestablished after %d retries", self.node_id, retry_counter)
+                                asl_dead = False
+                        except ami_conn.AMIException as e:
+                            log.error(e)
                     else:
                         log.error("node: %s - could not reestablish connection after %d retries - exiting", 
                             self.node_id, retry_counter)
