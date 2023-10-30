@@ -1,3 +1,9 @@
+allmon3 (1.0.1-1) unstable; urgency=medium
+
+  * Fix retry bug that caused silent crash in websocket handlers (#171)
+
+ -- Jason McCormick <jason@mfamily.org>  Mon, 30 Oct 2023 19:32:40 -0400
+
 allmon3 (1.0.0-1) unstable; urgency=medium
 
   * Release of major version 1.0.0

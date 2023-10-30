@@ -12,7 +12,7 @@ Rules-Requires-Root: binary-targets
 Package: allmon3
 Architecture: all
 Recommends: apache2 | httpd
-Depends: python3-argon2, python3, python3-websockets, python3-aiohttp, python3-aiohttp-session, ${misc:Depends}, adduser
+Depends: python3-argon2, python3, ${misc:Depends}, adduser
 Description: Web monitoring interface for AllStarLink
 	application. Allmon3 is the next generation of
 	the venerable Allmon2 that is rewritten for
