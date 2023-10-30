@@ -66,13 +66,13 @@ class NodeCmdWS:
             log.warning("Command was ignored")
     
         except asyncio.IncompleteReadError:
-            log.info("Other side went away: %x", websocket.remote_address)
+            log.debug("Other side went away: %x", websocket.remote_address)
     
         except ws_exceptions.ConnectionClosedError:
-            log.info("ConnctionClosed with Error from %s", websocket.remote_address)
+            log.debug("ConnctionClosed with Error from %s", websocket.remote_address)
     
         except ws_exceptions.ConnectionClosedOK:
-            log.info("ConnctionClosed from %s", websocket.remote_address)
+            log.debug("ConnctionClosed from %s", websocket.remote_address)
     
         except Exception as e:
             log.error(e)

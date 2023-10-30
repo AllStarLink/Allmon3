@@ -46,14 +46,15 @@ class NodeVoterWS:
                 await websocket.send(message)
 
         except asyncio.IncompleteReadError:
-            log.info("Other side went away: %s", websocket.remote_address)
+            log.debug("Other side went away: %s", websocket.remote_address)
+            self.connections.remove(websocket)
 
         except ws_exceptions.ConnectionClosedError:
-            log.info("ConnctionClosed with Error from %s", websocket.remote_address)
+            log.debug("ConnctionClosed with Error from %s", websocket.remote_address)
             self.connections.remove(websocket)
 
         except ws_exceptions.ConnectionClosedOK:
-            log.info("ConnctionClosed from %s", websocket.remote_address)
+            log.debug("ConnctionClosed from %s", websocket.remote_address)
             self.connections.remove(websocket)
 
 
