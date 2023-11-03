@@ -92,7 +92,13 @@ pip3 install aiohttp_session
 pip3 install websockets
 ```
 
-4. Install Allmon3 (debian10 version)
+4. Update the CA Certificate chain since Debian 10 is out of support
+```
+apt install ca-certificates
+update-ca-certificates --fresh
+```
+
+5. Install Allmon3 (debian10 version)
 ```
 wget https://github.com/AllStarLink/Allmon3/releases/download/rel_t_1_0_1/allmon3_1.0.1-1_deb10.deb
 dpkg -i allmon3_1.0.1-1_deb10.deb
