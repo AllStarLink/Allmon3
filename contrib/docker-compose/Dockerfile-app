@@ -1,0 +1,5 @@
+FROM debian:bookworm-slim
+RUN apt update && apt install -y gpg apache2 python3-websockets python3-argon2 python3-aiohttp python3-aiohttp-session wget
+RUN wget https://github.com/AllStarLink/Allmon3/releases/download/rel_t_1_0_1/allmon3_1.0.1-1_all.deb && \
+  apt install -y ./allmon3_1.0.1-1_all.deb
+ENTRYPOINT ["/usr/bin/allmon3"]

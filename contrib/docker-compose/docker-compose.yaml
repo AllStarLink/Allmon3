@@ -1,0 +1,19 @@
+version: '3'
+services:
+  allmon3-app:
+    image: allmon3-app
+    build:
+      context: .
+      dockerfile: ./Dockerfile-app
+    container_name: allmon3-app
+    network_mode: host
+    volumes:
+      - ./allmon3.ini:/etc/allmon3/allmon3.ini
+
+  allmon3-web:
+    image: allmon3-web
+    build:
+      context: .
+      dockerfile: ./Dockerfile-web
+    container_name: allmon3-web
+    network_mode: host
