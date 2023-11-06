@@ -9,7 +9,10 @@ pass=llcgi
 ```
 
 # Configure authentication
-`docker run -it -v $PWD:/etc/allmon3 allmon3-app allmon3-passwd admin`
+```
+mv users.sample users
+docker run -it -v $PWD:/etc/allmon3 allmon3-app allmon3-passwd admin
+```
 
 # Build images
 `docker-compose build`
