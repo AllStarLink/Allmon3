@@ -11,7 +11,7 @@ pass=llcgi
 # Configure authentication
 ```
 mv users.sample users
-docker run -it -v $PWD:/etc/allmon3 allmon3 allmon3-passwd admin
+docker run -it -v $PWD:/etc/allmon3 allmon3-app allmon3-passwd admin
 ```
 
 # Build images
