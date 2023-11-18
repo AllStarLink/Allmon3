@@ -145,7 +145,6 @@ class NodeVoterWS:
             self.handler,
             host = self.web_config.ws_bind_addr,
             port = self.node_config.voterports[self.node_id],
-            logger = log
             ):
             log.info("broadcasting voter for %s on port %s",
                     self.node_config.node, self.node_config.monport)

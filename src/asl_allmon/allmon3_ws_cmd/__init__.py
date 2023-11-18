@@ -86,7 +86,6 @@ class NodeCmdWS:
             self.handler,
             host = self.web_config.ws_bind_addr,
             port = self.node_config.cmdport,
-            logger = log,
             ):
             await asyncio.Future()
 

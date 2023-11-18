@@ -150,7 +150,6 @@ class NodeStatusWS:
             self.handler,
             host = self.web_config.ws_bind_addr,
             port = self.node_config.monport,
-            logger = log,
             ):
             log.info("broadcasting status for %s on port %s", 
                 self.node_config.node, self.node_config.monport)
