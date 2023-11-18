@@ -232,6 +232,27 @@ Allmon3 web menu. By default, the menu is a list of all nodes
 found in `allmon3.ini`. Cutomized menus can be configured
 as described in `menu.ini.example`.
 
+# Using Nginx instead of Apache
+Nginx can be used instead of Apache. Instead of using the `apache2`
+package, install `nginx` using the above directions. After configuring
+nginx, edit `/etc/nginx/sites-available/default` (or your preferred site
+configuration) and add an `include` directive within the appropriate
+`server { }` configuration block. For example:
+
+```
+server {
+    listen 80 default_server;
+
+    [... other stuff ...]
+
+    include /etc/allmon3/nginx.conf;
+
+    [... other stuff ...]
+}
+```
+
 # Install From Source
 
 Installation from source no longer supported in the general use case.
+However, in general, `make install` should yield a working system.
+
