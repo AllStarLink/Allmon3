@@ -50,6 +50,9 @@ class ASLNodeDB:
                 self.node_database.update( { str(r[0]) : {} } )
                 self.node_database[str(r[0])].update( { "CALL" : r[1] , "DESC" : r[2] , "LOC" : r[3] } )
         elapsed_time = time.time() - start_time
+        
+        if len(self.node_database) < 2:
+            log.error("Node file successfully retrieved but is empty or contains garbage")
         log.info("Updated node database in {0:.2f} seconds".format(elapsed_time))
         log.debug("exiting getAllMonDB()")
     
