@@ -114,13 +114,13 @@ body {
 }
 
 .node-conn-keyed {
-	background-color: var(--am3-conntable-conn-keyed-bg-color);
-	color: var(--am3-conntable-conn-keyed-color);
+	background-color: var(--am3-conntable-conn-keyed-bg-color) !important;
+	color: var(--am3-conntable-conn-keyed-color) !important;
 }
 
 .node-conn-noconn {
-	background-color: var(--am3-conntable-conn-noconn-bg-color);
-	color: var(--am3-conntable-conn-noconn-color);
+	background-color: var(--am3-conntable-conn-noconn-bg-color) !important;
+	color: var(--am3-conntable-conn-noconn-color) !important;
 }
 
 .node-bi {

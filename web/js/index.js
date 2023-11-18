@@ -375,15 +375,16 @@ function nodeConnTable(conns, keyed, keyednode) {
 				rowclass = "node-conn-noconn";
 			}
 
+			console.log(`${x}: ${rowclass}`);
             row = row.concat(`
             <tr class="${rowclass}" onclick="nodeCmdShortcut(${x})">
-                <th scope="row">${x}</td>
-                <td>${c.DESC}</td>
-                <td>${lastXmit}</td>
-                <td class="d-none d-md-table-cell">${c.CTIME}</td>
-                <td class="d-none d-md-table-cell">${c.DIR}</td>
-                <td class="d-none d-md-table-cell">${c.CSTATE}</td>
-                <td class="d-none d-md-table-cell">${c.MODE}</td>
+                <th scope="row" class=${rowclass}>${x}</td>
+                <td class=${rowclass}>${c.DESC}</td>
+                <td class=${rowclass}>${lastXmit}</td>
+                <td class="d-none d-md-table-cell ${rowclass}">${c.CTIME}</td>
+                <td class="d-none d-md-table-cell ${rowclass}">${c.DIR}</td>
+                <td class="d-none d-md-table-cell ${rowclass}">${c.CSTATE}</td>
+                <td class="d-none d-md-table-cell ${rowclass}">${c.MODE}</td>
             </tr>`);
         }
     } else {
