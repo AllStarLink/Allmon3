@@ -1,3 +1,11 @@
+allmon3 (1.0.2-1) unstable; urgency=medium
+
+  * Provide Nginx configuration (#169)
+  * Fix CSS breakage from Bootstrap version upgrade (#180)
+  * Keyed node is now green highlited rather than beige (#181)
+
+ -- Jason McCormick <jason@mfamily.org>  Sat, 18 Nov 2023 15:09:36 -0500
+
 allmon3 (1.0.1-1) unstable; urgency=medium
 
   * Fix retry bug that caused silent crash in websocket handlers (#171)
