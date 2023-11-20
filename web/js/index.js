@@ -110,6 +110,7 @@ function uiConfigs(){
 async function customizeUI(){
     let customElements = await getAPIJSON("master/ui/custom/html");
     document.getElementById("navbar-midbar").innerHTML = customElements.HEADER_TITLE;
+    document.title = customElements.HEADER_TITLE;
     if( customElements.HEADER_LOGO !== "" ){
         document.getElementById("header-banner-img").src = `img/${customElements.HEADER_LOGO}`;
     }
