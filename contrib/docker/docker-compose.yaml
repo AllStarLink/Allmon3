@@ -1,0 +1,13 @@
+version: '3'
+services:
+  allmon3:
+    image: allmon3
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: allmon3
+    network_mode: host
+    volumes:
+      - "./allmon3.ini:/etc/allmon3/allmon3.ini"
+      - "./users:/etc/allmon3/users"
+
