@@ -41,19 +41,24 @@ class ASLNodeDB:
                 retries += 1
                 log.error("Waiting 5 minutes to try again: attempt %s/5", retries)
                 time.sleep(300)                 
-        
-        nodedb = re.split(r"\n", dbf)
+
+        try:        
+            nodedb = re.split(r"\n", dbf)
     
-        for ni in nodedb:
-            r = re.split(r"\|", ni)
-            if len(r) == 4:
-                self.node_database.update( { str(r[0]) : {} } )
-                self.node_database[str(r[0])].update( { "CALL" : r[1] , "DESC" : r[2] , "LOC" : r[3] } )
-        elapsed_time = time.time() - start_time
+            for ni in nodedb:
+                r = re.split(r"\|", ni)
+                if len(r) == 4:
+                    self.node_database.update( { str(r[0]) : {} } )
+                    self.node_database[str(r[0])].update( { "CALL" : r[1] , "DESC" : r[2] , "LOC" : r[3] } )
+            elapsed_time = time.time() - start_time
         
-        if len(self.node_database) < 2:
-            log.error("Node file successfully retrieved but is empty or contains garbage")
-        log.info("Updated node database in {0:.2f} seconds".format(elapsed_time))
+            if len(self.node_database) < 2:
+                log.error("Node file successfully retrieved but is empty or contains garbage")
+            log.info("Updated node database in {0:.2f} seconds".format(elapsed_time))
+
+        except Exception as e:
+            log.error("Error processing nodedb after retrival: %s ", e)
+
         log.debug("exiting getAllMonDB()")
     
     def set_my_info(self, node_conf):
