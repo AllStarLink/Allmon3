@@ -60,12 +60,6 @@ def sigusr1_handler(_signo, _stack_frame):
             web_configuration.restrictions_table)
         log.info("reloaded node, web, menu, and sercurity configs")
 
-        allmon_db.get_allmon_db()
-        allmon_db.add_node_overrides(web_configuration.node_overrides)
-        for n, c in node_configuration.nodes.items():
-            allmon_db.set_my_info(c)
-        log.info("reloaded AllStarLink database")
-
     except Exception as e:
         log.error("unable to get allmondb: %s", e)
         if len(allmon_db.node_database) > 0:
@@ -228,11 +222,7 @@ try:
     server_security = security.Security(web_configuration.user_table,
         web_configuration.restrictions_table)
 
-    # Get Database
     allmon_db = node_db.ASLNodeDB()
-    allmon_db.add_node_overrides(web_configuration.node_overrides)
-    for n, c in node_configuration.nodes.items():
-        allmon_db.set_my_info(c)
 
 except node_configs.ASLNodeConfigException as e:
     log.error(e)

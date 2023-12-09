@@ -5,6 +5,7 @@
 # see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
 #
 
+import aiohttp
 import asyncio
 import logging
 import re
@@ -22,28 +23,35 @@ class ASLNodeDB:
 
     def __init__(self):
         self.node_database = dict()
-        self.get_allmon_db()
         
     # Read and load in the ASL Database
-    def get_allmon_db(self):
+    async def get_allmon_db(self):
         log.debug("entering get_allmon_db()")
         retries = 0
-        while retries < 6:
+        db_text = ""
+        while retries < 5:
             try:
-                req = urllib.request.Request(self.__url, data=None, headers={ "User-Agent" : "Mozilla/5.0" })
                 log.info("Retrieving database from %s", self.__url)
                 start_time = time.time()
-                with urllib.request.urlopen(req) as response:
-                    dbf = response.read().decode("UTF-8")
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(self.__url) as resp:
+                        db_text = await resp.text()
                 retries = 255
+            except aiohttp.ClientConnectorError as e:
+                log.error(e)
             except Exception as e:
                 log.error("Failed to retrieve database with error: %s", e)
+
+            if retries != 255:
                 retries += 1
-                log.error("Waiting 5 minutes to try again: attempt %s/5", retries)
-                time.sleep(300)                 
+                log.info("Will retry %d/5 in 5m", retries)
+                await asyncio.sleep(300)
+
+        if retries != 255:
+            raise ASLNodeDBException("retrieval of database failed after 5 attempts")
 
         try:        
-            nodedb = re.split(r"\n", dbf)
+            nodedb = re.split(r"\n", db_text) 
     
             for ni in nodedb:
                 r = re.split(r"\|", ni)
@@ -58,6 +66,7 @@ class ASLNodeDB:
 
         except Exception as e:
             log.error("Error processing nodedb after retrival: %s ", e)
+            raise ASLNodeDBException(e)
 
         log.debug("exiting getAllMonDB()")
     
@@ -84,10 +93,22 @@ class ASLNodeDB:
             self.node_database[k]['LOC'] = str("")
         log.debug("exiting add_node_overrideS()")
 
-    async def db_updater(self, node_configuration, web_node_overrides):
-        while True:
-            await asyncio.sleep(15*60)
-            self.get_allmon_db()
+    async def full_update(self, node_configuration, web_node_overrides):
+        log.debug("entering full_update")
+        try:
+            await self.get_allmon_db()
             for n, c in node_configuration.nodes.items():
                 self.set_my_info(c)
-                self.add_node_overrides(web_node_overrides)
+                self.add_node_overrides(web_node_overrides)        
+            log.info("populated AllStarlink database")
+        except ASLNodeDBException as e:
+            log.error(e)
+
+    async def db_updater(self, node_configuration, web_node_overrides):
+        await self.full_update(node_configuration, web_node_overrides)
+        while True:
+            await asyncio.sleep(15*60)
+            await self.full_update(node_configuration, web_node_overrides)
+
+class ASLNodeDBException(Exception):
+    """ sepcific Exception for class """
