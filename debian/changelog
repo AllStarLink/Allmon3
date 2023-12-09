@@ -1,3 +1,13 @@
+allmon3 (1.1.0-1) unstable; urgency=medium
+
+  * Ensure ASLNodeDB objects are fully async and non-blocking (#185)
+  * Docker containers have provisional support (#182)
+  * Fix HTML page title (#186)
+  * Remove extraneous info-level logging for websocket-based classes 
+  * Better logging around database retrieval errors
+
+ -- Jason McCormick <jason@mfamily.org>  Fri, 08 Dec 2023 21:15:04 -0500
+
 allmon3 (1.0.2-1) unstable; urgency=medium
 
   * Provide Nginx configuration (#169)
