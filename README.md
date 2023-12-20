@@ -66,7 +66,6 @@ dpkg -i allmon3_1.1.0-1_all.deb
 ```
 
 ### Install Debian 10 / Raspian 10 Software
-Note: Allmon3 v1.1.0+ is not yet supported on Debian 10.
 
 1. Enable the Debian 10 `buster-backports` package repository:
 
@@ -101,8 +100,8 @@ update-ca-certificates --fresh
 
 5. Install Allmon3 (debian10 version)
 ```
-wget https://github.com/AllStarLink/Allmon3/releases/download/rel_t_1_0_2/allmon3_1.0.2-1_all.deb
-dpkg -i allmon3_1.0.1-2_all.deb
+wget https://github.com/AllStarLink/Allmon3/releases/download/rel_t_1_1_0/allmon3_1.1.0-1_deb10.deb
+dpkg -i allmon3_1.1.0-1_deb10.deb
 ```
 
 ### Configure Allmon
