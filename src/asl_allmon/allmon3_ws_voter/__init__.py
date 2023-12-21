@@ -79,7 +79,7 @@ class NodeVoterWS:
                         now = time.time()
                         if ( now - last_socket_send ) > 60 :
                             log.debug("Node %s: sending keepalive command", self.node_id)
-                            parser.asl_cmd("core show version")
+                            await parser.asl_cmd("core show version")
                             last_socket_send = time.time()
 
                     # Sleep for the polling time
