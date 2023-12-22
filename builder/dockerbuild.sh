@@ -63,6 +63,8 @@ echo "Architectures: $ARCHS"
 echo "Targets: $TARGETS"
 echo "Operating Systems: $OPERATING_SYSTEMS"
 
+find . -print
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 PDIR=$(dirname $DIR)
 
