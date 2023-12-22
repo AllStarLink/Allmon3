@@ -41,7 +41,7 @@ fi
 
 if [ -z "$TARGETS" ]
 then
-  TARGETS="asterisk allstar"
+  TARGETS="Allmon3"
 fi
 
 if [ -z "$OPERATING_SYSTEMS" ]
