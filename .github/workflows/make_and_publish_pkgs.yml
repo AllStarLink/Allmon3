@@ -3,6 +3,8 @@ run-name: Package ${{ github.event.repository.name }}(${{ github.ref_name }}) fo
 on: 
   workflow_dispatch:
     inputs:
+      release:
+        type: string
       arch:
         type: choice
         options: 
