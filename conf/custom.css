@@ -34,11 +34,11 @@
 	/* Node connection table border color */
 	--am3-conntable-border-color: rgba(55, 59, 62, 1);
 
-    /* Node connection table keyed color */
-    --am3-conntable-conn-keyed-color: rgba(0, 0, 0, 1);
-    --am3-conntable-conn-keyed-bg-color: rgba(255, 255, 224, 1);
+	/* Node connection table keyed color */
+	--am3-conntable-conn-keyed-color: rgba(0, 0, 0, 1);
+	--am3-conntable-conn-keyed-bg-color: rgba(209, 231, 221, 1);
 
-    /* Node connection table stats=Connecting colors */
-    --am3-conntable-conn-noconn-color: rgba(0,0,0,1);
-    --am3-conntable-conn-noconn-bg-color: rgba(255,255,255,1);
+	/* Node connection table stats=Connecting colors */
+	--am3-conntable-conn-noconn-color: rgba(0,0,0,1);
+	--am3-conntable-conn-noconn-bg-color: rgba(255,255,255,1);
 }
