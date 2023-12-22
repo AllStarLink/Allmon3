@@ -27,10 +27,12 @@ do_configure() {
 	fi
 
 	## Apache Management
-	apache2_invoke enmod proxy_http || exit $?
-	apache2_invoke enmod proxy_wstunnel || exit $?
-	apache2_invoke enmod rewrite || exit $?
-	apache2_invoke enconf allmon3 || exit $?
+	if [ -e /usr/sbin/apache2 ]; then
+		apache2_invoke enmod proxy_http || exit $?
+		apache2_invoke enmod proxy_wstunnel || exit $?
+		apache2_invoke enmod rewrite || exit $?
+		apache2_invoke enconf allmon3 || exit $?
+	fi
 }
 
 case "$1" in
