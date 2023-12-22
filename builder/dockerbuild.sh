@@ -72,7 +72,8 @@ docker build -f $DIR/Dockerfile -t $D_TAG \
 	--build-arg OS="$OPERATING_SYSTEMS" \
 	--build-arg ASL_REPO="asl_builds${REPO_ENV}" \ 
 	--build-arg USER_ID=$(id -u) \
-	--build-arg GROUP_ID=$(id -g) $DIR
+	--build-arg GROUP_ID=$(id -g) \
+	$DIR
 
 docker run -v $PDIR:/src \
 	-e DPKG_BUILDOPTS="$DPKG_BUILDOPTS" \
