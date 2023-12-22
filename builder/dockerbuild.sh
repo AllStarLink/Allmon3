@@ -97,9 +97,9 @@ for A in $ARCHS; do
     DA="$A"
   fi
   for O in $OPERATING_SYSTEMS; do
-       docker build -f $DIR/Dockerfile -t asl-asterisk_builder.$O.$A$REPO_ENV --build-arg ARCH="$DA" --build-arg OS="$O" --build-arg ASL_REPO="asl_builds${REPO_ENV}" --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) $DIR
-       docker run -v $PDIR:/src -e DPKG_BUILDOPTS="$DPKG_BUILDOPTS" -e BUILD_TARGETS="$BUILD_TARGETS" -e COMMIT_VERSIONING="$COMMIT_VERSIONING" asl-asterisk_builder.$O.$A$REPO_ENV
-       docker image rm --force asl-asterisk_builder.$O.$A$REPO_ENV
+       docker build -f $DIR/Dockerfile -t allmon3_builder.$O.$A$REPO_ENV --build-arg ARCH="$DA" --build-arg OS="$O" --build-arg ASL_REPO="asl_builds${REPO_ENV}" --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) $DIR
+       docker run -v $PDIR:/src -e DPKG_BUILDOPTS="$DPKG_BUILDOPTS" -e BUILD_TARGETS="$BUILD_TARGETS" -e COMMIT_VERSIONING="$COMMIT_VERSIONING" allmon3_builder.$O.$A$REPO_ENV
+       docker image rm --force allmon3_builder.$O.$A$REPO_ENV
        DPKG_BUILDOPTS="--build=any -uc -us"
   done
 done
