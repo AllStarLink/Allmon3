@@ -4,6 +4,10 @@ set -e
 
 while [[ $# -gt 0 ]]; do
   case $1 in
+    -c|--check-changelog)
+      CHECK_CHANGELOG=YES
+      shift
+      ;;
     -a|--architecture)
       ARCH="$2"
       shift
@@ -65,7 +69,7 @@ PDIR=$(dirname $DIR)
 echo "PDIR: ${PDIR}"
 
 DPKG_BUILDOPTS="-b -uc -us"
-$D_TAG="allmon3_builder.${OPERATING_SYSTEMS}.${ARCH}${REPO_ENV}"
+D_TAG="allmon3_builder.${OPERATING_SYSTEMS}.${ARCH}${REPO_ENV}"
 
 docker build -f $DIR/Dockerfile -t $D_TAG \
 	--build-arg ARCH="$ARCH" \
