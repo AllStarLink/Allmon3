@@ -17,4 +17,4 @@ fi
 
 echo "OS_CODENAME: ${OS_CODENAME}"
 cd /build/Allmon3
-make docker-deb DPKG_BUILDOPTS=$OPTS
+make docker-deb DPKG_BUILDOPTS=$OPTS RELPLAT=$OS_CODENAME
