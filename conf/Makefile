@@ -15,6 +15,15 @@ INSTALLABLES = $(CONF_INSTALLABLES) $(CONF_DOCABLES) $(CONF_APACHE)
 .PHONY:	install
 install:	$(INSTALLABLES)
 
+$(DESTDIR)$(sysconfdir)/allmon3.ini:	allmon3.ini
+	install -D -m 0640 $< $@
+
+$(DESTDIR)$(sysconfdir)/users:	users
+	install -D -m 0640 $< $@
+
+$(DESTDIR)$(sysconfdir)/user-restrictions:	user-restrictions
+	install -D -m 0640 $< $@
+
 $(DESTDIR)$(sysconfdir)/%: %
 	install -D -m 0644  $< $@
 

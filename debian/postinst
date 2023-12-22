@@ -26,6 +26,10 @@ do_configure() {
 		--shell /usr/sbin/nologin --disabled-login --disabled-password allmon3
 	fi
 
+	## Ensure Perms on Sensitive Files
+	chown allmon3:allmon3 /etc/allmon3/allmon3.ini /etc/allmon3/user*
+	chmod 660 /etc/allmon3/allmon3.ini /etc/allmon3/user*
+
 	## Apache Management
 	if [ -e /usr/sbin/apache2 ]; then
 		apache2_invoke enmod proxy_http || exit $?
