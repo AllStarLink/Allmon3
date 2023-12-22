@@ -18,6 +18,10 @@ while [[ $# -gt 0 ]]; do
       shift
       shift
       ;;
+    -r|--commit-versioning)
+      COMMIT_VERSIONING=YES
+      shift
+      ;;
     -o|--operating-systems)
       OPERATING_SYSTEMS="$2"
       shift
