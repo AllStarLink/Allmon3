@@ -62,11 +62,15 @@ fi
 echo "Architectures: $ARCHS"
 echo "Targets: $TARGETS"
 echo "Operating Systems: $OPERATING_SYSTEMS"
-
-echo `find . -print`
+echo "PWD: $(pwd)"
+echo `find . -print -maxdepth 1`
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+echo "DIR: ${DIR}"
 PDIR=$(dirname $DIR)
+echo "PDIR: ${PDIR}"
+
+exit 
 
 #get the build targets
 cd $PDIR
