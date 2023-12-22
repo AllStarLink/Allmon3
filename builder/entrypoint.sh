@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+set -x
 
 #get DPKG_BUILDOPTS from env var or use default
 OPTS=${DPKG_BUILDOPTS:-"-b -uc -us"}
@@ -14,20 +15,6 @@ else
   OS_CODENAME=unknown
 fi
 
-set
-
-for t in $BUILD_TARGETS; do
-  echo "OS_CODENAME: ${OS_CODENAME}"
-  find . -print
-#  echo "$t"
-#  cd /src/$t
-#  pwd
-#  BASENAME=$(head -1 debian/changelog | sed 's/^\([^ ]*\) (\([0-9]*:\)\?\([^)]*\)).*/\1_\3/g')
-#  cd ..
-#  mkdir -p build/$BASENAME
-#  mv *.deb build/$BASENAME
-#  mv *.build build/$BASENAME
-#  mv *.buildinfo build/$BASENAME
-#  mv *.changes build/$BASENAME
-done
-if [ "$(id -u)" -ne 0 ]; then chown -R user /src/*; fi
+echo "OS_CODENAME: ${OS_CODENAME}"
+cd /build/Allmon3
+make docker-deb DPKG_BUILDOPTS=$OPTS

@@ -1,12 +1,19 @@
-allmon3 (1.1.0-1) unstable; urgency=medium
+allmon3 (1.1.1-1.bookworm) unstable; urgency=medium
+
+  * build for 1.1.1-1
+
+ -- Jason McCormick <jason@mfamily.org>  Fri, 22 Dec 2023 18:16:17 -0500
+
+allmon3 (1.1.1-1.bookworm) unstable; urgency=medium
 
   * Ensure ASLNodeDB objects are fully async and non-blocking (#185)
   * Docker containers have provisional support (#182)
   * Fix HTML page title (#186)
   * Remove extraneous info-level logging for websocket-based classes 
   * Better logging around database retrieval errors
+  * build for 1.1.1-1
 
- -- Jason McCormick <jason@mfamily.org>  Fri, 08 Dec 2023 21:15:04 -0500
+ -- Jason McCormick <jason@mfamily.org>  Fri, 22 Dec 2023 18:16:06 -0500
 
 allmon3 (1.0.2-1) unstable; urgency=medium
 

@@ -73,17 +73,17 @@ echo "PDIR: ${PDIR}"
 DPKG_BUILDOPTS="-b -uc -us"
 D_TAG="allmon3_builder.${OPERATING_SYSTEMS}.${ARCH}${REPO_ENV}"
 
-#docker build -f $DIR/Dockerfile -t $D_TAG \
-#	--build-arg ARCH="$ARCH" \
-#	--build-arg OS="$OPERATING_SYSTEMS" \
-#	--build-arg ASL_REPO="asl_builds${REPO_ENV}" \
-#	--build-arg USER_ID=$(id -u) \
-#	--build-arg GROUP_ID=$(id -g) \
-#	$DIR
+docker build -f $DIR/Dockerfile -t $D_TAG \
+	--build-arg ARCH="$ARCH" \
+	--build-arg OS="$OPERATING_SYSTEMS" \
+	--build-arg ASL_REPO="asl_builds${REPO_ENV}" \
+	--build-arg USER_ID=$(id -u) \
+	--build-arg GROUP_ID=$(id -g) \
+	$DIR
 
-docker run -v $PDIR:/src \
+docker run -v $PDIR:/build/Allmon3 \
 	-e DPKG_BUILDOPTS="$DPKG_BUILDOPTS" \
 	-e BUILD_TARGETS="$TARGETS" \
 	$D_TAG
 
-#docker image rm --force $D_TAG
+docker image rm --force $D_TAG

@@ -39,6 +39,9 @@ verset:
 deb:	debclean debprep
 	debuild
 
+docker-deb:	debclean debprep
+	debchange --distribution unstable --package $(PKGNAME) --newversion $(RELVER).$(RELPLAT) "Autobuil of $(RELVER) for $(RELPLAT)"
+	dpkg-buildpackage $(DPKG_BUILTOPTS)
 
 debchange:
 	debchange -v $(RELVER)-$(DEBVER)
