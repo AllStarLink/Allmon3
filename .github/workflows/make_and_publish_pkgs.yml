@@ -7,6 +7,10 @@ on:
       arch:
         type: choice
         options: 
+        - amd64
+        - arm64
+        - armhf
+        - riscv64
         - all
       os:
         type: choice
