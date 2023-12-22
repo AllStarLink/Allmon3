@@ -3,6 +3,7 @@
 #
 RELVER = 1.1.0
 DEBVER = 1
+PKGNAME = allmon3
 
 BUILDABLES = \
 	doc \
@@ -36,12 +37,12 @@ verset:
 	perl -pi -e 's/\@\@HEAD-DEVELOP\@\@/$(RELVER)/g' `grep -rl @@HEAD-DEVELOP@@ src/ web/`
 
 deb:	debclean debprep
-	debchange -r
 	debuild
 
 
 debchange:
 	debchange -v $(RELVER)-$(DEBVER)
+	debchange -r
 
 
 debprep:	debclean
@@ -55,7 +56,12 @@ debprep:	debclean
 		ln -s allmon3-$(RELVER).tar.gz allmon3_$(RELVER).orig.tar.gz )
 
 debclean:
-	rm -f ../allmon3_$(RELVER)*
-	rm -rf debian/allmon3
+	rm -f ../$(PKGNAME)_$(RELVER)*
+	rm -f ../$(PKGNAME)-$(RELVER)*
+	rm -rf debian/$(PKGNAME)
 	rm -f debian/files
-	
+	rm -rf debian/.debhelper/
+	rm -f debian/debhelper-build-stamp
+	rm -f debian/*.substvars
+	rm -rf debian/mfamily-scripts/ debian/.debhelper/
+	rm -f debian/debhelper-build-stamp debian/files debian/mfamily-scripts.substvars
