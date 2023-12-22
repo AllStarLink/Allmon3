@@ -56,8 +56,7 @@ def sigusr1_handler(_signo, _stack_frame):
                     full_menu += f"{menu_string} ,"
             full_menu = re.sub(r",$", "]", full_menu)
             web_configuration.menu = full_menu
-        server_security = security.Security(web_configuration.user_table,
-            web_configuration.restrictions_table)
+        server_security.reload_db()
         log.info("reloaded node, web, menu, and sercurity configs")
 
     except Exception as e:
