@@ -19,3 +19,5 @@ echo "OS_CODENAME: ${OS_CODENAME}"
 cd /build/Allmon3
 export EMAIL="AllStarLink <autobuild@allstarlink.org>"
 make docker-deb DPKG_BUILDOPTS="${OPTS}" RELPLAT=$OS_CODENAME
+mkdir _debs
+cp ../*.deb _debs/
