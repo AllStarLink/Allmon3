@@ -14,6 +14,7 @@ RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID user; 
 
 # Install build dependencies
 RUN apt-get update && apt-get -y install \
+	apt-utils \
     build-essential \
     devscripts \
     fakeroot \
@@ -25,7 +26,7 @@ RUN apt-get update && apt-get -y install \
 
 # Install application dependencies
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install \
-    debhelper quilt pandoc debhelper-compat \
+    debhelper libdistro-info-perl quilt pandoc \
     --no-install-recommends
 
 # Import entrypoint script
