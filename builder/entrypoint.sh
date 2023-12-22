@@ -34,7 +34,7 @@ case $OS_CODENAME in
 	;;
 esac
 
-xport EMAIL="AllStarLink <autobuild@allstarlink.org>"
+export EMAIL="AllStarLink <autobuild@allstarlink.org>"
 make docker-deb DPKG_BUILDOPTS="${OPTS}" RELPLAT=$OS_CODENAME
 mkdir _debs
 cp ../*.deb _debs/
