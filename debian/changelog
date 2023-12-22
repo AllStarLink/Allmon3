@@ -1,10 +1,4 @@
-allmon3 (1.1.1-1.bookworm) unstable; urgency=medium
-
-  * build for 1.1.1-1
-
- -- Jason McCormick <jason@mfamily.org>  Fri, 22 Dec 2023 18:16:17 -0500
-
-allmon3 (1.1.1-1.bookworm) unstable; urgency=medium
+allmon3 (1.1.0-1) unstable; urgency=medium
 
   * Ensure ASLNodeDB objects are fully async and non-blocking (#185)
   * Docker containers have provisional support (#182)
