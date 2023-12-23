@@ -19,7 +19,7 @@ import sys
 from asl_allmon import allmon3_server, allmon3_ws_status, allmon3_ws_cmd, allmon3_ws_voter
 from asl_allmon import node_configs, node_db, security, web_configs
 
-_BUILD_ID = "@@HEAD-DEVELOP@@"
+_BUILD_ID = "1.1.1"
 
 
 # Handle Signals
