@@ -39,7 +39,7 @@ jobs:
           artifact-path: '_debs/*'
         secrets: inherit
       - name: Get Artifacts
-        uses: uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v3
         with:
           name: ${{inputs.artifact-name}}
           path: ${{runner.temp}}/artifacts
