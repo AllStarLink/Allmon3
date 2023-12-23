@@ -31,6 +31,10 @@ on:
           - default
           - yes
           - no
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   make-packages:
     uses: AllStarLink/asl_workflows/.github/workflows/ephemeral_ec2_run-this.yml@develop
