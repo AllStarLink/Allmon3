@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-set -x
 
 #get DPKG_BUILDOPTS from env var or use default
 OPTS=${DPKG_BUILDOPTS:-"-b -uc -us"}
@@ -36,5 +35,6 @@ esac
 
 export EMAIL="AllStarLink <autobuild@allstarlink.org>"
 make docker-deb DPKG_BUILDOPTS="${OPTS}" RELPLAT=$OS_CODENAME
-mkdir _debs
+[ ! -d _debs ] && mkdir _debs
+rm -f _debs/*
 cp ../*.deb _debs/
