@@ -34,12 +34,11 @@ on:
 jobs:
   make-packages:
     uses: AllStarLink/asl_workflows/.github/workflows/ephemeral_ec2_run-this.yml@develop
-    env:
-      GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
     with:
       run-this: ./builder/dockerbuild.sh -a ${{ inputs.arch  }} -o ${{ inputs.os }} ${{ (inputs.commit-versioning == 'yes' || (inputs.commit-versioning == 'default' && inputs.deployment-environment == 'development')) && '-r' || null }}
       arch: ${{ inputs.arch == 'armhf' && 'arm64' || inputs.arch == 'amd64' && 'x86_64' || inputs.arch == 'riscv64' && 'x86_64' || inputs.arch }}
       artifact-path: 'build/*'
+      token: ${{ secrets.access-token }}
     secrets: inherit
 #  publish-packages:
 #    uses: AllStarLink/asl_workflows/.github/workflows/publish_artifacts_to_aptly.yml@develop
