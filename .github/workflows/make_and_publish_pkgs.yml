@@ -7,18 +7,14 @@ on:
         type: choice
         options: 
         - amd64
-        - arm64
-        - armhf
-        - riscv64
-        - all
       os:
         type: choice
         options:
-          - buster
-          - bullseye
           - bookworm
-          - trixie
+          - bullseye
+          - buster
           - sid
+          - trixie
       deployment-environment:
         type: choice
         options:
@@ -38,7 +34,7 @@ jobs:
     with:
       run-this: ./builder/dockerbuild.sh -a ${{ inputs.arch  }} -o ${{ inputs.os }} ${{ (inputs.commit-versioning == 'yes' || (inputs.commit-versioning == 'default' && inputs.deployment-environment == 'development')) && '-r' || null }}
       arch: ${{ inputs.arch == 'armhf' && 'arm64' || inputs.arch == 'amd64' && 'x86_64' || inputs.arch == 'riscv64' && 'x86_64' || inputs.arch }}
-      artifact-path: '_debs/*'
+      artifact-path: 'build/*'
     secrets: inherit
 #  publish-packages:
 #    uses: AllStarLink/asl_workflows/.github/workflows/publish_artifacts_to_aptly.yml@develop
