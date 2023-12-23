@@ -14,6 +14,12 @@ import sys
 
 _BUILD_ID = "@@HEAD-DEVELOP@@"
 
+def get_user_index(lst, k, v):
+    for i, dic in enumerate(lst):
+        if dic[k] == v:
+            return i
+    return -1
+
 # Args and Log Setup
 ap = argparse.ArgumentParser(description="Manage Allmon3 password file")
 ap.add_argument("user", help="username to create/modify")
@@ -36,53 +42,53 @@ else:
     log.setLevel(logging.INFO)
 
 if args.file:
-	user_filename = args.file
+    user_filename = args.file
 else:
-	user_filename = "/etc/allmon3/users"
+    user_filename = "/etc/allmon3/users"
 
 userfields = [ 'user' , 'pass' ]
 userdb = []
 
 with open(user_filename, newline="") as user_file:
-	users = csv.DictReader(user_file, delimiter="|")
-	for row in users:
-		userdb.append({ "user" : row["user"] , "pass" : row["pass"] })
+    users = csv.DictReader(user_file, delimiter="|")
+    for row in users:
+        userdb.append({ "user" : row["user"] , "pass" : row["pass"] })
 
 log.debug("userdb:")
 log.debug(userdb)
 
 if args.delete:
-	to_delete = -1;
-	for i in range(0, len(userdb)):
-		u = userdb[i]
-		log.debug("considering {}".format(u))
-		if(u["user"] == args.user):
-			to_delete = i
-			log.debug("marking for delete element {}: {}".format(to_delete,userdb[i]))
-	
-	if to_delete > -1:
-		del userdb[to_delete]
-	else:
-		log.error("No user {} in file".format(args.user))
+    to_delete = -1;
+    for i in range(0, len(userdb)):
+        u = userdb[i]
+        log.debug("considering {}".format(u))
+        if(u["user"] == args.user):
+            to_delete = i
+            log.debug("marking for delete element {}: {}".format(to_delete,userdb[i]))
+    
+    if to_delete > -1:
+        del userdb[to_delete]
+    else:
+        log.error("No user {} in file".format(args.user))
 
 else:
-	pass_a = input("Enter the password for {}: ".format(args.user))
-	pass_b = input("Confirm the password for {}: ".format(args.user))
+    pass_a = input("Enter the password for {}: ".format(args.user))
+    pass_b = input("Confirm the password for {}: ".format(args.user))
 
-	if(pass_a != pass_b):
-		log.error("passwords do not match")
-		sys.exit(-1)
+    if(pass_a != pass_b):
+        log.error("passwords do not match")
+        sys.exit(-1)
 
-	ph = argon2.PasswordHasher(type=argon2.Type.ID)
-	hash_pass = ph.hash(pass_a)
-	if not any(u["user"] == args.user for u in userdb):
-		userdb.append({ "user" : args.user , "pass" : hash_pass })
-	else:
-		update = { "user" : args.user , "pass" : hash_pass }
-		userdb = [{**u, **update} for u in userdb]
+    ph = argon2.PasswordHasher(type=argon2.Type.ID)
+    hash_pass = ph.hash(pass_a)
+    if not any(u["user"] == args.user for u in userdb):
+        userdb.append({ "user" : args.user , "pass" : hash_pass })
+    else:
+        idx = get_user_index(userdb, "user", args.user)
+        userdb[idx] = { "user" : args.user , "pass" : hash_pass }
 
 with open(user_filename, "w", newline="") as user_file:
-	user_writer = csv.DictWriter(user_file, fieldnames = userfields, delimiter="|")
-	user_writer.writeheader()
-	user_writer.writerows(userdb)
+    user_writer = csv.DictWriter(user_file, fieldnames = userfields, delimiter="|")
+    user_writer.writeheader()
+    user_writer.writerows(userdb)
 
