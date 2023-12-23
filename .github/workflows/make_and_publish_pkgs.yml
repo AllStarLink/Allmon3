@@ -36,14 +36,6 @@ jobs:
       arch: ${{ inputs.arch == 'armhf' && 'arm64' || inputs.arch == 'amd64' && 'x86_64' || inputs.arch == 'riscv64' && 'x86_64' || inputs.arch }}
       artifact-path: 'build/*'
     secrets: inherit
-  get-artifacts:
-    needs: make-packages
-    secrets: inherit
-    uses: actions/download-artifact@v3
-    with:
-      name: ${{inputs.artifact-name}}
-      path: ${{runner.temp}}/artifacts
-   run: ls -R $RUNNER_TEMP
 #  publish-packages:
 #    uses: AllStarLink/asl_workflows/.github/workflows/publish_artifacts_to_aptly.yml@develop
 #    with:
