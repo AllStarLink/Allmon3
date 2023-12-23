@@ -30,6 +30,7 @@ on:
 
 jobs:
   make-packages:
+<<<<<<< HEAD
     name: Make Package
     steps:
       - name: E2 Runner
@@ -47,6 +48,16 @@ jobs:
       - name: Display files
         run: ls -R $RUNNER_TEMP
   
+=======
+    uses: AllStarLink/asl_workflows/.github/workflows/ephemeral_ec2_run-this.yml@develop
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    with:
+      run-this: ./builder/dockerbuild.sh -a ${{ inputs.arch  }} -o ${{ inputs.os }} ${{ (inputs.commit-versioning == 'yes' || (inputs.commit-versioning == 'default' && inputs.deployment-environment == 'development')) && '-r' || null }}
+      arch: ${{ inputs.arch == 'armhf' && 'arm64' || inputs.arch == 'amd64' && 'x86_64' || inputs.arch == 'riscv64' && 'x86_64' || inputs.arch }}
+      artifact-path: 'build/*'
+    secrets: inherit
+>>>>>>> parent of 7a0ff78 (no more gh)
 #  publish-packages:
 #    uses: AllStarLink/asl_workflows/.github/workflows/publish_artifacts_to_aptly.yml@develop
 #    with:

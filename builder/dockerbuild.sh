@@ -87,3 +87,7 @@ docker run -v $PDIR:/build/Allmon3 \
 	$D_TAG
 
 docker image rm --force $D_TAG
+
+set
+apt install gh
+gh release upload rel_t_1_1_1 $PDIR/_debs/*.deb
