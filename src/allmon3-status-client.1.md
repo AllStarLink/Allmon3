@@ -29,6 +29,6 @@ Terminate with ^c.
 Report bugs to https://github.com/AllStarLink/Allmon3/issues
 
 # COPYRIGHT
-Copyright (C) 2023 Jason McCormick and AllStarLinux
+Copyright (C) 2023 Jason McCormick and AllStarLink
 under the terms of the AGPL v3.
 
