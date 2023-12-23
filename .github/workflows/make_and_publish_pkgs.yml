@@ -30,7 +30,7 @@ on:
 
 jobs:
   make-packages:
-    seteps:
+    steps:
       - name: E2 Runner
         uses: AllStarLink/asl_workflows/.github/workflows/ephemeral_ec2_run-this.yml@develop
         with:
