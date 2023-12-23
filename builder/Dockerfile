@@ -20,6 +20,7 @@ RUN apt-get update && apt-get -y install \
     fakeroot \
     debhelper \
     git \
+	gh \
     ca-certificates \
     wget \
     --no-install-recommends
