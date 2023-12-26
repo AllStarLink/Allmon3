@@ -36,8 +36,8 @@ apt install -y apache2 python3-websockets python3-argon2 python3-aiohttp python3
 ```
 2. Install Allmon3
 ```
-wget https://github.com/AllStarLink/Allmon3/releases/download/t_rel_1_1_1/allmon3_1.1.1-1.bookworm_all.deb
-dpkg -i allmon3_1.1.1-1.bookworm_all.deb
+wget https://github.com/AllStarLink/Allmon3/releases/download/t_rel_1_2_0/allmon3_1.2.0-1.bookworm_all.deb
+dpkg -i allmon3_1.2.0-1.bookworm_all.deb
 ```
 
 ### Install on Debian 11 / Raspian 11 Software
@@ -61,8 +61,8 @@ apt install -y -t bullseye-backports python3-websockets python3-aiohttp python3-
 
 3. Install Allmon3
 ```
-wget https://github.com/AllStarLink/Allmon3/releases/download/t_rel_1_1_1/allmon3_1.1.1-1.bullseye_all.deb
-dpkg -i allmon3_1.1.1-1.bullseye_all.deb
+wget https://github.com/AllStarLink/Allmon3/releases/download/t_rel_1_2_0/allmon3_1.2.0-1.bullseye_all.deb
+dpkg -i allmon3_1.2.0-1.bullseye_all.deb
 ```
 
 ### Install Debian 10 / Raspian 10 Software
@@ -100,8 +100,8 @@ update-ca-certificates --fresh
 
 5. Install Allmon3 (debian10 version)
 ```
-wget https://github.com/AllStarLink/Allmon3/releases/download/t_rel_1_1_1/allmon3_1.1.1-1.buster_all.deb
-dpkg -i allmon3_1.1.1-1.buster_all.deb
+wget https://github.com/AllStarLink/Allmon3/releases/download/t_rel_1_2_0/allmon3_1.2.0-1.buster_all.deb
+dpkg -i allmon3_1.2.0-1.buster_all.deb
 ```
 
 ### Configure Allmon
