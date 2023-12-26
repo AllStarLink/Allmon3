@@ -376,7 +376,6 @@ function nodeConnTable(conns, keyed, keyednode) {
 				rowclass = "node-conn-noconn";
 			}
 
-			console.log(`${x}: ${rowclass}`);
             row = row.concat(`
             <tr class="${rowclass}" onclick="nodeCmdShortcut(${x})">
                 <th scope="row" class=${rowclass}>${x}</td>
