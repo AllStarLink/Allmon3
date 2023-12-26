@@ -192,17 +192,17 @@ function nodeEntry(nodeid, nodeinfo){
 
     // update the tx line
     if(node.RXKEYED === true && node.TXKEYED === true ){    
-        divTxStat.innerHTML = "<div class=\"alert alert-warning am3-alert-keyed mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
+        divTxStat.innerHTML = "<div class=\"alert alert-warning mx-3 py-0 nodetxline am3-tx-local\">Transmit - Local Source</div>";
     } else if( node.RXKEYED === true && node.TXEKEYED === false && node.TXEKEYED === false ){
-        divTxStat.innerHTML = "<div class=\"alert alert-warning am3-alert-keyed mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Local Source</div>";
+        divTxStat.innerHTML = "<div class=\"alert alert-warning mx-3 py-0 nodetxline am3-tx-local\">Transmit - Local Source</div>";
     } else if( node.CONNKEYED === true && node.TXKEYED === true && node.RXKEYED === false ){
-        divTxStat.innerHTML = "<div class=\"alert alert-warning am3-alert-keyed mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Network Source</div>";
+        divTxStat.innerHTML = "<div class=\"alert alert-warning mx-3 py-0 nodetxline am3-tx-network\">Transmit - Network Source</div>";
     } else if( node.TXKEYED === true && node.RXKEYED === false && node.CONNKEYED === false ){
-        divTxStat.innerHTML = "<div class=\"alert alert-warning am3-alert-keyed mx-3 py-0 nodetxline nodetxline-keyed\">Transmit - Telemetry/Playback</div>";
+        divTxStat.innerHTML = "<div class=\"alert alert-warning mx-3 py-0 nodetxline am3-tx-telemetry\">Transmit - Telemetry/Playback</div>";
     } else if( node.TXKEYED === false && node.RXKEYED === false && node.TXEKEYED === false && node.CONNKEYED === true ){
-        divTxStat.innerHTML = `<div class="alert alert-warning am3-alert-keyed mx-3 py-0 nodetxline nodetxline-keyed">Transmit - Playback from Remote Node ${node.CONNKEYEDNODE}</div>`;
+        divTxStat.innerHTML = `<div class="alert alert-warning mx-3 py-0 nodetxline am3-tx-playback-remote">Transmit - Playback from Remote Node ${node.CONNKEYEDNODE}</div>`;
     } else {
-        divTxStat.innerHTML = "<div class=\"alert alert-success am3-alert-idle mx-3 py-0 nodetxline nodetxline-unkeyed\">Transmit - Idle</div>";
+        divTxStat.innerHTML = "<div class=\"alert alert-success am3-alert-idle mx-3 py-0 nodetxline am3-no-tx\">Transmit - Idle</div>";
     }
 
     // update the connection table    

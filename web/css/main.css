@@ -38,6 +38,31 @@
 		/* Node connection table stats=Connecting colors */
 		--am3-conntable-conn-noconn-color: rgba(0,0,0,1);
 		--am3-conntable-conn-noconn-bg-color: rgba(255,255,255,1);
+
+		/* Node Tx Local */
+		--am3-node-tx-local-color: rgb(0, 0, 0);
+		--am3-node-tx-local-bg-color: rgb(245, 198, 203);
+
+		/* Node Tx Network */
+		--am3-node-tx-network-color: rgb(0, 0, 0);
+		--am3-node-tx-network-bg-color: rgb(245, 198, 203);
+
+		/* Node Tx Telem */
+		--am3-node-tx-telemetry-color: rgb(0, 0, 0);
+		--am3-node-tx-telemetry-bg-color: rgb(245, 198, 203);
+
+		/* Node Tx Remote */
+		--am3-node-tx-playback-remote-color: rgb(0, 0, 0);
+		--am3-node-tx-playback-remote-bg-color: rgb(245, 198, 203);
+
+		/* Node No Tx */
+		--am3-node-no-tx-color: rgb(0, 0, 0);
+		--am3-node-no-tx-bg-color: rgb(195, 230, 203);
+
+}
+
+.am3-no-tx{
+	
 }
 
 body {
@@ -111,6 +136,31 @@ body {
 .nodetxline {
 	color: #000;
 	font-weight: bold;
+}
+
+.am3-tx-local{
+	color: var(--am3-node-tx-local-color);
+	background-color: var(--am3-node-tx-local-bg-color);
+}
+
+.am3-tx-network{
+	color: var(--am3-node-tx-network-color);
+	background-color: var(--am3-node-tx-network-bg-color);
+}
+
+.am3-tx-telemetry{
+	color: var(--am3-node-tx-telemetry-color);
+	background-color: var(--am3-node-tx-telemetry-bg-color);
+}
+
+.am3-tx-playback-remote {
+	color: var(--am3-node-tx-playback-remote-color);
+	background-color: var(--am3-node-tx-playback-remote-bg-color);
+}
+
+.am3-no-tx{
+	color: var(--am3-node-no-tx-color);
+	background-color: var(--am3-node-no-tx-bg-color);
 }
 
 .node-conn-keyed {
