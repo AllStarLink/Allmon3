@@ -107,6 +107,7 @@ async function doLogin(){
 Login Successful
 </div>
 `;
+		document.getElementById("loginModalLabel").innerHTML = "&nbsp;";
         document.getElementById("login-modal-footer").innerHTML = `
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="clearLogin()">OK</button>
 `;
