@@ -1,3 +1,17 @@
+allmon3 (1.2.0-1) unstable; urgency=medium
+
+  * Fix missing await in ws_voter keepalive (fix #191)
+  * Fix reloading user database when called in USR1 handler (fix #192)
+  * Only enable Apache2 modules in postinst when apache2 is installed (fix #195)
+  * Re-add missing python3-websockets dependency in debian/control (fix #196)
+  * Fix default CSS custom variables to match core code (fix #197)
+  * Fix and enforce correct mode and owner on password-containing files (fix #201)
+  * Fix `allmon3-passwd` from overwriting elements out of order in `users` (fix #204)
+  * Clear"Login Failure" message on next success (fix #205)
+  * `custom.css` supports customizing the Node Transmit Line (fix #208)
+
+ -- Jason McCormick <jason@mfamily.org>  Tue, 26 Dec 2023 11:28:53 -0500
+
 allmon3 (1.1.1-1) unstable; urgency=medium
   
   * Fix missing await in ws_voter keepalive (fix #191)
