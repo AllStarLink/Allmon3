@@ -1,7 +1,7 @@
 #
 # Build variables
 #
-RELVER = 1.1.1
+RELVER = 1.2.0
 DEBVER = 1
 PKGNAME = allmon3
 
