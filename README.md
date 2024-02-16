@@ -72,8 +72,12 @@ dpkg -i allmon3_1.2.0-1.bullseye_all.deb
 ```
 gpg --keyserver keyserver.ubuntu.com --recv-keys 04EE7237B7D453EC
 gpg --keyserver keyserver.ubuntu.com --recv-keys 648ACFD622F3D138
+gpg --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9
+gpg --keyserver keyserver.ubuntu.com --recv-keys 6ED0E7B82643E131
 gpg --export 04EE7237B7D453EC | sudo apt-key add -
 gpg --export 648ACFD622F3D138 | sudo apt-key add -
+gpg --export 0E98404D386FA1D9 | sudo apt-key add -
+gpg --export 6ED0E7B82643E131 | sudo apt-key add -
 echo "deb https://deb.debian.org/debian buster-backports main" > /etc/apt/sources.list.d/buster-backports.list
 apt update
 ```
