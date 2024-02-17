@@ -13,7 +13,7 @@ import time
 import urllib.request
 from .. import node_configs
 
-_BUILD_ID = "@@HEAD-DEVELOP@@"
+_BUILD_ID = "1.2.1"
 log = logging.getLogger(__name__)
 
 class ASLNodeDB:

@@ -1,3 +1,9 @@
+allmon3 (1.2.1-1) unstable; urgency=medium
+
+  * Ensure JS and CSS isn't cached by browsers (#209, @Pross)
+
+ -- Jason McCormick <jason@mfamily.org>  Fri, 29 Dec 2023 13:38:53 -0500
+
 allmon3 (1.2.0-1) unstable; urgency=medium
 
   * Fix missing await in ws_voter keepalive (fix #191)
