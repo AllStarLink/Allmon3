@@ -85,7 +85,7 @@ apt update
 2. Install the dependendencies
 ```
 apt install -y apache2 python3-argon2 
-apt install -y -t buster-backports python3-async-timeout python3-attr python3-multidict python3-yarl python-pip3
+apt install -y -t buster-backports python3-async-timeout python3-attr python3-multidict python3-yarl python3-pip
 ```
 
 3. Install Python modules using PIP3
