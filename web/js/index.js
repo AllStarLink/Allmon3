@@ -206,7 +206,7 @@ function nodeEntry(nodeid, nodeinfo){
     }
 
     // update the connection table    
-    divConntable.innerHTML = nodeConnTable(node.CONNS, node.CONNKEYED, node.CONNKEYEDNODE);
+    divConntable.innerHTML = nodeConnTable(node.CONNS, node.CONNKEYED, node.CONNKEYEDNODE, nodeid);
 }
 
 function nodeEntrySetError(nodeid, errorMessage){
@@ -244,6 +244,9 @@ function nodeLineHeader(nodeNumber, nodeDescription){
     let nodeLineHeaderStr = `
         <div id="node-line-header-${nodeNumber}" class="row d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-1 px-2 mt-1 mb-1 border-bottom nodeline-header rounded align-middle">
             <div id="asl-statmon-dashboard-${nodeNumber}-header-desc" class="col">${nodeNumber} - ${nodeDescription}</div>
+			<div class="col-md-auto align-middle numconns-box">
+				Conns:&nbsp;<span id="${nodeNumber}-numconns">0</span>
+			</div>
 			<div class="col-md-auto align-middle uptime-box">
 				Up:&nbsp;<span id="${nodeNumber}-uptime">0</span>
 			</div>
@@ -283,7 +286,7 @@ function nodeLineHeader(nodeNumber, nodeDescription){
 }
 
 // Draw/update the node tables
-function nodeConnTable(conns, keyed, keyednode) {
+function nodeConnTable(conns, keyed, keyednode, nodeid) {
     var tTop = `
 <div class="px-3">
 <table class="table table-sm table-responsive table-bordered table-hover">
@@ -304,6 +307,8 @@ function nodeConnTable(conns, keyed, keyednode) {
     var tBottom = `</tbody></table></div>`;
     var row = "";
     if(Object.keys(conns).length > 0){
+
+		document.getElementById(`${nodeid}-numconns`).innerHTML = Object.keys(conns).length;
 
         let nodesBySSU = [];
         for(let x in conns){

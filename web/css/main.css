@@ -117,7 +117,7 @@ body {
 }
 
 /*** Node Connections Display ***/
-.uptime-box {
+.uptime-box, .numconns-box {
   font-size: 0.8em;
   font-weight: normal;
 }
