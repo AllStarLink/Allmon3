@@ -17,6 +17,9 @@ var nodeDescOverrides = new Map();
 var loggedIn = false;
 var tooltipTriggerList;
 var tooltipList;
+var lastTXState = false;
+var currTXStartTime;
+var currTXLastTime;
 
 const max_poll_errors = 10;
 
@@ -191,19 +194,43 @@ function nodeEntry(nodeid, nodeinfo){
 	headerUptimeSpan.innerHTML = hdup;
 
     // update the tx line
+    let currTXState = false;
     if(node.RXKEYED === true && node.TXKEYED === true ){    
-        divTxStat.innerHTML = "<div class=\"alert alert-warning mx-3 py-0 nodetxline am3-tx-local\">Transmit - Local Source</div>";
+        divTxStat.innerHTML = `<div class="alert alert-warning mx-3 py-0 nodetxline am3-tx-local">Transmit - Local Source (<span id="${nodeid}-TXTime</span>)</div>`;
+		currTXState = true;
     } else if( node.RXKEYED === true && node.TXEKEYED === false && node.TXEKEYED === false ){
-        divTxStat.innerHTML = "<div class=\"alert alert-warning mx-3 py-0 nodetxline am3-tx-local\">Transmit - Local Source</div>";
+        divTxStat.innerHTML = `<div class="alert alert-warning mx-3 py-0 nodetxline am3-tx-local">Transmit - Local Source (<span id="${nodeid}-TXTime</span>)</div>`;
+		currTXState = true;
     } else if( node.CONNKEYED === true && node.TXKEYED === true && node.RXKEYED === false ){
-        divTxStat.innerHTML = "<div class=\"alert alert-warning mx-3 py-0 nodetxline am3-tx-network\">Transmit - Network Source</div>";
+        divTxStat.innerHTML = `<div class="alert alert-warning mx-3 py-0 nodetxline am3-tx-network">Transmit - Network Source (<span id="${nodeid}-TXTime"></span>)</div>`;
+		currTXState = true;
     } else if( node.TXKEYED === true && node.RXKEYED === false && node.CONNKEYED === false ){
-        divTxStat.innerHTML = "<div class=\"alert alert-warning mx-3 py-0 nodetxline am3-tx-telemetry\">Transmit - Telemetry/Playback</div>";
+        divTxStat.innerHTML = `<div class="alert alert-warning mx-3 py-0 nodetxline am3-tx-telemetry">Transmit - Telemetry/Playback</div>`;
+		currTXState = false;
     } else if( node.TXKEYED === false && node.RXKEYED === false && node.TXEKEYED === false && node.CONNKEYED === true ){
         divTxStat.innerHTML = `<div class="alert alert-warning mx-3 py-0 nodetxline am3-tx-playback-remote">Transmit - Playback from Remote Node ${node.CONNKEYEDNODE}</div>`;
+		currTXState = false;
     } else {
         divTxStat.innerHTML = "<div class=\"alert alert-success am3-alert-idle mx-3 py-0 nodetxline am3-no-tx\">Transmit - Idle</div>";
+		currTXState = false;
     }
+
+	if( lastTXState == false && currTXState == true){
+		currTXStartTime = Date.now();
+		currTXLastTime = currTXStartTime;
+	} else if( lastTXState == true && currTXState == true){
+		currTXLastTime = Date.now();
+	} else {
+		currTXStartTime = 0;
+		currTXLastTime = 0;
+	}
+
+	if(currTXLastTime > 0){
+		const xmitTime = toOHMS( parseInt((currTXLastTime - currTXStartTime)/1000) );
+		const divHeader = document.getElementById(`${nodeid}-TXTime`).innerHTML = xmitTime;
+	}
+	lastTXState = currTXState;
+
 
     // update the connection table    
     divConntable.innerHTML = nodeConnTable(node.CONNS, node.CONNKEYED, node.CONNKEYEDNODE, nodeid);

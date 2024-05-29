@@ -18,6 +18,20 @@ function toHMS(totalSeconds) {
   return `${zeroPad(hours)}:${zeroPad(minutes)}:${zeroPad(seconds)}`;
 }
 
+// Convert elapsed seconds to [HH:]MM:SS
+function toOHMS(totalSeconds) {
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const zeroPad = (num) => String(num).padStart(2,'0');
+  const seconds = totalSeconds % 60;
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if(hours == 0){
+	return `${zeroPad(minutes)}:${zeroPad(seconds)}`;
+  }
+  return `${zeroPad(hours)}:${zeroPad(minutes)}:${zeroPad(seconds)}`;
+}
+
+
 function secondsToDhms(seconds) {
 	seconds = Number(seconds);
 	const zeroPad = (num) => String(num).padStart(2,'0');
