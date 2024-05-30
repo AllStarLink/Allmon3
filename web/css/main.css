@@ -193,6 +193,19 @@ body {
 	--bs-table-border-color: var(--am3-conntable-border-color);
 }
 
+.node-line-bi {
+	color: var(--bs-gray-300);
+	--bs-btn-border-color: var(--bs-gray-300);
+	--bs-btn-hover-bg: var(--bs-gray-300);
+	--bs-btn-hover-color: var(--am3-nodetitle-button-hl);
+	--bs-btn-hover-border-color: var(--bs-gray-300);
+	--bs-btn-padding-y: 0;
+	--bs-btn-padding-x: 0;
+	--bs-btn-font-size: 0;
+}
+
+
+
 /*** Modal ***/
 .login-form-success {
 	color: green;
