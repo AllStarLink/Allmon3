@@ -54,11 +54,11 @@ async function sendCommand(node, cmdStr) {
 //
 // Command Handling
 //
-function openCmdModalLink(node){
+function openCmdModalLink(node, defCmd){
 	const modal = new bootstrap.Modal(document.getElementById("commandModal"), {});
 		document.getElementById("commandModalTitleBox").innerHTML = `Execute Command on ${node}`;
 	if(loggedIn){
-		document.getElementById("command-modal-body").innerHTML = getLinkCommandModalForm(node);
+		document.getElementById("command-modal-body").innerHTML = getLinkCommandModalForm(node, defCmd);
 	} else {
 		document.getElementById("command-modal-body").innerHTML = `<div class="alert alert-danger role="alert">Must Logon First</div>`;	
 	}
@@ -81,8 +81,17 @@ async function openCmdModalCLI(node){
 //
 // Link Command Modal Interface
 //
-function getLinkCommandModalForm(node){
-	return `
+function getLinkCommandModalForm(node, defCmd){
+	let opt1 = "";
+	let opt2 = "";
+	let opt3 = "";
+	let opt6 = "";
+	let opt8 = "";
+
+	if( defCmd == 1 ){
+		opt1 = "selected";
+	}
+	rForm = `
 <div id="cmd-link-cmd" class="container">
 	<form id="command-modal-form" class="needs-validation" novalidate>
 		<div class="row row-cols-3 g-3">
@@ -98,12 +107,18 @@ function getLinkCommandModalForm(node){
 			<div class="col">
 				<select id="cmf-link-node-cmd" name="cmf-link-node-cmd" class="form-select"
 						aria-label="Connect Disconnect command" required>
-					<option selected disabled value="">Choose a command</option>
-					<option value="3">Connect</option>
-					<option value="1">Disconnect</option>
-					<option value="2">Monitor</option>
-					<option value="8">Local Monitor</option>
-					<option value="6">Disconnect All</option>
+	`;
+
+	if(typeof defCmd === 'undefined'){
+		rForm = rForm.concat(`<option selected disabled value="">Choose a command</option>`);
+	}
+	
+	rForm = rForm.concat(`
+					<option ${opt3} value="3">Connect</option>
+					<option ${opt1} value="1">Disconnect</option>
+					<option ${opt2} value="2">Monitor</option>
+					<option ${opt8} value="8">Local Monitor</option>
+					<option ${opt6} value="6">Disconnect All</option>
 				</select>
 				<div class="invalid-feedback">
 					Select a command
@@ -135,7 +150,8 @@ function getLinkCommandModalForm(node){
 	<form>
 </div>
 <div id="cmd-output" class="container my-2"></div>
-`;
+	`);
+	return rForm;
 }
 
 function executeNodeLinkCmd(node){
@@ -311,4 +327,9 @@ function executeNodeCLICmd(node){
 
 function nodeCmdShortcut(node){
 	cmdShortcut = node;
+}
+
+function nodeUnlinkShortcut(node, target){
+	cmdShortcut = target;
+	openCmdModalLink(node, 1);
 }

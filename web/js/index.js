@@ -318,18 +318,24 @@ function nodeConnTable(conns, keyed, keyednode, nodeid) {
 <div class="px-3">
 <table class="table table-sm table-responsive table-bordered table-hover">
 <thead class="table-dark">
-    <tr>
+    <tr>`;
+	if(loggedIn){
+		tTop = tTop.concat(`
+		<th scope="col">&nbsp;</th>
+		`);
+	}
+	tTop = tTop.concat(`
         <th scope="col">Node</th>
         <th scope="col">Description</th>
         <th scope="col">Last Recv</th>
         <th scope="col" class="d-none d-md-table-cell">Conn Time</th>
-        <th scope="col" class="d-none d-md-table-cell">Direction</th>
-        <th scope="col" class="d-none d-md-table-cell">Connect State</th>
+        <th scope="col" class="d-none d-lg-table-cell">Direction</th>
+        <th scope="col" class="d-none d-lg-table-cell">Connect State</th>
         <th scope="col" class="d-none d-md-table-cell">Mode</th>
     </tr>
 </thead>
 <tbody class="table-group-divider">
-`;
+	`);
 
     var tBottom = `</tbody></table></div>`;
     var row = "";
@@ -409,16 +415,28 @@ function nodeConnTable(conns, keyed, keyednode, nodeid) {
 			}
 
             row = row.concat(`
-            <tr class="${rowclass}" onclick="nodeCmdShortcut(${x})">
-                <th scope="row" class=${rowclass}>${x}</td>
+				<tr class="${rowclass}" onclick="nodeCmdShortcut(${x})">
+			`);
+			if(loggedIn){
+				row = row.concat(`
+				<td class="${rowclass}">
+					<button class="btn btn-sm btn-outline-secondary node-line-bi" onclick="nodeUnlinkShortcut(${nodeid}, ${x})"
+                       	data-bs-toggle="tooltip" data-bs-title="Unlink node ${x}"
+						data-bs-placement="bottom"><svg class="flex-shrink-0" width="16" height="16" role="img" aria-label="Unlink Node ${x}"> <use xlink:href="#disconnect"/></svg></button>
+				</td>
+				`);
+			}
+			row = row.concat(`
+                <th scope="row" class=${rowclass}>${x}</th>
                 <td class=${rowclass}>${c.DESC}</td>
                 <td class=${rowclass}>${lastXmit}</td>
                 <td class="d-none d-md-table-cell ${rowclass}">${c.CTIME}</td>
-                <td class="d-none d-md-table-cell ${rowclass}">${c.DIR}</td>
-                <td class="d-none d-md-table-cell ${rowclass}">${c.CSTATE}</td>
+                <td class="d-none d-lg-table-cell ${rowclass}">${c.DIR}</td>
+                <td class="d-none d-lg-table-cell ${rowclass}">${c.CSTATE}</td>
                 <td class="d-none d-md-table-cell ${rowclass}">${c.MODE}</td>
             </tr>`);
         }
+	
     } else {
         row = "<tr><td colspan=7>No Connections - Repeat Only</td></tr>";
     }
