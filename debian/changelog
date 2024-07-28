@@ -1,4 +1,21 @@
-allmon3 (1.2.0-1) unstable; urgency=medium
+allmon3 (1.3.0-1) stable; urgency=medium
+
+  * Add inline node disconnect option (#215)
+  * Add time counter for actively TXing node (#218)
+  * Add templating and command support for allow/deny lists (#220)
+  * Add display number of nodes connected (#221)
+  * Add syntax node on .ini comment formatting (#227)
+  * Add comment on SVG icon license source
+
+ -- Jason McCormick <jason@mfamily.org>  Sun, 28 Jul 2024 18:36:57 -0400
+
+allmon3 (1.2.1-1) stable; urgency=medium
+
+  * Ensure JS and CSS isn't cached by browsers (#209, @Pross)
+
+ -- Jason McCormick <jason@mfamily.org>  Fri, 29 Dec 2023 13:38:53 -0500
+
+allmon3 (1.2.0-1) stable; urgency=medium
 
   * Fix missing await in ws_voter keepalive (fix #191)
   * Fix reloading user database when called in USR1 handler (fix #192)
@@ -12,7 +29,7 @@ allmon3 (1.2.0-1) unstable; urgency=medium
 
  -- Jason McCormick <jason@mfamily.org>  Tue, 26 Dec 2023 11:28:53 -0500
 
-allmon3 (1.1.1-1) unstable; urgency=medium
+allmon3 (1.1.1-1) stable; urgency=medium
   
   * Fix missing await in ws_voter keepalive (fix #191)
   * Fix reloading user database when called in USR1 handler (fix #192)
@@ -23,7 +40,7 @@ allmon3 (1.1.1-1) unstable; urgency=medium
 
  -- Jason McCormick <jason@mfamily.org>  Fri, 22 Dec 2023 19:15:43 -0500
 
-allmon3 (1.1.0-1) unstable; urgency=medium
+allmon3 (1.1.0-1) stable; urgency=medium
 
   * Ensure ASLNodeDB objects are fully async and non-blocking (#185)
   * Docker containers have provisional support (#182)
@@ -34,7 +51,7 @@ allmon3 (1.1.0-1) unstable; urgency=medium
 
  -- Jason McCormick <jason@mfamily.org>  Fri, 22 Dec 2023 18:16:06 -0500
 
-allmon3 (1.0.2-1) unstable; urgency=medium
+allmon3 (1.0.2-1) stable; urgency=medium
 
   * Provide Nginx configuration (#169)
   * Fix CSS breakage from Bootstrap version upgrade (#180)
@@ -42,27 +59,27 @@ allmon3 (1.0.2-1) unstable; urgency=medium
 
  -- Jason McCormick <jason@mfamily.org>  Sat, 18 Nov 2023 15:09:36 -0500
 
-allmon3 (1.0.1-1) unstable; urgency=medium
+allmon3 (1.0.1-1) stable; urgency=medium
 
   * Fix retry bug that caused silent crash in websocket handlers (#171)
 
  -- Jason McCormick <jason@mfamily.org>  Mon, 30 Oct 2023 19:32:40 -0400
 
-allmon3 (1.0.0-1) unstable; urgency=medium
+allmon3 (1.0.0-1) stable; urgency=medium
 
   * Release of major version 1.0.0
   * From 0.11.6, implement asyncio stream code to replace tcp sockets
 
  -- Jason McCormick <jason@mfamily.org>  Fri, 29 Sep 2023 19:51:47 -0400
 
-allmon3 (0.11.6-1) unstable; urgency=medium
+allmon3 (0.11.6-1) stable; urgency=medium
 
   * Implement per-user node restrictions (#161)
   * Display node uptime in header bar (#162)
 
  -- Jason McCormick <jason@mfamily.org>  Wed, 06 Sep 2023 13:05:56 -0400
 
-allmon3 (0.11.5-1) unstable; urgency=medium
+allmon3 (0.11.5-1) stable; urgency=medium
 
   * Don't fail node(s) that are unreachable on startup (#160)
   * Pages with the same page#anchor now reload in the menu (#163)
@@ -70,7 +87,7 @@ allmon3 (0.11.5-1) unstable; urgency=medium
 
  -- Jason McCormick <jason@mfamily.org>  Tue, 05 Sep 2023 11:15:25 -0400
 
-allmon3 (0.11.4-2) unstable; urgency=medium
+allmon3 (0.11.4-2) stable; urgency=medium
 
   * Attempt to clarify web client errors for different websocket problems
     (#155)
@@ -83,7 +100,7 @@ allmon3 (0.11.4-2) unstable; urgency=medium
 
  -- Jason McCormick <jason@mfamily.org>  Sun, 06 Aug 2023 13:16:50 -0400
 
-allmon3 (0.11.3-1) unstable; urgency=medium
+allmon3 (0.11.3-1) stable; urgency=medium
 
   * Fix issue with WebKit-based browser (Safari) not reloading
     websockets on page-back navigation (#151)
@@ -92,21 +109,21 @@ allmon3 (0.11.3-1) unstable; urgency=medium
 
  -- Jason McCormick <jason@mfamily.org>  Thu, 13 Jul 2023 12:07:50 -0400
 
-allmon3 (0.11.2-2) unstable; urgency=medium
+allmon3 (0.11.2-2) stable; urgency=medium
 
   * Updated the logic of sockets management/retries (#138, #149, #150)
   * Fix issue for node-overrides not in the core database (#147)
 
  -- Jason McCormick <jason@mfamily.org>  Fri, 30 Jun 2023 13:11:00 -0400
 
-allmon3 (0.11.1-1) unstable; urgency=medium
+allmon3 (0.11.1-1) stable; urgency=medium
 
   * Fix error when node-overrides tries to override a non-existing node
   * Split out Debian 10 packaging
 
  -- Jason McCormick <jason@mfamily.org>  Tue, 20 Jun 2023 18:23:11 -0400
 
-allmon3 (0.11.0-1) unstable; urgency=medium
+allmon3 (0.11.0-1) stable; urgency=medium
 
   * Complete installation by apt/dpkg into a basic working Allmon3
   * Implementation of per-node commands in web.ini
@@ -119,7 +136,7 @@ allmon3 (0.11.0-1) unstable; urgency=medium
 
  -- Jason McCormick <jason@mfamily.org>  Sat, 17 Jun 2023 15:57:35 -0400
 
-allmon3 (0.10.2-2) unstable; urgency=medium
+allmon3 (0.10.2-2) stable; urgency=medium
 
   * Support per-node command templates (see web.ini)
   * Retain order of menu.ini submenus in the HTML dropdown 
@@ -133,14 +150,14 @@ allmon3 (0.10.2-2) unstable; urgency=medium
 
  -- Jason McCormick <jason@mfamily.org>  Sat, 17 Jun 2023 09:22:13 -0400
 
-allmon3 (0.10.1-1) unstable; urgency=medium
+allmon3 (0.10.1-1) stable; urgency=medium
 
   * Fix .deb packaging issues
   * Implement keepalive cycles
 
  -- Jason McCormick <jason@mfamily.org>  Mon, 22 May 2023 12:14:06 -0400
 
-allmon3 (0.10.0-3) unstable; urgency=medium
+allmon3 (0.10.0-3) stable; urgency=medium
 
   * Nearly-complete rewrite from Beta 0.9
   * Configuration files from Beta 0.9 are likely incompatible
@@ -152,7 +169,7 @@ allmon3 (0.10.0-3) unstable; urgency=medium
 
  -- Jason McCormick <jason@mfamily.org>  Fri, 26 May 2023 18:22:46 -0400
 
-allmon3 (0.9.7-1) unstable; urgency=medium
+allmon3 (0.9.7-1) stable; urgency=medium
 
   * INCOMPATIBLE CHANGE: ip= fields in allmon3.ini and
   *  votermon.ini are now host= (or related names) and 
@@ -163,7 +180,7 @@ allmon3 (0.9.7-1) unstable; urgency=medium
 
  -- Jason McCormick <jason@mfamily.org>  Fri, 26 May 2023 18:18:01 -0400
 
-allmon3 (0.9.6-1) unstable; urgency=medium
+allmon3 (0.9.6-1) stable; urgency=medium
 
   * Implement subsecond polling as a option in `allmon3.ini`. When using the .deb file, `allmon3.ini` will not be updated with the newest information. See https://github.com/AllStarLink/Allmon3/commit/bda1e74e218c217e4381715297eaea72a8d2a236 for specifics
   * Implement the voter functionality. Requires `voter.ini`. See `asl-votermon`.
@@ -172,7 +189,7 @@ allmon3 (0.9.6-1) unstable; urgency=medium
 
  -- Jason McCormick <jason@mfamily.org>  Sat, 15 Apr 2023 13:05:02 -0400
 
-allmon3 (0.9.5-1) unstable; urgency=medium
+allmon3 (0.9.5-1) stable; urgency=medium
 
   * Initial complete release of Allmon3 as beta
 
