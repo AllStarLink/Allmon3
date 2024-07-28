@@ -17,22 +17,6 @@ fi
 echo "OS_CODENAME: ${OS_CODENAME}"
 cd /build/Allmon3
 
-case $OS_CODENAME in
-	buster)
-		echo 10 > debian/compat
-		mv debian/control.d10 debian/control
-	;;
-	bullseye)
-		echo 11 > debian/compat
-	;;
-	bookworm)
-		echo 12 > debian/compat
-	;;
-	*)
-		echo 13 > debian/compat
-	;;
-esac
-
 export EMAIL="AllStarLink <autobuild@allstarlink.org>"
 make docker-deb DPKG_BUILDOPTS="${OPTS}" RELPLAT=$OS_CODENAME
 [ ! -d _debs ] && mkdir _debs
