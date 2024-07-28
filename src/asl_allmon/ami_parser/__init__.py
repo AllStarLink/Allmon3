@@ -12,7 +12,7 @@ from itertools import cycle
 import logging
 import re
 
-_BUILD_ID = "@@HEAD-DEVELOP@@"
+_BUILD_ID = "1.3.0"
 log = logging.getLogger(__name__)
 
 ## Command Execution Portions

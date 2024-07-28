@@ -19,7 +19,7 @@ from websockets import exceptions as ws_exceptions
 from .. import ami_conn, ami_parser, node_configs, node_db, ws_broadcaster
 
 
-__BUILD_ID = "@@HEAD-DEVELOP@@"
+__BUILD_ID = "1.3.0"
 log = logging.getLogger(__name__)
 
 class NodeStatusWS:
