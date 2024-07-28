@@ -215,10 +215,10 @@ async function getCLICommandModalForm(node){
 	const commands = await getAPIJSON("master/ui/custom/commands");
 	for(let c in commands){
 		if(isVoter && c.match(/^voter/)){
-			let cmdstr = c.replace("'", "").replace("'","").replace("@",node);
+			let cmdstr = c.replace("'", "").replace("'","").replace("@",node).replace("%", cmdShortcut);
 			cmdopts = cmdopts.concat(`<option value="${cmdstr}">`, commands[c], "</option>\n");
 		} else if ( !isVoter && !c.match(/^voter/)) {
-			let cmdstr = c.replace("'", "").replace("'","").replace("@",node);
+			let cmdstr = c.replace("'", "").replace("'","").replace("@",node).replace("%", cmdShortcut);
 			cmdopts = cmdopts.concat(`<option value="${cmdstr}">`, commands[c], "</option>\n");
 		}
 	}
@@ -226,10 +226,10 @@ async function getCLICommandModalForm(node){
 	const nodeCommands = await getAPIJSON(`master/ui/custom/nodecommands/${node}`);
 	for(let c in nodeCommands){
 		if(isVoter && c.match(/^voter/)){
-			let cmdstr = c.replace("'", "").replace("'","").replace("@",node);
+			let cmdstr = c.replace("'", "").replace("'","").replace("@",node).replace("%", cmdShortcut);
 			cmdopts = cmdopts.concat(`<option value="${cmdstr}">`, nodeCommands[c], "</option>\n");
 		} else if ( !isVoter && !c.match(/^voter/)) {
-			let cmdstr = c.replace("'", "").replace("'","").replace("@",node);
+			let cmdstr = c.replace("'", "").replace("'","").replace("@",node).replace("%", cmdShortcut);
 			cmdopts = cmdopts.concat(`<option value="${cmdstr}">`, nodeCommands[c], "</option>\n");
 		}
     }

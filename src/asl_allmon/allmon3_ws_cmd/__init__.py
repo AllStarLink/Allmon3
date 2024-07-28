@@ -43,7 +43,7 @@ class NodeCmdWS:
                 await websocket.close()
                 return
     
-            if not re.match(r"^(core show|iax2|rpt|voter)", cmd):
+            if not re.match(r"^(core show|iax2|rpt|voter|database)", cmd):
                 log.error("unsupported command: %s from %s", cmd, websocket.remote_address)
                 await websocket.send("ERR: last command not a supported type")
                 await websocket.close()
