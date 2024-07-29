@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e
-
-#get DPKG_BUILDOPTS from env var or use default
-OPTS=${DPKG_BUILDOPTS:-"-b -uc -us"}
+set -x
 
 if [ -f /etc/os-release ] ; then
   OS_CODENAME=$(cat /etc/os-release | grep "^VERSION_CODENAME=" | sed 's/VERSION_CODENAME=\(.*\)/\1/g')
@@ -15,10 +13,12 @@ else
 fi
 
 echo "OS_CODENAME: ${OS_CODENAME}"
-cd /build/Allmon3
+
+cd /build
 
 export EMAIL="AllStarLink <autobuild@allstarlink.org>"
-make docker-deb DPKG_BUILDOPTS="${OPTS}" RELPLAT=$OS_CODENAME
-[ ! -d _debs ] && mkdir _debs
-rm -f _debs/*
-cp ../*.deb _debs/
+pushd Allmon3
+make deb
+popd
+mkdir _debs
+mv *.deb _debs/
