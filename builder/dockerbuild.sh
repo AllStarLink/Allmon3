@@ -79,7 +79,7 @@ ALL_PKG_ROOT=$(dirname ${PDIR})
 echo "ALL_PKG_ROOT: ${ALL_PKG_ROOT}"
 echo "GH_REL: ${GH_REL}"
 
-D_TAG="Allmon3_builder.${OPERATING_SYSTEMS}.${ARCH}${REPO_ENV}"
+D_TAG="allmon3_builder.${OPERATING_SYSTEMS}.${ARCH}${REPO_ENV}"
 
 docker build -f $DIR/Dockerfile -t $D_TAG \
 	--build-arg ARCH="$ARCH" \
