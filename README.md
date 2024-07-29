@@ -24,88 +24,28 @@ ASL communities.
 
 ## Quickstart
 
-Allmon3 is only supported on Debian 10, Debian 11, and Debian 12 (or the 
-Raspbian/Raspberry Pi OS equivalent - e.g. "Raspbian 11"). Note that
-these directions will change with the 1.0 release when all packages
-are properly available through the ASL Debian repository.
+Allmon3 is only supported on Debian 12 (or the Raspbian/Raspberry Pi OS
+equivalent - e.g. "Raspbian 12").
 
-### Install on Debian 12
-1. Install dependencies:
-```
-apt install -y apache2 python3-websockets python3-argon2 python3-aiohttp python3-aiohttp-session
-```
-2. Install Allmon3
-```
-wget https://github.com/AllStarLink/Allmon3/releases/download/t_rel_1_2_0/allmon3_1.2.0-1.bookworm_all.deb
-dpkg -i allmon3_1.2.0-1.bookworm_all.deb
-```
+Support for Debian 10 and Debian 11 ended with the release of AllStarLink v3
+and Allmon3 v1.3.0. The last supported version is 1.2.1 which can be
+observed at [branch 1.2.1](https://github.com/AllStarLink/Allmon3/tree/rel_1_2_1).
 
-### Install on Debian 11 / Raspian 11 Software
+### Install 
+1. If not running an a system already running AlLStarLink software, install
+the ASL software repository:
 
-1. Enable the Debian 11 `bullseye-backports` package repositorty:
-
-```
-gpg --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9
-gpg --keyserver keyserver.ubuntu.com --recv-keys 6ED0E7B82643E131
-gpg --export 0E98404D386FA1D9 | sudo apt-key add -
-gpg --export 6ED0E7B82643E131 | sudo apt-key add -
-echo "deb https://deb.debian.org/debian bullseye-backports main" > /etc/apt/sources.list.d/bullseye-backports.list
-apt update
+```bash
+cd /tmp
+wget https://repo.allstarlink.org/public/asl-apt-repos.deb12_all.deb
+sudo dpkg -i asl-apt-repos.deb12_all.deb
+sudo apt update
 ```
 
-2. Install the dependencies
-```
-apt install -y apache2 python3-argon2 
-apt install -y -t bullseye-backports python3-websockets python3-aiohttp python3-aiohttp-session
-```
+2. Install allmon3:
 
-3. Install Allmon3
-```
-wget https://github.com/AllStarLink/Allmon3/releases/download/t_rel_1_2_0/allmon3_1.2.0-1.bullseye_all.deb
-dpkg -i allmon3_1.2.0-1.bullseye_all.deb
-```
-
-### Install Debian 10 / Raspian 10 Software
-
-1. Enable the Debian 10 `buster-backports` package repository:
-
-```
-gpg --keyserver keyserver.ubuntu.com --recv-keys 04EE7237B7D453EC
-gpg --keyserver keyserver.ubuntu.com --recv-keys 648ACFD622F3D138
-gpg --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9
-gpg --keyserver keyserver.ubuntu.com --recv-keys 6ED0E7B82643E131
-gpg --export 04EE7237B7D453EC | sudo apt-key add -
-gpg --export 648ACFD622F3D138 | sudo apt-key add -
-gpg --export 0E98404D386FA1D9 | sudo apt-key add -
-gpg --export 6ED0E7B82643E131 | sudo apt-key add -
-echo "deb https://deb.debian.org/debian buster-backports main" > /etc/apt/sources.list.d/buster-backports.list
-apt update
-```
-
-2. Install the dependendencies
-```
-apt install -y apache2 python3-argon2 
-apt install -y -t buster-backports python3-async-timeout python3-attr python3-multidict python3-yarl python3-pip
-```
-
-3. Install Python modules using PIP3
-```
-apt remove python3-aiohttp python3-websockets
-pip3 install aiohttp
-pip3 install aiohttp_session
-pip3 install websockets
-```
-
-4. Update the CA Certificate chain since Debian 10 is out of support
-```
-apt install ca-certificates
-update-ca-certificates --fresh
-```
-
-5. Install Allmon3 (debian10 version)
-```
-wget https://github.com/AllStarLink/Allmon3/releases/download/t_rel_1_2_0/allmon3_1.2.0-1.buster_all.deb
-dpkg -i allmon3_1.2.0-1.buster_all.deb
+```bash
+apt install allmon3
 ```
 
 ### Configure Allmon
