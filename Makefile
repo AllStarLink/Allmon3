@@ -1,8 +1,8 @@
 #
 # Build variables
 #
-SRCNAME = asl3-update-nodelist
-PKGNAME = $(SRCNAME)
+SRCNAME = Allmon3
+PKGNAME = allmon3
 RELVER = 1.3.0
 DEBVER = 1
 PKGNAME = allmon3
