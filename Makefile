@@ -1,9 +1,12 @@
 #
 # Build variables
 #
+SRCNAME = asl3-update-nodelist
+PKGNAME = $(SRCNAME)
 RELVER = 1.3.0
 DEBVER = 1
 PKGNAME = allmon3
+RELPLAT ?= deb$(shell lsb_release -rs 2> /dev/null)
 
 BUILDABLES = \
 	doc \
@@ -37,11 +40,16 @@ verset:
 	perl -pi -e 's/\@\@HEAD-DEVELOP\@\@/$(RELVER)/g' `grep -rl @@HEAD-DEVELOP@@ src/ web/`
 
 deb:	debclean debprep
-	debuild
+	debchange --distribution stable --package $(PKGNAME) \
+		--newversion $(EPOCHVER)$(RELVER)-$(DEBVER).$(RELPLAT) \
+		"Autobuild of $(EPOCHVER)$(RELVER)-$(DEBVER) for $(RELPLAT)"
+	dpkg-buildpackage -b --no-sign
+	git checkout debian/changelog
 
 docker-deb:	debclean debprep
 	debchange --distribution unstable --package $(PKGNAME) \
-		--newversion $(RELVER)-$(DEBVER).$(RELPLAT) "Autobuil of $(RELVER)-$(DEBVER) for $(RELPLAT)"
+		--newversion $(RELVER)-$(DEBVER).$(RELPLAT) \
+		"Autobuild of $(RELVER)-$(DEBVER) for $(RELPLAT)"
 	dpkg-buildpackage $(DPKG_BUILTOPTS)
 
 debchange:
@@ -52,12 +60,13 @@ debchange:
 debprep:	debclean
 	-find . -type d -name __pycache__ -exec rm -rf {} \;
 	(cd .. && \
-		rm -f allmon3-$(RELVER) && \
-		rm -f allmon3-$(RELVER).tar.gz && \
-		rm -f allmon3_$(RELVER).orig.tar.gz && \
-		ln -s Allmon3 allmon3-$(RELVER) && \
-		tar --exclude=".git" -h -zvcf allmon3-$(RELVER).tar.gz allmon3-$(RELVER) && \
-		ln -s allmon3-$(RELVER).tar.gz allmon3_$(RELVER).orig.tar.gz )
+		rm -f $(PKGNAME)-$(RELVER) && \
+		rm -f $(PKGNAME)-$(RELVER).tar.gz && \
+		rm -f $(PKGNAME)_$(RELVER).orig.tar.gz && \
+		ln -s $(SRCNAME) $(PKGNAME)-$(RELVER) && \
+		tar --exclude=".git" -h -zvcf $(PKGNAME)-$(RELVER).tar.gz $(PKGNAME)-$(RELVER) && \
+		ln -s $(PKGNAME)-$(RELVER).tar.gz $(PKGNAME)_$(RELVER).orig.tar.gz )
+
 
 debclean:
 	rm -f ../$(PKGNAME)_$(RELVER)*
@@ -67,5 +76,7 @@ debclean:
 	rm -rf debian/.debhelper/
 	rm -f debian/debhelper-build-stamp
 	rm -f debian/*.substvars
-	rm -rf debian/mfamily-scripts/ debian/.debhelper/
-	rm -f debian/debhelper-build-stamp debian/files debian/mfamily-scripts.substvars
+	rm -rf debian/$(SRCNAME)/ debian/.debhelper/
+	rm -f debian/debhelper-build-stamp debian/files debian/$(SRCNAME).substvars
+	rm -f debian/*.debhelper
+
