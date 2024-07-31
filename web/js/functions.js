@@ -247,10 +247,16 @@ async function createSidebarMenu(){
     } else {
         let allNodes = await getAPIJSON("master/node/listall")
         for(const n of allNodes){
-        navMenu = navMenu.concat(`
-            <div class="btn-group">
-                <a href="#" class="btn btn-secondary" role="button" onclick="changeNodeListSingle(${n})">${n}</a>
-            </div>`);
+			let currp = window.location.href.split("/").at(-1);
+            let newp = `${pageName}#${n}`;
+            let onClickSlot = "";
+            if( currp === newp ){
+                onClickSlot = "onclick=\"window.location.reload()\"";
+            }
+       		navMenu = navMenu.concat(`
+            	<div class="btn-group">
+                	<a class="btn btn-secondary" role="button" href="${newp} ${onClickSlot}">${n}</a>
+            	</div>`);
         }
     }    
     
