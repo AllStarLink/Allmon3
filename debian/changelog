@@ -1,8 +1,8 @@
-allmon3 (1.3.1-1) stable; urgency=medium
+allmon3 (1.3.1-2) stable; urgency=medium
 
   * Fix regression in generating menu links (#234)
 
- -- Jason McCormick <jason@mfamily.org>  Wed, 31 Jul 2024 10:31:27 -0400
+ -- Jason McCormick <jason@mfamily.org>  Fri, 02 Aug 2024 09:14:32 -0400
 
 allmon3 (1.3.0-1) stable; urgency=medium
 
