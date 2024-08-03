@@ -12,17 +12,24 @@ CONF_APACHE = $(patsubst %, $(DESTDIR)$(apacheconf)/%, $(CONF_APACHE_FILES))
 
 INSTALLABLES = $(CONF_INSTALLABLES) $(CONF_DOCABLES) $(CONF_APACHE)
 
-.PHONY:	install
+ifeq ($(shell id -u), 0)
+INST_UID = -o allmon3 -g allmon3
+endif
+
+.PHONY: install
 install:	$(INSTALLABLES)
 
+test:
+	@echo $(INST_UID)
+
 $(DESTDIR)$(sysconfdir)/allmon3.ini:	allmon3.ini
-	install -D -m 0640 $< $@
+	install -D -m 0640 $(INST_UID) $< $@
 
 $(DESTDIR)$(sysconfdir)/users:	users
-	install -D -m 0640 $< $@
+	install -D -m 0640 $(INST_UID) $< $@
 
 $(DESTDIR)$(sysconfdir)/user-restrictions:	user-restrictions
-	install -D -m 0640 $< $@
+	install -D -m 0640 $(INST_UID) $< $@
 
 $(DESTDIR)$(sysconfdir)/%: %
 	install -D -m 0644  $< $@

@@ -196,7 +196,39 @@ server {
 ```
 
 # Install From Source
+It is stronly discouraged to install Allmon3 from source. However, the 
+following can be used to build a working Allmon3 system:
 
-Installation from source no longer supported in the general use case.
-However, in general, `make install` should yield a working system.
+1. Create the `allmon3` user:
+```
+useradd -r -d /nonexistent -s /usr/sbin/nologin allmon3
+```
 
+2. Run `make install` as root:
+```bash
+sudo make install
+```
+
+3. Configure the files as needed as described above.
+
+4. Configure your webserver as appropriate. Supported
+and tested webservers are Apache httpd 2.4 and Nginx 1.22+
+(what's default in Debian 12).
+
+For Apache 2 the following modules are required:
+```
+sudo a2enmod proxy_http 
+sudo a2enmod proxy_wstunnel 
+sudo a2enmod rewrite 
+```
+
+Apache 2 is configured simply with:
+```
+sudo a2enconf allmon3
+```
+
+5. Enable and start the allmon3 daemon:
+```
+sudo systemctl enable allmon3
+sudo systemctl start allmon3
+```
