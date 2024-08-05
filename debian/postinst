@@ -40,6 +40,7 @@ do_configure() {
 
 	## Fix #240 on installed systems
 	perl -pi -e s'/list\/\@\/%/list\/\@ %/g' /etc/allmon3/web.ini
+	perl -pi -e 's/\"Reason Here\"/&quot;Reason Here&quot;/g' /etc/allmon3/web.ini
 
 }
 
