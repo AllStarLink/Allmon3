@@ -3,7 +3,7 @@
 #
 SRCNAME = Allmon3
 PKGNAME = allmon3
-RELVER = 1.3.1
+RELVER = 1.3.2
 DEBVER = 1
 PKGNAME = allmon3
 RELPLAT ?= deb$(shell lsb_release -rs 2> /dev/null)
