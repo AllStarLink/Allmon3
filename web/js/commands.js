@@ -11,7 +11,7 @@
 //
 // command-specific globals
 //
-var cmdShortcut = "";
+var cmdShortcut = "NODE";
 
 //
 // General Send Command
@@ -255,7 +255,7 @@ async function getCLICommandModalForm(node){
 				<label for="cmf-cmd-node-cmd">Command</label>
 			</div>
 			<div class="col-8">
-				<input id="cmf-cmd-node-cmd" type="text" class="form-control" readonly required>
+				<input id="cmf-cmd-node-cmd" type="text" class="form-control" required>
 			</div>
 		</div>
 		<div class="row justify-content-start">
@@ -281,10 +281,8 @@ function buildCLICommandModalCmd(node){
 
 	if(cmfSel.value === "custom"){
 		cmfCmd.value = "";
-		cmfCmd.readOnly = false;
 	} else {
 		cmfCmd.value = cmfSel.value;
-		cmfCmd.readOnly = true;
 	}
 }
 
