@@ -13,7 +13,9 @@ CONF_APACHE = $(patsubst %, $(DESTDIR)$(apacheconf)/%, $(CONF_APACHE_FILES))
 INSTALLABLES = $(CONF_INSTALLABLES) $(CONF_DOCABLES) $(CONF_APACHE)
 
 ifeq ($(shell id -u), 0)
+ifeq ($(shell grep allmon3 /etc/passwd | wc -l), 1)
 INST_UID = -o allmon3 -g allmon3
+endif
 endif
 
 .PHONY: install
