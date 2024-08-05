@@ -37,6 +37,10 @@ do_configure() {
 		apache2_invoke enmod rewrite || exit $?
 		apache2_invoke enconf allmon3 || exit $?
 	fi
+
+	## Fix #240 on installed systems
+	perl -pi -e s'/list\/\@\/%/list\/\@ %/g' /etc/allmon3/web.ini
+
 }
 
 case "$1" in
