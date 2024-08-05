@@ -175,8 +175,10 @@ class ServerWS:
                 elif c[3] == "menu":
                     if self.config_web:
                         r_txt = self.config_web.menu
+                        if r_txt == "":
+                            r_txt = "{}"
                     else:
-                        r_txt = "NONE"
+                        r_txt = "{}"
                 elif c[3] == "overrides":
                     r_txt = json.dumps(self.config_web.node_overrides)
                 elif c[3] == "commands":
