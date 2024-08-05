@@ -11,7 +11,7 @@
 //
 // command-specific globals
 //
-var cmdShortcut = "";
+var cmdShortcut = "NODE";
 
 //
 // General Send Command
@@ -94,6 +94,9 @@ function getLinkCommandModalForm(node, defCmd){
 	rForm = `
 <div id="cmd-link-cmd" class="container">
 	<form id="command-modal-form" class="needs-validation" novalidate>
+		<div class="row justify-content-start d-flex align-items-center mb-2">
+			<div class="col-12"><i>Hint: clicking on a node line first will pre-populate node numbers as appropriate.</i></div>
+        </div>
 		<div class="row row-cols-3 g-3">
 			<div class="col fw-bolder">
 				<label for="cmf-link-node-cmd">Command</label>
@@ -238,6 +241,11 @@ async function getCLICommandModalForm(node){
 <div id="cmd-exec-cmd" class="container">
 	<form id="command-modal-form" class="needs-validation" novalidate>
 		<div class="row justify-content-start d-flex align-items-center mb-2">
+        	<div class="col-2"></div>
+            <div class="col-8"><i>Hint: clicking on a node line first will pre-populate node numbers as appropriate.</i></div>
+            <div class="col-2"></div>
+        </div>
+		<div class="row justify-content-start d-flex align-items-center mb-2">
 			<div class="col-4 fw-bolder text-end">
 				<label for="cmf-cmd-node-select">Command Template</label>
 			</div>
@@ -255,7 +263,7 @@ async function getCLICommandModalForm(node){
 				<label for="cmf-cmd-node-cmd">Command</label>
 			</div>
 			<div class="col-8">
-				<input id="cmf-cmd-node-cmd" type="text" class="form-control" readonly required>
+				<input id="cmf-cmd-node-cmd" type="text" class="form-control" required>
 			</div>
 		</div>
 		<div class="row justify-content-start">
@@ -281,10 +289,8 @@ function buildCLICommandModalCmd(node){
 
 	if(cmfSel.value === "custom"){
 		cmfCmd.value = "";
-		cmfCmd.readOnly = false;
 	} else {
 		cmfCmd.value = cmfSel.value;
-		cmfCmd.readOnly = true;
 	}
 }
 
