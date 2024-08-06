@@ -11,7 +11,7 @@
 //
 // command-specific globals
 //
-var cmdShortcut = "NODE";
+var cmdShortcut = "";
 
 //
 // General Send Command
@@ -213,6 +213,10 @@ async function getCLICommandModalForm(node){
 	isVoter = false;
 	if( ppage === "voter.html" ){
 		isVoter = true;
+	}
+
+	if( cmdShortcut.length == 0 ){
+		cmdShortcut = "NODE";
 	}
 
 	const commands = await getAPIJSON("master/ui/custom/commands");
