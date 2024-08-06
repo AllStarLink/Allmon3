@@ -39,7 +39,7 @@ $(DESTDIR)$(docdir)/%: %
 verset:
 	perl -pi -e 's/\@\@HEAD-DEVELOP\@\@/$(RELVER)/g' `grep -rl @@HEAD-DEVELOP@@ src/ web/`
 
-deb:	debclean debprep
+deb:	debclean debprep verset
 	debchange --distribution stable --package $(PKGNAME) \
 		--newversion $(EPOCHVER)$(RELVER)-$(DEBVER).$(RELPLAT) \
 		"Autobuild of $(EPOCHVER)$(RELVER)-$(DEBVER) for $(RELPLAT)"
