@@ -116,6 +116,7 @@ async function customizeUI(){
     document.title = customElements.HEADER_TITLE;
     if( customElements.HEADER_LOGO !== "" ){
         document.getElementById("header-banner-img").src = `img/${customElements.HEADER_LOGO}`;
+        document.getElementById("header-banner-img").alt = customElements.HEADER_TITLE;
     }
 
 	let currp = window.location.href.split("/").at(-1);
