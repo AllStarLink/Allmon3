@@ -86,24 +86,24 @@
 				<div class="container-flex">
 					<div class="row align-items-center">
 						<div class="col-4 fw-bolder text-end">
-							<label for="loginUserName">Username</label>
+							<label for="user">Username</label>
 						</div>
 						<div class="col-6">
-							<input type="text" size="20" id="user" name="user"><br>
+							<input type="text" autocomplete="username" size="20" id="user" name="user"><br>
 						</div>
 					</div>
 					<div class="row align-items-center mt-2">
 						<div class="col-4 fw-bolder text-end">
-							<label for="loginPassword">Password</label>
+							<label for="pass">Password</label>
 						</div>
 						<div class="col-6">
-							<input type="password" size="20" id="pass" name="pass">
+							<input type="password" autocomplete="current-password" size="20" id="pass" name="pass">
 						</div>
-					</div> 
+					</div>
 				</div>
 			</div>
 			<div id="login-modal-footer" class="modal-footer mt-2">
-				<input type="hidden" id="action" name="action" value="login">
+				<input type="hidden" id="login-action" name="action" value="login">
 				<button type="button" class="btn btn-secondary" onclick="doLogin()">Login</button>
 				<button type="button" class="btn btn-secondary" onclick="clearLogin()" data-bs-dismiss="modal">Cancel</button>
 			</div>
@@ -125,9 +125,9 @@
 			</div>
 			<div id="logout-modal-body" class="modal-body">
 				Do you want to logout?
-				<input type="hidden" id="action" name="action" value="logout">
+				<input type="hidden" id="logout-action" name="action" value="logout">
 			</div>
-			<div id="logout-modal-footer" class="modal-footer">	
+			<div id="logout-modal-footer" class="modal-footer">
 				<button type="button" class="btn btn-secondary" onclick="doLogout()">Logout</button>
 				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="clearLogout()">Cancel</button>
 			</div>
