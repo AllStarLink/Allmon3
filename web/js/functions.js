@@ -255,7 +255,7 @@ async function createSidebarMenu(){
 			}
 	   		navMenu = navMenu.concat(`
 				<div class="btn-group">
-					<a class="btn btn-secondary" role="button" href="${newp} ${onClickSlot}">${n}</a>
+					<a class="btn btn-secondary" role="button" href="${newp}" ${onClickSlot}>${n}</a>
 				</div>`);
 		}
 	}	
