@@ -36,7 +36,7 @@
 <body>
 
 <header class="navbar navbar-dark sticky-top flex-md-nowrap p-0">
-  <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6" href="index.html"><img id="header-banner-img" class="header-banner-img" src="img/asl-banner-logo.png"></a> <!--configparam name -->
+  <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6" href="index.html"><img id="header-banner-img" class="header-banner-img" src="img/asl-banner-logo.png" alt="asl-logo"></a> <!--configparam name -->
   <button id="collapse-navbar-button" class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
@@ -81,24 +81,24 @@
                 <div class="container-flex">
                     <div class="row align-items-center">
                         <div class="col-4 fw-bolder text-end">
-                            <label for="loginUserName">Username</label>
+                            <label for="user">Username</label>
                         </div>
                         <div class="col-6">
-                            <input type="text" size="20" id="user" name="user"><br>
+                            <input type="text" autocomplete="username" size="20" id="user" name="user"><br>
                         </div>
                     </div>
                     <div class="row align-items-center mt-2">
                         <div class="col-4 fw-bolder text-end">
-                            <label for="loginPassword">Password</label>
+                            <label for="pass">Password</label>
                         </div>
                         <div class="col-6">
-                            <input type="password" size="20" id="pass" name="pass">
+                            <input type="password" autocomplete="current-password" size="20" id="pass" name="pass">
                         </div>
                     </div>
                 </div>
             </div>
             <div id="login-modal-footer" class="modal-footer mt-2">
-                <input type="hidden" id="action" name="action" value="login">
+                <input type="hidden" id="action-login" name="action" value="login">
                 <button type="button" class="btn btn-secondary" onclick="doLogin()">Login</button>
                 <button type="button" class="btn btn-secondary" onclick="clearLogin()" data-bs-dismiss="modal">Cancel</button>
             </div>
@@ -120,7 +120,7 @@
             </div>
             <div id="logout-modal-body" class="modal-body">
                 Do you want to logout?
-                <input type="hidden" id="action" name="action" value="logout">
+                <input type="hidden" id="action-logout" name="action" value="logout">
             </div>
             <div id="logout-modal-footer" class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="doLogout()">Logout</button>
@@ -167,7 +167,7 @@
 				<div id="login-out-region"></div>
                 <hr>
 				<div class="text-center text-wrap">
-					<img src="img/asl-sidebar-logo.png"><br>
+					<img src="img/asl-sidebar-logo.png" alt="asl-logo"><br>
 					<b>Allmon v3</b><br>
 					<span style="color:red">@@HEAD-DEVELOP@@</span>
 				</div>
