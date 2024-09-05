@@ -216,7 +216,7 @@ class AMIParser:
         lines = re.split(r'[\n\r]+', response)
         for line in lines:
             if re.match(r'^Client', line):
-                client = re.split(r":\s", line)
+                client = re.split(r"\s", line)
                 curr_client = client[1]
                 voters["VOTERS"][curr_client] = 0
             elif re.match(r'^RSSI', line):
