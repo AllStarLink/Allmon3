@@ -104,7 +104,7 @@ class AMIParser:
         el_info = await self.__ami_conn.asl_cmd_response(elnodecmd)
         ra = re.split(r'[\n\r]+', el_info)
         for l in ra:
-            if re.match(r"^[0-9]+\|", l):
+            if re.match(r"^Output", l) or re.match(r"^[0-9]+\|", l):
                 ell = re.split(r'\|', l)
                 log.debug("exiting get_echolink_name(%s)", echolink_id)
                 return "%s - Echolink" % (ell[1])
