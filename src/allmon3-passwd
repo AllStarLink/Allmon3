@@ -12,6 +12,8 @@ import csv
 import logging
 import sys
 
+from getpass import GetPassWarning, getpass
+
 _BUILD_ID = "@@HEAD-DEVELOP@@"
 
 def get_user_index(lst, k, v):
@@ -72,8 +74,12 @@ if args.delete:
         log.error("No user {} in file".format(args.user))
 
 else:
-    pass_a = input("Enter the password for {}: ".format(args.user))
-    pass_b = input("Confirm the password for {}: ".format(args.user))
+    try:
+        pass_a = getpass("Enter the password for {}: ".format(args.user))
+        pass_b = getpass("Confirm the password for {}: ".format(args.user))
+    except GetPassWarning:
+        log.error("unable to turn off echo for password entry")
+        sys.exit(-1)
 
     if(pass_a != pass_b):
         log.error("passwords do not match")
