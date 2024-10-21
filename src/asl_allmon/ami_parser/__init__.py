@@ -139,28 +139,33 @@ class AMIParser:
         ra = re.split(r'[\n\r]+', xstat) 
         for l in ra:
             if re.match("^Conn", l):
-                ce = re.split(r"\s+", l)
-                node_conns.update( { ce[1] : {} } )
+                ce = l.replace("Conn: ", "").rsplit(maxsplit=6)
+                nname = ce[0].strip()
+                nip = ce[2].strip()
+                ndir = ce[3].strip()
+                nctime = ce[4].strip()
+                ncstate = ce[5].strip()
+                node_conns.update( { nname : {} } )
                 # For each Conn: line, a node starting with 3 and seven digits long is an echolink    
                 # node which is missing an IP entry. Treat everything else normally
-                if re.match(r'^3[0-9]{6}$', ce[1]):
-                    node_conns[ce[1]].update( { "IP" : None , "DIR" : ce[3] , "CTIME" : ce[4] ,
-                        "CSTATE" : ce[5] , "PTT" : False, "SSK" : -1, "SSU" : -1, "MODE" : "Echolink"} )
-                    ename = await self.get_echolink_name(ce[1][-6:])
-                    node_conns[ce[1]]["DESC"] = ename
+                if re.match(r'^3[0-9]{6}$', nname):
+                    node_conns[nname].update( { "IP" : None , "DIR" : ndir , "CTIME" : nctime ,
+                        "CSTATE" : ncstate , "PTT" : False, "SSK" : -1, "SSU" : -1, "MODE" : "Echolink"} )
+                    ename = await self.get_echolink_name(nname[-6:])
+                    node_conns[nname]["DESC"] = ename
                 else:
-                    node_conns[ce[1]].update( { "IP" : ce[2] , "DIR" : ce[4] , "CTIME" : ce[5] ,
-                        "CSTATE" : ce[6] , "PTT" : False, "SSK" : -1, "SSU" : -1, "MODE" : "Local Monitor" } )
-                    if ce[1] in node_database:
-                        node_conns[ce[1]]["DESC"] = "{0} {1} {2}".format(node_database[ce[1]]['CALL'], 
-                            node_database[ce[1]]['DESC'], node_database[ce[1]]['LOC'])
-                    elif re.match(r'^.*\-P$', ce[1]):
-                        node_conns[ce[1]].update( { "DESC" : "Allstar Telephone Portal User",
+                    node_conns[nname].update( { "IP" : nip , "DIR" : ndir , "CTIME" : nctime ,
+                        "CSTATE" : ncstate , "PTT" : False, "SSK" : -1, "SSU" : -1, "MODE" : "Local Monitor" } )
+                    if nname in node_database:
+                        node_conns[nname]["DESC"] = "{0} {1} {2}".format(node_database[nname]['CALL'], 
+                            node_database[nname]['DESC'], node_database[nname]['LOC'])
+                    elif re.match(r'^.*\-P$', nname):
+                        node_conns[nname].update( { "DESC" : "Allstar Telephone Portal User",
                             "MODE" : "Transceive" } )
-                    elif re.match(r'[A-Za-z]', ce[1]):
-                        node_conns[ce[1]].update( { "DESC" : "Direct Client" } )
+                    elif re.match(r'[A-Za-z]', nname):
+                        node_conns[nname].update( { "DESC" : "Direct Client" } )
                     else:
-                        node_conns[ce[1]]["DESC"] = "Private or Unavailable"
+                        node_conns[nname]["DESC"] = "Private or Unavailable"
                     
                 conn_count += 1
             elif re.match(r"^LinkedNodes:", l):
