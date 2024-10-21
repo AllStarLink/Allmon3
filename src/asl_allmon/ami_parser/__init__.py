@@ -98,7 +98,7 @@ class AMIParser:
         log.debug("exiting parse_saw_stat(%s)", curr_node)
     
     # Query/Parse Echolink Node Info
-    async def get_echolink_name(self, echolink_id):
+    async def get_echolink_name(self, echolink_id, node_database):
         log.debug("enter get_echolink_name(%s)", echolink_id)
 
         # See if the Echolink node is in the nodedb (3nnnnnn)
@@ -147,33 +147,53 @@ class AMIParser:
             if re.match("^Conn", l):
                 ce = l.replace("Conn: ", "").rsplit(maxsplit=6)
                 nname = ce[0].strip()
-                nip = ce[2].strip()
-                ndir = ce[3].strip()
-                nctime = ce[4].strip()
-                ncstate = ce[5].strip()
-                node_conns.update( { nname : {} } )
-                # For each Conn: line, a node starting with 3 and seven digits long is an echolink    
-                # node which is missing an IP entry. Treat everything else normally
-                if re.match(r'^3[0-9]{6}$', nname):
-                    node_conns[nname].update( { "IP" : None , "DIR" : ndir , "CTIME" : nctime ,
-                        "CSTATE" : ncstate , "PTT" : False, "SSK" : -1, "SSU" : -1, "MODE" : "Echolink"} )
-                    ename = await self.get_echolink_name(nname)
-                    node_conns[nname]["DESC"] = ename
+                
+                # If the array has 6 elements, it's a node with an IP. If it's
+                # only 5 then there's no IP. It's all space delimited so... fun...
+                if len(ce) == 6:
+                    nip = ce[2].strip()
+                    ndir = ce[3].strip()
+                    nctime = ce[4].strip()
+                    ncstate = ce[5].strip()
+                elif len(ce) == 5:
+                    nip = None
+                    ndir = ce[2].strip()
+                    nctime = ce[3].strip()
+                    ncstate = ce[4].strip()
                 else:
-                    node_conns[nname].update( { "IP" : nip , "DIR" : ndir , "CTIME" : nctime ,
-                        "CSTATE" : ncstate , "PTT" : False, "SSK" : -1, "SSU" : -1, "MODE" : "Local Monitor" } )
-                    if nname in node_database:
-                        node_conns[nname]["DESC"] = "{0} {1} {2}".format(node_database[nname]['CALL'], 
-                            node_database[nname]['DESC'], node_database[nname]['LOC'])
-                    elif re.match(r'^.*\-P$', nname):
+                    emsg = "parsing RptStatus XStat failed with a malformed Conn: entry"
+                    log.error(emsg)
+                    raise AMIParserException(emsg)
+
+                node_conns.update( { nname : {} } )
+                node_conns[nname].update( { "IP" : nip , "DIR" : ndir , "CTIME" : nctime ,
+                    "CSTATE" : ncstate , "PTT" : False, "SSK" : -1, "SSU" : -1, "MODE" : "UNSET"} )
+
+                # If nname is in the downloaded database, set it and move on
+                if nname in node_database:
+                    node_conns[nname]["DESC"] = "{0} {1} {2}".format(node_database[nname]['CALL'], 
+                        node_database[nname]['DESC'], node_database[nname]['LOC'])
+                
+                # Connections of 3nnnnnn are Echolink
+                elif re.match(r'^3[0-9]{6}$', nname):
+                    ename = await self.get_echolink_name(nname, node_database)
+                    node_conns[nname]["DESC"] = ename
+    
+                # Connections ending in -P treat as phone portal
+                elif re.match(r'^.*\-P$', nname):
                         node_conns[nname].update( { "DESC" : "Allstar Telephone Portal User",
                             "MODE" : "Transceive" } )
-                    elif re.match(r'[A-Za-z]', nname):
-                        node_conns[nname].update( { "DESC" : "Direct Client" } )
-                    else:
-                        node_conns[nname]["DESC"] = "Private or Unavailable"
+
+                # Anything else starting with a letter treat as a direct client
+                elif re.match(r'[A-Za-z]', nname):
+                    node_conns[nname].update( { "DESC" : "Direct Client" } )
+
+                # Finally anything else is unknown
+                else:
+                    node_conns[nname]["DESC"] = "Private or Unavailable"
                     
                 conn_count += 1
+
             elif re.match(r"^LinkedNodes:", l):
                 for link in l.split(","):
                     link = rens.sub("", link)            
@@ -311,3 +331,6 @@ def decrypt_msg(data, key):
     msg = ''.join(chr(ord(x) ^ ord(y)) for (x,y) in zip(msg_x, cycle(key)))
     log.debug("msg: %s", msg)
     return msg
+
+class AMIParserException(Exception):
+    """ specific Exception for class """
