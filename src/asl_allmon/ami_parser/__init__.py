@@ -100,7 +100,13 @@ class AMIParser:
     # Query/Parse Echolink Node Info
     async def get_echolink_name(self, echolink_id):
         log.debug("enter get_echolink_name(%s)", echolink_id)
-        elnodecmd = "ACTION: COMMAND\r\nCOMMAND: echolink dbget nodename %s\r\n" % (echolink_id)
+
+        # See if the Echolink node is in the nodedb (3nnnnnn)
+        if echolink_id in node_database:
+            return node_database[echolink_id]['DESC']
+
+        # otherwise query the Asterisk AMI
+        elnodecmd = "ACTION: COMMAND\r\nCOMMAND: echolink dbget nodename %s\r\n" % (echolink_id[-6:])
         el_info = await self.__ami_conn.asl_cmd_response(elnodecmd)
         ra = re.split(r'[\n\r]+', el_info)
         for l in ra:
@@ -151,7 +157,7 @@ class AMIParser:
                 if re.match(r'^3[0-9]{6}$', nname):
                     node_conns[nname].update( { "IP" : None , "DIR" : ndir , "CTIME" : nctime ,
                         "CSTATE" : ncstate , "PTT" : False, "SSK" : -1, "SSU" : -1, "MODE" : "Echolink"} )
-                    ename = await self.get_echolink_name(nname[-6:])
+                    ename = await self.get_echolink_name(nname)
                     node_conns[nname]["DESC"] = ename
                 else:
                     node_conns[nname].update( { "IP" : nip , "DIR" : ndir , "CTIME" : nctime ,
