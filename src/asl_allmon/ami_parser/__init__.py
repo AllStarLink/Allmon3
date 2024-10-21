@@ -98,14 +98,8 @@ class AMIParser:
         log.debug("exiting parse_saw_stat(%s)", curr_node)
     
     # Query/Parse Echolink Node Info
-    async def get_echolink_name(self, echolink_id, node_database):
+    async def get_echolink_name(self, echolink_id):
         log.debug("enter get_echolink_name(%s)", echolink_id)
-
-        # See if the Echolink node is in the nodedb (3nnnnnn)
-        if echolink_id in node_database:
-            return node_database[echolink_id]['DESC']
-
-        # otherwise query the Asterisk AMI
         elnodecmd = "ACTION: COMMAND\r\nCOMMAND: echolink dbget nodename %s\r\n" % (echolink_id[-6:])
         el_info = await self.__ami_conn.asl_cmd_response(elnodecmd)
         ra = re.split(r'[\n\r]+', el_info)
@@ -172,11 +166,11 @@ class AMIParser:
                 # If nname is in the downloaded database, set it and move on
                 if nname in node_database:
                     node_conns[nname]["DESC"] = "{0} {1} {2}".format(node_database[nname]['CALL'], 
-                        node_database[nname]['DESC'], node_database[nname]['LOC'])
+                        node_database[nname]['DESC'], node_database[nname]['LOC']).strip()
                 
                 # Connections of 3nnnnnn are Echolink
                 elif re.match(r'^3[0-9]{6}$', nname):
-                    ename = await self.get_echolink_name(nname, node_database)
+                    ename = await self.get_echolink_name(nname)
                     node_conns[nname]["DESC"] = ename
     
                 # Connections ending in -P treat as phone portal
