@@ -1,3 +1,13 @@
+allmon3 (1.4.0-1) stable; urgency=medium
+
+  * Rewrite of the parser for connected nodes to resolve
+    various whitespace-related parsing issues (#256)
+  * Pressing enter on the logon box submits the form (#252)
+  * Don't echo keystrokes of allmon3-passwd (#251)
+  * Navbar button customizations supported/documneted (#257)
+
+ -- Jason McCormick <jason@mfamily.org>  Mon, 21 Oct 2024 20:03:48 -0400
+
 allmon3 (1.3.4-1) stable; urgency=medium
 
   * Fix voter colorization for voted-in node (#230) 
