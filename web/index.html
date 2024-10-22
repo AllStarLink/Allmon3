@@ -76,7 +76,7 @@
 <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel"
 	 aria-hidden="true" data-bs-backdrop="static" data-bs-target="#staticBackdrop">
 	<div class="modal-dialog">
-		<form id="loginBox">
+		<form id="loginBox" onsubmit="doLogin(); return false;">
 		<div id="login-modal-content" class="modal-content">
 			<div class="modal-header">
 				<h5 class="modal-title" id="loginModalLabel">Login</h5>
@@ -104,7 +104,7 @@
 			</div>
 			<div id="login-modal-footer" class="modal-footer mt-2">
 				<input type="hidden" id="login-action" name="action" value="login">
-				<button type="button" class="btn btn-secondary" onclick="doLogin()">Login</button>
+				<button type="submit" class="btn btn-secondary">Login</button>
 				<button type="button" class="btn btn-secondary" onclick="clearLogin()" data-bs-dismiss="modal">Cancel</button>
 			</div>
 		</div>
