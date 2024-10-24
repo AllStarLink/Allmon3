@@ -104,6 +104,8 @@ class AMIParser:
         el_info = await self.__ami_conn.asl_cmd_response(elnodecmd)
         ra = re.split(r'[\n\r]+', el_info)
         for l in ra:
+            if re.match(r"Error.*not\sfound"):
+                return "Not in DB - Echolink"
             if re.match(r"^Output", l) or re.match(r"^[0-9]+\|", l):
                 ell = re.split(r'\|', l)
                 log.debug("exiting get_echolink_name(%s)", echolink_id)
@@ -175,8 +177,8 @@ class AMIParser:
     
                 # Connections ending in -P treat as phone portal
                 elif re.match(r'^.*\-P$', nname):
-                        node_conns[nname].update( { "DESC" : "Allstar Telephone Portal User",
-                            "MODE" : "Transceive" } )
+                    node_conns[nname].update( { "DESC" : "Allstar Telephone Portal User",
+                        "MODE" : "Transceive" } )
 
                 # Anything else starting with a letter treat as a direct client
                 elif re.match(r'[A-Za-z]', nname):
