@@ -1,3 +1,13 @@
+allmon3 (1.4.1-1) stable; urgency=medium
+
+  * Additional fixes to parse Echolink and other
+    white-space-embedded name issues
+  * Echolink nodes are now overwritable by a  
+    custom node list in web.ini
+
+
+ -- Jason McCormick <jason@mfamily.org>  Mon, 28 Oct 2024 14:34:46 -0400
+
 allmon3 (1.4.0-1) stable; urgency=medium
 
   * Rewrite of the parser for connected nodes to resolve
