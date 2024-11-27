@@ -139,7 +139,7 @@ function getLinkCommandModalForm(node, defCmd){
 					arial-label="permanent link" required>
 					<option value="no" selected>No</option>
 					<option value="yes" >Yes</option>
-				<select>
+				</select>
 			</div>
 			<div class="col">
 				<button id="cmd-exec-btn" type="button" class="btn btn-secondary" onclick="executeNodeLinkCmd(${node})">
