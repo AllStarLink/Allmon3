@@ -1,3 +1,10 @@
+allmon3 (1.4.2-1) stable; urgency=medium
+
+  * Improved fixes for Echolink parsing (#263 + 3190845..617ecc1)
+  * Fix HTML artifact in Chromium-based browser in the command modal
+
+ -- Jason McCormick <jason@mfamily.org>  Tue, 24 Dec 2024 09:36:10 -0500
+
 allmon3 (1.4.1-1) stable; urgency=medium
 
   * Additional fixes to parse Echolink and other
