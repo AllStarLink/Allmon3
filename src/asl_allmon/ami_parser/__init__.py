@@ -103,22 +103,42 @@ class AMIParser:
         try:
             echolink_id = re.sub(r"^0", "", echolink_id[-6:])
             elnodecmd = "ACTION: COMMAND\r\nCOMMAND: echolink dbget nodename %s\r\n" % (echolink_id)
-            el_info = await self.__ami_conn.asl_cmd_response(elnodecmd)
-            ra = re.split(r'[\n\r]+', el_info)
-            for l in ra:
-                if re.match(r"Error.*not\sfound", l):
-                    return "Not in DB - Echolink"
-                if re.match(r"^Output", l) or re.match(r"^[0-9]+\|", l):
-                    ell = re.split(r'\|', l)
-                    log.debug("exiting get_echolink_name(%s)", echolink_id)
-                    return "%s - Echolink" % (ell[1])
+            el_info_full = await self.__ami_conn.asl_cmd_response(elnodecmd)
+            
+            # ASL3 behaves normally, HamVOIP has incorrect behavior to overcome
+            if re.match(r"^Response:\s+Success", el_info_full):
+                # This is an modern node
+                ra = re.split(r'[\n\r]+', el_info_full)
+                for l in ra:
+                    if re.match(r"Error.*not\sfound", l):
+                        return "Not in DB - Echolink"
+                    if re.match(r"^Output", l) or re.match(r"^[0-9]+\|", l):
+                        ell = re.split(r'\|', l)
+                        log.debug("exiting get_echolink_name(%s)", echolink_id)
+                        return "%s - Echolink" % (ell[1])
+
+            elif re.match(r"^Response:\s+Follows", el_info_full):
+                # This is a HamVOIP/quirk node
+                el_info = el_info_full.splitlines()
+                for l in el_info:
+                    if re.match(r"Error.*not\sfound", l):
+                        return "Not in DB - Echolink"
+                    if re.match(r"^[0-9]+\|", l):
+                        ell = re.split(r'\|', l)
+                        elid = "%s - Echolink" % (ell[1])
+                        log.debug(f"Echolink ID: {elid}")
+                        log.debug("exiting get_echolink_name(%s)", echolink_id)
+                        return elid
         except IndexError as e:
             log.debug(f"get_echolink_name exception IndexError: {e}")
             log.debug("Invalid response about echolink - exiting get_echolink_name")
             return "Echolink DB Error" 
-        finally:    
-            log.debug("Invalid response about echolink - exiting get_echolink_name")
+        except Exception as e:
+            log.error(e)
             return "No Database Information"
+
+        return "No Database Information"
+        log.debug("exiting get_echolink_name(%s)", echolink_id)
     
     # Parse the (String) response from XStat command
     async def parse_xstat(self, curr_node, node_database, node_mon_list):
