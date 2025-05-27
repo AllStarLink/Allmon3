@@ -1,3 +1,11 @@
+allmon3 (1.4.3-1) stable; urgency=medium
+
+  * Add CSS tweaks to connected node table display (#267)
+  * Fix quoting issue for non-numeric node parameters 
+    for "quick disconnect" button (#270)
+
+ -- Jason McCormick <jason@mfamily.org>  Tue, 27 May 2025 19:12:33 -0400
+
 allmon3 (1.4.2-1) stable; urgency=medium
 
   * Improved fixes for Echolink parsing (#263 + 3190845..617ecc1)
