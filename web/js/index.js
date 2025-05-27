@@ -416,12 +416,12 @@ function nodeConnTable(conns, keyed, keyednode, nodeid) {
 			}
 
             row = row.concat(`
-				<tr class="${rowclass}" onclick="nodeCmdShortcut(${x})">
+				<tr class="${rowclass}" onclick="nodeCmdShortcut('${x}')">
 			`);
 			if(loggedIn){
 				row = row.concat(`
 				<td class="${rowclass}">
-					<button class="btn btn-sm btn-outline-secondary node-line-bi" onclick="nodeUnlinkShortcut(${nodeid}, ${x})"
+					<button class="btn btn-sm btn-outline-secondary node-line-bi" onclick="nodeUnlinkShortcut(${nodeid}, '${x}')"
                        	data-bs-toggle="tooltip" data-bs-title="Unlink node ${x}"
 						data-bs-placement="bottom"><svg class="flex-shrink-0" width="16" height="16" role="img" aria-label="Unlink Node ${x}"> <use xlink:href="#disconnect"/></svg></button>
 				</td>
