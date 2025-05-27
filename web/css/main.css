@@ -71,6 +71,13 @@ body {
 }
 
 /*
+ * Node description maximum width
+ */
+ #asl-statmon-dashboard-area td.desc {
+     min-width: 300px;
+ }
+
+/*
  * Sidebar
  */
 

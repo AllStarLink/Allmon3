@@ -327,12 +327,12 @@ function nodeConnTable(conns, keyed, keyednode, nodeid) {
 	}
 	tTop = tTop.concat(`
         <th scope="col">Node</th>
-        <th scope="col">Description</th>
-        <th scope="col">Last Recv</th>
-        <th scope="col" class="d-none d-md-table-cell">Conn Time</th>
-        <th scope="col" class="d-none d-lg-table-cell">Direction</th>
-        <th scope="col" class="d-none d-lg-table-cell">Connect State</th>
-        <th scope="col" class="d-none d-md-table-cell">Mode</th>
+        <th scope="col desc">Description</th>
+        <th scope="col lastr">Last Recv</th>
+        <th scope="col" class="d-none d-md-table-cell ctime">Conn Time</th>
+        <th scope="col" class="d-none d-lg-table-cell dir">Direction</th>
+        <th scope="col" class="d-none d-lg-table-cell state">Connect State</th>
+        <th scope="col" class="d-none d-md-table-cell mode">Mode</th>
     </tr>
 </thead>
 <tbody class="table-group-divider">
@@ -428,13 +428,13 @@ function nodeConnTable(conns, keyed, keyednode, nodeid) {
 				`);
 			}
 			row = row.concat(`
-                <th scope="row" class=${rowclass}>${x}</th>
-                <td class=${rowclass}>${c.DESC}</td>
-                <td class=${rowclass}>${lastXmit}</td>
-                <td class="d-none d-md-table-cell ${rowclass}">${c.CTIME}</td>
-                <td class="d-none d-lg-table-cell ${rowclass}">${c.DIR}</td>
-                <td class="d-none d-lg-table-cell ${rowclass}">${c.CSTATE}</td>
-                <td class="d-none d-md-table-cell ${rowclass}">${c.MODE}</td>
+                <th scope="row" class="${rowclass} node">${x}</th>
+                <td class="${rowclass} desc">${c.DESC}</td>
+                <td class="${rowclass} lastr">${lastXmit}</td>
+                <td class="d-none d-md-table-cell ${rowclass} ctime">${c.CTIME}</td>
+                <td class="d-none d-lg-table-cell ${rowclass} dir">${c.DIR}</td>
+                <td class="d-none d-lg-table-cell ${rowclass} state">${c.CSTATE}</td>
+                <td class="d-none d-md-table-cell ${rowclass} mode">${c.MODE}</td>
             </tr>`);
         }
 	
