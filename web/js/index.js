@@ -228,6 +228,9 @@ function nodeEntry(nodeid, nodeinfo){
 	}
 
 	if(currTXLastTime[nodeid] > 0){
+		if ( ! currTXStartTime[nodeid] ) {
+			currTXStartTime[nodeid] = Date.now();
+		}
 		const xmitTime = toOHMS( parseInt((currTXLastTime - currTXStartTime[nodeid])/1000) );
 		const divHeader = document.getElementById(`${nodeid}-TXTime`).innerHTML = xmitTime;
 	}
