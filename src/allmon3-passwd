@@ -10,6 +10,7 @@ import argon2
 import argparse
 import csv
 import logging
+import os
 import sys
 
 from getpass import GetPassWarning, getpass
@@ -47,6 +48,11 @@ if args.file:
     user_filename = args.file
 else:
     user_filename = "/etc/allmon3/users"
+
+if not os.access(user_filename, os.W_OK):
+    log.error(f"Unable to access {user_filename}; confirm write access (sudo?)")
+    sys.exit(1)
+
 
 userfields = [ 'user' , 'pass' ]
 userdb = []
