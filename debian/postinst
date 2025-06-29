@@ -42,6 +42,17 @@ do_configure() {
 	perl -pi -e s'/list\/\@\/%/list\/\@ %/g' /etc/allmon3/web.ini
 	perl -pi -e 's/\"Reason Here\"/&quot;Reason Here&quot;/g' /etc/allmon3/web.ini
 
+	## Remove default passwords
+	defp=BAvvGE2VbhNnJwJcdw
+	randp=$(openssl rand -hex 16)
+	for amuser in $(awk -F'|' -v m="${defp}" 'index($2, m) { print $1 }'); do
+		allmon3-passwd --password ${randp} ${amuser}
+		echo ${randp} > /etc/allmon3/random-password.txt
+	done
+	test -f /etc/allmon3/random-password.txt && \
+		chmod 600 /etc/allmon3/random-password.txt
+
+	deb-systemd-invoke restart allmon3.service >/dev/null || true
 }
 
 case "$1" in

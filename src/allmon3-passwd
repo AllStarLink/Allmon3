@@ -29,6 +29,7 @@ ap.add_argument("user", help="username to create/modify")
 ap.add_argument("--delete", help="delete the user specified by 'user'", action="store_true")
 ap.add_argument("--debug", help="enable debug-level logging output", action="store_true")
 ap.add_argument("--file", help="alternate file to edit; default /etc/allmon3/users")
+ap.add_argument("--password", help="use this rather than gather password interactively")
 ap.add_argument("--version", help="get the version of the software", action="version",
     version='%(prog)s {}'.format(_BUILD_ID))
 args = ap.parse_args()
@@ -80,16 +81,19 @@ if args.delete:
         log.error("No user {} in file".format(args.user))
 
 else:
-    try:
-        pass_a = getpass("Enter the password for {}: ".format(args.user))
-        pass_b = getpass("Confirm the password for {}: ".format(args.user))
-    except GetPassWarning:
-        log.error("unable to turn off echo for password entry")
-        sys.exit(-1)
-
-    if(pass_a != pass_b):
-        log.error("passwords do not match")
-        sys.exit(-1)
+    if not args.password:
+        try:
+            pass_a = getpass("Enter the password for {}: ".format(args.user))
+            pass_b = getpass("Confirm the password for {}: ".format(args.user))
+        except GetPassWarning:
+            log.error("unable to turn off echo for password entry")
+            sys.exit(-1)
+    
+        if(pass_a != pass_b):
+            log.error("passwords do not match")
+            sys.exit(-1)
+    else:
+        pass_a = args.password
 
     ph = argon2.PasswordHasher(type=argon2.Type.ID)
     hash_pass = ph.hash(pass_a)

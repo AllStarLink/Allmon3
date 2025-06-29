@@ -22,6 +22,8 @@ optional arguments:
 
   \-\-file FILE  alternate file to edit; default /etc/allmon3/users
 
+  \-\-password PASSWORD  provide password on CLI rather than gather interactively
+
   \-\-version    get the version of the software
 
 # DESCRIPTION
