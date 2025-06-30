@@ -1,9 +1,9 @@
-allmon3 (1.5.0-1) stable; urgency=medium
+allmon3 (1.5.0-2) stable; urgency=medium
 
   * Installation of packages 1.5.0+ will now focibly
     change the default password.
 
- -- Jason McCormick <jason@mfamily.org>  Sun, 29 Jun 2025 19:49:22 -0400
+ -- Jason McCormick <jason@mfamily.org>  Sun, 29 Jun 2025 20:07:11 -0400
 
 allmon3 (1.4.3-1) stable; urgency=medium
 

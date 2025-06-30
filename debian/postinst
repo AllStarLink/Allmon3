@@ -45,7 +45,7 @@ do_configure() {
 	## Remove default passwords
 	defp=BAvvGE2VbhNnJwJcdw
 	randp=$(openssl rand -hex 16)
-	for amuser in $(awk -F'|' -v m="${defp}" 'index($2, m) { print $1 }'); do
+	for amuser in $(awk -F'|' -v m="${defp}" 'index($2, m) { print $1 }' /etc/allmon3/users); do
 		allmon3-passwd --password ${randp} ${amuser}
 		echo ${randp} > /etc/allmon3/random-password.txt
 	done
