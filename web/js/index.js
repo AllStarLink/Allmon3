@@ -231,7 +231,7 @@ function nodeEntry(nodeid, nodeinfo){
 		if ( ! currTXStartTime[nodeid] ) {
 			currTXStartTime[nodeid] = Date.now();
 		}
-		const xmitTime = toOHMS( parseInt((currTXLastTime - currTXStartTime[nodeid])/1000) );
+		const xmitTime = toOHMS( parseInt((currTXLastTime[nodeid] - currTXStartTime[nodeid])/1000) );
 		const divHeader = document.getElementById(`${nodeid}-TXTime`).innerHTML = xmitTime;
 	}
 	lastTXState[nodeid] = currTXState[nodeid];
