@@ -1,3 +1,9 @@
+allmon3 (1.5.1-1) stable; urgency=medium
+
+  * More complete fix for timers (#278/#279)
+
+ -- Jason McCormick <jason@mfamily.org>  Tue, 01 Jul 2025 09:13:20 -0400
+
 allmon3 (1.5.0-2) stable; urgency=medium
 
   * Installation of packages 1.5.0+ will now focibly
