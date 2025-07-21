@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) ![Bootstrap](https://img.shields.io/badge/bootstrap-%23563D7C.svg?style=for-the-badge&logo=bootstrap&logoColor=white)
 
 Allmon is the standard web-based monitoring and management for the AllStarLink
-application. Allmon3 is the next generation of the venerable Allmon2 that is 
+application. Allmon3 is the next generation of the venerable Allmon2 that is
 rewritten for performance, scalability, and responsiveness.
 
 ## Design Goals
@@ -31,7 +31,7 @@ Support for Debian 10 and Debian 11 ended with the release of AllStarLink v3
 and Allmon3 v1.3.0. The last supported version is 1.2.1 which can be
 observed at [branch 1.2.1](https://github.com/AllStarLink/Allmon3/tree/rel_1_2_1).
 
-### Install 
+### Install
 1. If not running an a system already running AlLStarLink software, install
 the ASL software repository:
 
@@ -61,7 +61,7 @@ allmon3-passwd allmon3
 
 4. Enable and restart the services
 ```
-systemctl enable allmon3 
+systemctl enable allmon3
 systemctl restart allmon3
 
 ```
@@ -100,12 +100,12 @@ After changing `allmon3.ini` the service `allmon3` must be restarted - `systemct
 
 ## Usernames / Passwords for the Site
 Usernames and passwords are stored in `/etc/allmon3/users`.
-The default-configured username and password combination is `allmon3 / password`. 
+The default-configured username and password combination is `allmon3 / password`.
 **You *must* change this**.
 
 Allmon3's user database is managed by `allmon3-passwd`. Adding a new user
 or editing an existing user is the same command. If the user does not exist,
-it will be added. If the user does exist, the password will be updated. 
+it will be added. If the user does exist, the password will be updated.
 To add or edit a user's password:
 ```
 $ allmon3-passwd allmon3
@@ -159,11 +159,11 @@ Lines beginning with # are comments.
 
 Allmon3 has multiple configuration files to consider:
 
-* `/etc/allmon3/web.ini` - Has four configuration sections - *web*, 
+* `/etc/allmon3/web.ini` - Has four configuration sections - *web*,
 *syscmds*, *node-overrides*, and *voter-titles*. The *web* section has the basic
 customizations for the Allmon3 site. The *syscmds* section defines
 the templates in the "system commands" menu. Add or remove as
-desired. The token `@` will be expanded into the selected node 
+desired. The token `@` will be expanded into the selected node
 on which to execute the command. The *node-overrides* section
 can be used to override information from the ASL database. The *voter-titles*
 section is used to set display names for voters.
@@ -175,6 +175,10 @@ colors in the application. Follows standard CSS rules and syntax.
 Allmon3 web menu. By default, the menu is a list of all nodes
 found in `allmon3.ini`. Cutomized menus can be configured
 as described in `menu.ini.example`.
+
+* `/etc/allmon3/favorites.ini` - Allows for the creation of a list of
+favorite nodes that is accessible from the link command modal window.
+Each managed node can be configured with a separate list of favorites.
 
 # Using Nginx instead of Apache
 Nginx can be used instead of Apache. Instead of using the `apache2`
@@ -196,7 +200,7 @@ server {
 ```
 
 # Install From Source
-It is stronly discouraged to install Allmon3 from source. However, the 
+It is stronly discouraged to install Allmon3 from source. However, the
 following can be used to build a working Allmon3 system:
 
 1. Create the `allmon3` user:
@@ -217,9 +221,9 @@ and tested webservers are Apache httpd 2.4 and Nginx 1.22+
 
 For Apache 2 the following modules are required:
 ```
-sudo a2enmod proxy_http 
-sudo a2enmod proxy_wstunnel 
-sudo a2enmod rewrite 
+sudo a2enmod proxy_http
+sudo a2enmod proxy_wstunnel
+sudo a2enmod rewrite
 ```
 
 Apache 2 is configured simply with:
