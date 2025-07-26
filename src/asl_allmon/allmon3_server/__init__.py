@@ -143,7 +143,6 @@ class ServerWS:
                             # favorite nodes
                             results = self.favorites(c[2])
 
-                        log.debug(f"{results=}")
                         res_struct = [ { "id": r[0], "text": r[1] } for r in results ]
                         r_json = json.dumps({ "results": res_struct})
 

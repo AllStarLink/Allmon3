@@ -9,6 +9,8 @@ import configparser
 import logging
 import pprint
 import re
+import asyncio
+from os.path import getmtime
 
 _BUILD_ID = "@@HEAD-DEVELOP@@"
 log = logging.getLogger(__name__)
@@ -23,6 +25,7 @@ class NodeConfigs:
         self.nodes = dict()
         self.colo_nodes = dict()
         self.favorites = configparser.ConfigParser()
+        self.fav_file_time = None
 
         if filter_list is None:
             filter_list = []
@@ -46,6 +49,14 @@ class NodeConfigs:
 
         # seed the favorites list from a file
         self.favorites.read(fav_file)
+
+    async def favorites_watcher(self, fav_file):
+        while True:
+            await asyncio.sleep(15)
+            if self.fav_file_time != getmtime(fav_file):
+                log.info("favorites.ini updated, refreshing favorites list")
+                self.favorites.read(fav_file)
+                self.fav_file_time = getmtime(fav_file)
 
 class AllmonNodeConfig:
     """ a signle node's configuration """

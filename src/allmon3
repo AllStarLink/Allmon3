@@ -100,6 +100,9 @@ async def start_tasks():
         log.info("starting node_db updater")
         tasks.append(asyncio.create_task(allmon_db.db_updater(node_configuration, web_configuration.node_overrides)))
 
+        log.info("starting favorites.ini watcher")
+        tasks.append(asyncio.create_task(node_configuration.favorites_watcher(fav_config_file)))
+
         global __global_tasks
         __global_tasks = tasks
 
