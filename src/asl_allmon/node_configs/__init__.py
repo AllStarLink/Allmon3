@@ -10,7 +10,7 @@ import logging
 import pprint
 import re
 import asyncio
-from os.path import getmtime
+from os.path import exists, getmtime
 
 _BUILD_ID = "@@HEAD-DEVELOP@@"
 log = logging.getLogger(__name__)
@@ -53,10 +53,11 @@ class NodeConfigs:
     async def favorites_watcher(self, fav_file):
         while True:
             await asyncio.sleep(15)
-            if self.fav_file_time != getmtime(fav_file):
-                log.info("favorites.ini updated, refreshing favorites list")
-                self.favorites.read(fav_file)
-                self.fav_file_time = getmtime(fav_file)
+            if exists(fav_file):
+                if self.fav_file_time != getmtime(fav_file):
+                    log.info("favorites.ini updated, refreshing favorites list")
+                    self.favorites.read(fav_file)
+                    self.fav_file_time = getmtime(fav_file)
 
 class AllmonNodeConfig:
     """ a signle node's configuration """

@@ -177,7 +177,7 @@ found in `allmon3.ini`. Cutomized menus can be configured
 as described in `menu.ini.example`.
 
 * `/etc/allmon3/favorites.ini` - Allows for the creation of a list of
-favorite nodes that is accessible from the link command modal window.
+favorite nodes that are accessible from the link command modal window.
 Each managed node can be configured with a separate list of favorites.
 The list of favorites will automatically update when the `favorites.ini`
 file is updated without having to restart the service.
