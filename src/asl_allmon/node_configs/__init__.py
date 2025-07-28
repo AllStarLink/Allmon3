@@ -56,6 +56,8 @@ class NodeConfigs:
             if exists(fav_file):
                 if self.fav_file_time != getmtime(fav_file):
                     log.info("favorites.ini updated, refreshing favorites list")
+                    # reset self.favorites to avoid polution
+                    self.favorites = configparser.ConfigParser()
                     self.favorites.read(fav_file)
                     self.fav_file_time = getmtime(fav_file)
 
