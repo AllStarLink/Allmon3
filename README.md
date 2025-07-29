@@ -17,8 +17,8 @@ Allmon3 features and functionality shall be governed by the following guidelines
 * Prioritization of the common use cases of AllStarLink for feature enhancements
 
 ## Community
-All code of Allmon3 not otherwise licensed (e.g., Bootstrap, etc.) is licensed
-under the [GNU Affero General Public License v3](https://www.gnu.org/licenses/why-affero-gpl.html).
+All code of Allmon3 not otherwise licensed (e.g., Bootstrap, Select2, etc.)
+is licensed under the [GNU Affero General Public License v3](https://www.gnu.org/licenses/why-affero-gpl.html).
 The choice of the AGPLv3 promotes giving back to the amateur radio and
 ASL communities.
 
