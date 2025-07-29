@@ -137,7 +137,8 @@ class ServerWS:
                     elif c[3] == "search":
                         params = parse_qs(request.query_string)
                         if "q" in params:
-                            results = self.search_nodes(params['q'][0])
+                            results = [ (params['q'][0], param['q'][0]) ]
+                            results += self.search_nodes(params['q'][0])
                         else:
                             # No search term provided, return a list of
                             # favorite nodes
