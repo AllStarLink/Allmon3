@@ -198,13 +198,13 @@ function nodeEntry(nodeid, nodeinfo){
     // update the tx line
     // let currTXState = false;
     if(node.RXKEYED === true && node.TXKEYED === true ){    
-        divTxStat.innerHTML = `<div class="alert alert-warning mx-3 py-0 nodetxline am3-tx-local">Transmit - Local Source (<span id="${nodeid}-TXTime"></span>)</div>`;
+        divTxStat.innerHTML = `<div class="alert alert-warning mx-3 py-0 nodetxline am3-tx-local">Transmit - Local Source <span id="${nodeid}-TXTime"></span></div>`;
 		currTXState[nodeid] = true;
     } else if( node.RXKEYED === true && node.TXEKEYED === false && node.TXEKEYED === false ){
-        divTxStat.innerHTML = `<div class="alert alert-warning mx-3 py-0 nodetxline am3-tx-local">Transmit - Local Source (<span id="${nodeid}-TXTime"></span>)</div>`;
+        divTxStat.innerHTML = `<div class="alert alert-warning mx-3 py-0 nodetxline am3-tx-local">Transmit - Local Source <span id="${nodeid}-TXTime"></span></div>`;
 		currTXState[nodeid] = true;
     } else if( node.CONNKEYED === true && node.TXKEYED === true && node.RXKEYED === false ){
-        divTxStat.innerHTML = `<div class="alert alert-warning mx-3 py-0 nodetxline am3-tx-network">Transmit - Network Source (<span id="${nodeid}-TXTime"></span>)</div>`;
+        divTxStat.innerHTML = `<div class="alert alert-warning mx-3 py-0 nodetxline am3-tx-network">Transmit - Network Source <span id="${nodeid}-TXTime"></span></div>`;
 		currTXState[nodeid] = true;
     } else if( node.TXKEYED === true && node.RXKEYED === false && node.CONNKEYED === false ){
         divTxStat.innerHTML = `<div class="alert alert-warning mx-3 py-0 nodetxline am3-tx-telemetry">Transmit - Telemetry/Playback</div>`;
@@ -231,7 +231,7 @@ function nodeEntry(nodeid, nodeinfo){
 		if ( ! currTXStartTime[nodeid] ) {
 			currTXStartTime[nodeid] = Date.now();
 		}
-		const xmitTime = toOHMS( parseInt((currTXLastTime[nodeid] - currTXStartTime[nodeid])/1000) );
+		const xmitTime = '(' + toOHMS( parseInt((currTXLastTime[nodeid] - currTXStartTime[nodeid])/1000) ) + ')';
 		const divHeader = document.getElementById(`${nodeid}-TXTime`).innerHTML = xmitTime;
 	}
 	lastTXState[nodeid] = currTXState[nodeid];
