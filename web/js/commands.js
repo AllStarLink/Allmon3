@@ -2,8 +2,8 @@
  * Copyright(C) 2023-2024 AllStarLink
  * Allmon3 and all components are Licensed under the AGPLv3
  * see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
- * 
- * This excludes the use of the Bootstrap libraries which are licensed 
+ *
+ * This excludes the use of the Bootstrap libraries which are licensed
  * separately.
  *
  */
@@ -60,8 +60,22 @@ function openCmdModalLink(node, defCmd){
 	if(loggedIn){
 		document.getElementById("command-modal-body").innerHTML = getLinkCommandModalForm(node, defCmd);
 	} else {
-		document.getElementById("command-modal-body").innerHTML = `<div class="alert alert-danger role="alert">Must Logon First</div>`;	
+		document.getElementById("command-modal-body").innerHTML = `<div class="alert alert-danger role="alert">Must Logon First</div>`;
 	}
+
+	// activate select2 to enable favorites and searching node db
+	$("#cmf-link-node-num").select2({
+		dropdownParent: $("#commandModal"),
+		placeholder: "Select a favorite or enter a node ID",
+		selectionCssClass: ":all:",
+		width: "100%",
+		ajax: {
+			url: `/allmon3/master/node/${node}/search`,
+			dataType: "json",
+			delay: 300,
+			cache: true
+		},
+	});
 	modal.show();
 }
 
@@ -115,7 +129,7 @@ function getLinkCommandModalForm(node, defCmd){
 	if(typeof defCmd === 'undefined'){
 		rForm = rForm.concat(`<option selected disabled value="">Choose a command</option>`);
 	}
-	
+
 	rForm = rForm.concat(`
 					<option ${opt3} value="3">Connect</option>
 					<option ${opt1} value="1">Disconnect</option>
@@ -128,14 +142,15 @@ function getLinkCommandModalForm(node, defCmd){
 				</div>
 			</div>
 			<div class="col">
-				<input id="cmf-link-node-num" name="cmf-link-node-num" class="form-control" 
-					type="text" value="${cmdShortcut}" required>
+				<select id="cmf-link-node-num" name="cmf-link-node-num" class="editable-select form-select" required>
+          <option></option>
+        </select>
 				<div class="invalid-feedback">
 					Enter a node
 				</div>
 			</div>
 			<div class="col">
-				<select id="cmf-link-node-perm" name="cmf-link-node-perm" class="form-select" 
+				<select id="cmf-link-node-perm" name="cmf-link-node-perm" class="form-select"
 					arial-label="permanent link" required>
 					<option value="no" selected>No</option>
 					<option value="yes" >Yes</option>
@@ -164,7 +179,7 @@ function executeNodeLinkCmd(node){
 	let cmfCmd = document.getElementById("cmf-link-node-cmd");
 	let cmfNode = document.getElementById("cmf-link-node-num");
 	let permFlag = document.getElementById("cmf-link-node-perm").value;
-	
+
 	if(cmfCmd.checkValidity()){
 		cmfCmd.classList.remove("is-invalid");
 		cmfCmd.classList.add("is-valid");
@@ -184,7 +199,7 @@ function executeNodeLinkCmd(node){
 			cmfNode.classList.add("is-invalid");
 			return null;
 		}
-	
+
 		if(permFlag === "yes")
 			command += 10;
 	}
@@ -199,14 +214,14 @@ function executeNodeLinkCmd(node){
 	document.getElementById("cmd-exec-spinner").style.display = "inline-block";
 	document.getElementById("cmd-exec-close").style.display = "none";
 
-	sendCommand(node, `rpt cmd ${node} ilink ${command} ${linknode}`);	
+	sendCommand(node, `rpt cmd ${node} ilink ${command} ${linknode}`);
 }
 
 //
 // CLI Command Modal Interface
 //
 async function getCLICommandModalForm(node){
-	
+
 	let cmdopts = "";
 	let ppath = window.location.pathname;
 	let ppage = ppath.split("/").pop();
@@ -240,7 +255,7 @@ async function getCLICommandModalForm(node){
 			cmdopts = cmdopts.concat(`<option value="${cmdstr}">`, nodeCommands[c], "</option>\n");
 		}
     }
-			
+
 	const modal = `
 <div id="cmd-exec-cmd" class="container">
 	<form id="command-modal-form" class="needs-validation" novalidate>
@@ -327,7 +342,7 @@ function executeNodeCLICmd(node){
 	document.getElementById("cmd-exec-close").style.display = "none";
 
 
-	sendCommand(node, `${cmfCmd.value}`);	
+	sendCommand(node, `${cmfCmd.value}`);
 }
 
 
