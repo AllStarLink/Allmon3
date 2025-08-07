@@ -264,7 +264,7 @@ class ServerWS:
                         r_txt = "{}"
 
         except (IndexError, KeyError):
-            log.exception("index error")
+            log.debug("index error")
             r_txt = None
 
         except Exception as e:
