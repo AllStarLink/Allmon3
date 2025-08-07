@@ -28,7 +28,7 @@ def sigterm_handler(_signo, _stack_frame):
     for t in __global_tasks:
         log.debug("killing task: %s", t.get_name())
         t.cancel(msg="terminate by signal")
-    sys.exit(0)    
+    sys.exit(0)
 signal.signal(signal.SIGINT, sigterm_handler)
 signal.signal(signal.SIGHUP, sigterm_handler)
 signal.signal(signal.SIGTERM, sigterm_handler)
@@ -66,12 +66,12 @@ def sigusr1_handler(_signo, _stack_frame):
         else:
             log.error("info fields will be labeled UNAVAILABLE until the data is retrieved")
 signal.signal(signal.SIGUSR1, sigusr1_handler)
-    
+
 
 ## Startup coroutines
 async def start_tasks():
     log.debug("enter start_tasks()")
-    tasks = [] 
+    tasks = []
     try:
         for n, c in node_configuration.nodes.items():
             c.monport = web_configuration.ws_port_start + len(tasks)
@@ -93,12 +93,15 @@ async def start_tasks():
                     tasks.append(asyncio.create_task(voter_ws.main()))
 
         log.info("starting allmon3 master ws on port %s", web_configuration.http_port)
-        a3server = allmon3_server.ServerWS(web_configuration, 
-            node_configuration, server_security)
+        a3server = allmon3_server.ServerWS(web_configuration,
+            node_configuration, server_security, allmon_db)
         tasks.append(asyncio.create_task(a3server.main()))
 
         log.info("starting node_db updater")
         tasks.append(asyncio.create_task(allmon_db.db_updater(node_configuration, web_configuration.node_overrides)))
+
+        log.info("starting favorites.ini watcher")
+        tasks.append(asyncio.create_task(node_configuration.favorites_watcher(fav_config_file)))
 
         global __global_tasks
         __global_tasks = tasks
@@ -108,7 +111,7 @@ async def start_tasks():
         except asyncio.CancelledError:
             log.info("all tasks in start_tasks() cancelled")
 
-    
+
     except asyncio.CancelledError as e:
         log.debug("ending asyncio tasks")
         for t in tasks:
@@ -134,8 +137,9 @@ __global_tasks = []
 ap = argparse.ArgumentParser(description="Connect to an ASL Asterisk server and print rpt stats")
 ap.add_argument("--nodes", type=str, help="Only start the node(s) listed as --node NODE[,NODE,...]")
 ap.add_argument("--config", help="path to INI configuration allmon3 nodes (default /etc/allmon3/allmon3.ini)")
-ap.add_argument("--webconfig", help="path to INI configuration for web services (default /etc/allmon3/web.ini")
-ap.add_argument("--menuconfig", help="path to INI configuration for menus (default /etc/allmon3/menu.ini")
+ap.add_argument("--webconfig", help="path to INI configuration for web services (default /etc/allmon3/web.ini)")
+ap.add_argument("--menuconfig", help="path to INI configuration for menus (default /etc/allmon3/menu.ini)")
+ap.add_argument("--favconfig", help="path to INI configuration for favorites (default /etc/allmon3/favorites.ini)")
 ap.add_argument("--debug", help="enable debug-level logging output", action="store_true")
 ap.add_argument("--debugmodule", type=str, help="enable debugging only for module specified")
 ap.add_argument("--version", help="get the version of the software", action="version", version='%(prog)s {}'.format(_BUILD_ID))
@@ -175,6 +179,11 @@ if args.menuconfig:
 else:
     menu_config_file = "/etc/allmon3/menu.ini"
 
+if args.favconfig:
+    fav_config_file = args.favconfig
+else:
+    fav_config_file = "/etc/allmon3/favorites.ini"
+
 try:
     # Config Parse
     if not os.path.exists(config_file):
@@ -186,7 +195,7 @@ try:
     else:
         filter_list = None
 
-    node_configuration = node_configs.NodeConfigs(config_file, filter_list)    
+    node_configuration = node_configs.NodeConfigs(config_file, fav_config_file, filter_list)
 
     if not os.path.exists(web_config_file):
         raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), web_config_file)

@@ -9,6 +9,8 @@ import configparser
 import logging
 import pprint
 import re
+import asyncio
+from os.path import exists, getmtime
 
 _BUILD_ID = "@@HEAD-DEVELOP@@"
 log = logging.getLogger(__name__)
@@ -16,12 +18,14 @@ log = logging.getLogger(__name__)
 class NodeConfigs:
     """ stored configurations for nodes """
 
-    def __init__(self, config_file, filter_list = None):
+    def __init__(self, config_file, fav_file, filter_list = None):
         config_full = configparser.ConfigParser()
         config_full.read(config_file)
         self.all_nodes = list()
         self.nodes = dict()
         self.colo_nodes = dict()
+        self.favorites = configparser.ConfigParser()
+        self.fav_file_time = None
 
         if filter_list is None:
             filter_list = []
@@ -43,14 +47,28 @@ class NodeConfigs:
                             self.colo_nodes.update({ m_node : k_node })
                             self.all_nodes.append(m_node)
 
+        # seed the favorites list from a file
+        self.favorites.read(fav_file)
+
+    async def favorites_watcher(self, fav_file):
+        while True:
+            await asyncio.sleep(15)
+            if exists(fav_file):
+                if self.fav_file_time != getmtime(fav_file):
+                    log.info("favorites.ini updated, refreshing favorites list")
+                    # reset self.favorites to avoid polution
+                    self.favorites = configparser.ConfigParser()
+                    self.favorites.read(fav_file)
+                    self.fav_file_time = getmtime(fav_file)
+
 class AllmonNodeConfig:
     """ a signle node's configuration """
-    
-        
+
+
     def __init__(self, node, config):
 
         # create instance vars for all optional items
-        self.node = int(node) 
+        self.node = int(node)
         self.host = str()
         self.port = int()
         self.user = str()
@@ -68,43 +86,43 @@ class AllmonNodeConfig:
 
         if "colocated_on" in config:
             raise ASLNodeConfigException("colocated_on no longer supported; remove from configuration")
-    
+
         if not "host" in config:
             raise ASLNodeConfigException(f"Missing required attribute host= for {self.node}")
         self.host = config["host"]
-    
+
         if not "user" in config:
             raise ASLNodeConfigException(f"Missing required attribute user= for {self.node}")
         self.user = config["user"]
-    
+
         if not "pass" in config:
             raise ASLNodeConfigException(f"Missing required attribute pass= for {self.node}")
         self.password = config["pass"]
-    
+
         if not "port" in config:
             self.port = 5038
         else:
             self.port = int(config["port"])
-    
+
         if "pollinterval" in config:
             self.pollinterval = float(config["pollinterval"])
-               
+
         if "vpollinterval" in config:
             self.vpollinterval = float(config["vpollinterval"])
-    
+
         if "retryinterval" in config:
             self.retryinterval = int(config["retryinterval"])
-    
+
         if "retrycount" in config:
             self.retrycount = int(config["retrycount"])
-    
+
         if "voters" in config:
             self.voter = True
             for v in re.split(r',', config["voters"]):
-                self.voterports.update({ int(v) : -1 }) 
+                self.voterports.update({ int(v) : -1 })
         else:
             self.voter = False
-    
+
         if "multinodes" in config:
             for mn in re.split(r',', config["multinodes"]):
                 self.nodes_on_host.add(int(mn))
@@ -116,6 +134,6 @@ class AllmonNodeConfig:
             self.node_mon_list.update({ node : {
                     "ME" : self.node , "DESC" : None , "RXKEYED" : False, "TXKEYED" : False ,
                     "TXEKEYED" : False, "CONNKEYED" : False, "CONNKEYEDNODE" : None , "CONNS" : None }})
- 
+
 class ASLNodeConfigException(Exception):
     """ Exception for ASLNodeConfig{,s} """

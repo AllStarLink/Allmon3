@@ -2,8 +2,8 @@
  * Copyright(C) 2023-2024 AllStarLink
  * Allmon3 and all components are Licensed under the AGPLv3
  * see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
- * 
- * This excludes the use of the Bootstrap libraries which are licensed 
+ *
+ * This excludes the use of the Bootstrap libraries which are licensed
  * separately.
  *
  */
@@ -80,18 +80,18 @@ function startup(){
                 const nodeWS = new WebSocket(wsurl);
 				let wasOpen = false;
                 nodeWS.addEventListener("message", nodeEntryHandler);
-                nodeWS.onopen = (e) => { 
-					resolve(nodeWS); 
+                nodeWS.onopen = (e) => {
+					resolve(nodeWS);
 					wasOpen = true;
 				}
-                nodeWS.onerror = (e) => { 
+                nodeWS.onerror = (e) => {
 					if(wasOpen){
-						nodeEntrySetError(n, "The server closed the connection or the browser did not reload the page."); 
+						nodeEntrySetError(n, "The server closed the connection or the browser did not reload the page.");
 					} else {
 						nodeEntrySetError(n, "Allmon3 is not responding to requests for this node. Check server logs.");
 					}
 				}
-                nodeWS.onclose = (e) => { 
+                nodeWS.onclose = (e) => {
                     if(e.code === 1006 && wasOpen){
                         nodeEntrySetError(n, "The browser closed the socket for an unknown reason. Reload the page.");
                     }
@@ -126,7 +126,7 @@ async function customizeUI(){
 		document.getElementById("nav-home-button").setAttribute("onclick","window.location.reload()");
 	}
 	document.getElementById("nav-home-button").href = newp;
-	
+
 
 }
 
@@ -237,7 +237,7 @@ function nodeEntry(nodeid, nodeinfo){
 	lastTXState[nodeid] = currTXState[nodeid];
 
 
-    // update the connection table    
+    // update the connection table
     divConntable.innerHTML = nodeConnTable(node.CONNS, node.CONNKEYED, node.CONNKEYEDNODE, nodeid);
 }
 
@@ -263,7 +263,7 @@ function nodeEntrySetRetryMessage(nodeid, retryMessage){
 
     divHeader.innerHTML = nodeLineHeader(nodeid, "Unavailable Node")
     divTxStat.innerHTML = `<div class="alert alert-warning am3-alert-error mx-3 py-0">${retryMessage}</div>`
-	
+
 	if( divConntable != null ){
 	    divConntable.innerHTML = "";
 	}
@@ -385,7 +385,7 @@ function nodeConnTable(conns, keyed, keyednode, nodeid) {
             if( b_ssk == -1){
                 return -1;
             }
-    
+
             // Otherwise sort by conn time asc
             if( a_ssk < b_ssk ){
                 return -1;
@@ -441,7 +441,7 @@ function nodeConnTable(conns, keyed, keyednode, nodeid) {
                 <td class="d-none d-md-table-cell ${rowclass} mode">${c.MODE}</td>
             </tr>`);
         }
-	
+
     } else {
         row = "<tr><td colspan=7>No Connections - Repeat Only</td></tr>";
     }

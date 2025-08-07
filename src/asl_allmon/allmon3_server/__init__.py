@@ -8,6 +8,8 @@
 from aiohttp import web
 from aiohttp_session import get_session, setup
 from aiohttp_session import SimpleCookieStorage
+from configparser import NoSectionError
+from urllib.parse import parse_qs
 import asyncio
 import base64
 from itertools import cycle
@@ -26,11 +28,12 @@ class ServerWS:
 
     __MAX_MSG_LEN = 256
 
-    def __init__(self, configs_web, configs_node, server_security):
+    def __init__(self, configs_web, configs_node, server_security, node_db):
         self.config_web = configs_web
         self.config_nodes = configs_node
         self.httpserver = web.Application()
         self.server_security = server_security
+        self.node_db = node_db
 
     @staticmethod
     def __get_json_error(message):
@@ -63,7 +66,7 @@ class ServerWS:
 
             elif c[2] == "logout":
                 session = await get_session(request)
-                session["auth_sess"] = "" 
+                session["auth_sess"] = ""
                 r_json = self.__get_json_security("No Session")
 
         except (IndexError, KeyError):
@@ -73,7 +76,7 @@ class ServerWS:
         finally:
             if r_json:
                 return web.Response(text=r_json, content_type="text/json")
-    
+
             return web.Response(status=400)
 
     async def __proc_login(self, request):
@@ -90,12 +93,12 @@ class ServerWS:
             session_id = self.server_security.create_session(client_ip, req.get("user"))
             session["auth_sess"] = session_id
             r_txt = self.__get_json_success("OK")
-            log.info("successful login by user %s from %s", 
+            log.info("successful login by user %s from %s",
                 req.get("user"), client_ip)
         else:
             r_txt = self.__get_json_security("invalid user or pass")
             session["auth_sess"] = None
-            log.info("invalid login %s:%s from %s", 
+            log.info("invalid login %s:%s from %s",
                 req.get("user"), req.get("pass"), client_ip)
 
         return web.Response(text=r_txt, content_type="text/json")
@@ -105,9 +108,11 @@ class ServerWS:
     ##
 
     def __proc_node(self, request):
+        log.debug(f"__proc_node({request.url.path})")      # debug
         try:
             c = request.url.path.split("/")
             r_txt = None
+            r_json = None
             if c[2] == "listall":
                 r_txt = self.__proc_node_listall()
 
@@ -115,31 +120,100 @@ class ServerWS:
                 node = int(c[2])
                 if int(c[2]) in self.config_nodes.colo_nodes:
                     node = self.config_nodes.colo_nodes[int(c[2])]
- 
-                if c[3] == "config":
-                    log.debug("self.__proc_node_config(%s)", node)
-                    r_txt = self.__proc_node_config(node)
 
-                if c[3] == "voter":
-                    log.debug("self.__proc_voter_config(%s, %s)", node, int(c[2]))
-                    r_txt = self.__proc_voter_config(node, int(c[2]))
+                # only process requests for configured nodes
+                if node in self.config_nodes.all_nodes:
+                    if c[3] == "config":
+                        log.debug("self.__proc_node_config(%s)", node)
+                        r_txt = self.__proc_node_config(node)
 
-        except (IndexError, KeyError):
-            log.debug("IndexError/KeyError")
-            r_txt = None
-        
-        finally:
+                    elif c[3] == "voter":
+                        log.debug("self.__proc_voter_config(%s, %s)", node, int(c[2]))
+                        r_txt = self.__proc_voter_config(node, int(c[2]))
+
+                    elif c[3] == 'favorites':
+                        r_txt = self.__proc_node_favorites(c[2])
+
+                    elif c[3] == "search":
+                        params = parse_qs(request.query_string)
+                        if "q" in params:
+                            results = [ (params['q'][0], param['q'][0]) ]
+                            results += self.search_nodes(params['q'][0])
+                        else:
+                            # No search term provided, return a list of
+                            # favorite nodes
+                            results = self.favorites(c[2])
+
+                        res_struct = [ { "id": r[0], "text": r[1] } for r in results ]
+                        r_json = json.dumps({ "results": res_struct})
+
+                    else:
+                        # if we got here, someone is doing something wrong
+                        r_json = self.__get_json_error(f"Unknown API endpoint: {request.url.path}")
+                else:
+                    r_json = self.__get_json_error(f"Not a configured node: {node}")
+
+            else:
+                r_json = self.__get_json_error(f"Unknown API endpoint: {request.url.path}")
+
+            # format results
             if r_txt:
                 r_json = self.__get_json_success(r_txt)
-                return web.Response(text=r_json, content_type="text/json")
-    
-            return web.Response(status=400)
+            elif not r_json:
+                r_json = self.__get_json_success("Nothing returned")
+
+        except (IndexError, KeyError) as e:
+            log.exception(f"IndexError/KeyError: {e}")
+            r_json = self.__get_json_error(f"IndexError/KeyError: {e}")
+
+        except NoSectionError:
+            log.error(f"Request made for unknown node ({node})")
+            r_json = self.__get_json_error(f"Unknown node: {node}")
+
+        except Exception as e:
+            log.exception(e)
+            r_json = self.__get_json_error(str(e))
+
+        return web.Response(text=r_json, content_type="text/json")
+
 
     def __proc_node_listall(self):
         ret = []
         for n in self.config_nodes.all_nodes:
             ret.append(int(n))
         return json.dumps(ret)
+
+    def favorites(self, node):
+        log.debug(f"self._proc_node_favorites({node=})")
+        if self.config_nodes.favorites.has_section(node):
+            return self.config_nodes.favorites.items(node)
+        else:
+            return []
+
+    def search_nodes(self, term):
+        log.debug(f"search_nodes({term=})")
+        db = self.node_db.node_database
+        nodes = [ (num, f"{num}: {db[num]['CALL']} / {db[num]['DESC']} / {db[num]['LOC']}") for num in db if self.match_node(num, term) ]
+        return nodes
+
+
+    def match_node(self, num, term):
+        db = self.node_db.node_database
+        matcher = re.compile(term, re.I)
+        if matcher.search(num):
+            log.debug("matched node number")
+            return True
+        elif matcher.search(db[num]['CALL']):
+            log.debug("matched callsign")
+            return True
+        elif matcher.search(db[num]['DESC']):
+            log.debug("matched description")
+            return True
+        elif matcher.search(db[num]['LOC']):
+            log.debug("matched location")
+            return True
+        else:
+            return False
 
     def __proc_node_config(self, node):
         nc = dict()
@@ -148,11 +222,11 @@ class ServerWS:
         return json.dumps(nc)
 
     def __proc_voter_config(self, conf_node, voter_node):
-        try: 
+        try:
             vc = dict()
             vc.update({ "voterport" : self.config_nodes.nodes[conf_node].voterports[voter_node] })
             if voter_node in self.config_web.voter_titles:
-                vc.update({ "votertitle" : self.config_web.voter_titles[voter_node] }) 
+                vc.update({ "votertitle" : self.config_web.voter_titles[voter_node] })
             else:
                 vc.update({ "votertitle" : f"Voter {voter_node}" })
             return json.dumps(vc)
@@ -167,7 +241,7 @@ class ServerWS:
 
     def __proc_ui(self, request):
         try:
-            c = request.url.path.split("/") 
+            c = request.url.path.split("/")
             r_txt = None
             if c[2] == "custom":
                 if c[3] == "html":
@@ -188,19 +262,19 @@ class ServerWS:
                         r_txt = json.dumps(self.config_web.per_node_commands[c[4]])
                     else:
                         r_txt = "{}"
- 
+
         except (IndexError, KeyError):
             log.debug("index error")
             r_txt = None
 
         except Exception as e:
-            log.debug(e)
+            log.exception(e)
 
         finally:
             if r_txt:
                 r_json = self.__get_json_success(r_txt)
                 return web.Response(text=r_json, content_type="text/json")
-    
+
             return web.Response(status=400)
 
     def __proc_ui_html(self):
@@ -256,15 +330,15 @@ class ServerWS:
                         r_json = f"{{ \"SUCCESS\" : \"{message}\" }}"
             else:
                 r_json = f"{{ \"ERROR\" : \"user not authorized\" }}"
-                        
+
             if r_json:
                 return web.Response(text=r_json, content_type="text/json")
-    
+
             return web.Response(status=400)
-  
+
         except KeyError as e:
             log.debug(e)
- 
+
         except Exception:
             pass
 
@@ -287,7 +361,7 @@ class ServerWS:
         self.httpserver.add_routes(api_routes)
         runner = web.AppRunner(self.httpserver)
         await runner.setup()
-        site = web.TCPSite(runner, 
+        site = web.TCPSite(runner,
             self.config_web.ws_bind_addr,
             self.config_web.http_port)
         await site.start()
