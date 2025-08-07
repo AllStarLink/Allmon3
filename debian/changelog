@@ -1,3 +1,11 @@
+allmon3 (1.6.0-1) stable; urgency=medium
+
+  * Hide paraenthesis when no tx time accrued (#281)
+  * Add a CSS class for login/out for customizations (#282)
+  * Add a favorites system for the linking modal (#285)
+
+ -- Jason McCormick <jason@mfamily.org>  Thu, 07 Aug 2025 15:39:02 -0400
+
 allmon3 (1.5.1-1) stable; urgency=medium
 
   * More complete fix for timers (#278/#279)
