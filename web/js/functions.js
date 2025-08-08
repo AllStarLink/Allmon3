@@ -103,6 +103,10 @@ async function checkLogonStatus(){
 		loginRegion.innerHTML = "ERROR";
 		loggedIn = false;
 	}
+	let bodyClasses = ['logged-in','logged-out'];
+	let bodyClass = loggedIn ? 'logged-in' : 'logged-out';
+	document.body.classList.remove(...bodyClasses);
+	document.body.classList.add(bodyClass);
 }
 
 
