@@ -1,11 +1,11 @@
-allmon3 (1.6.0-2) stable; urgency=medium
+allmon3 (1.6.0-3) stable; urgency=medium
 
   * Hide paraenthesis when no tx time accrued (#281)
   * Add a CSS class for login/out for customizations (#282)
   * Remove testing favorites (revert #285)
   * Fix colspan (#283)
 
- -- Jason McCormick <jason@mfamily.org>  Fri, 08 Aug 2025 10:11:58 -0400
+ -- Jason McCormick <jason@mfamily.org>  Fri, 08 Aug 2025 17:08:33 -0400
 
 allmon3 (1.6.0-1) stable; urgency=medium
 
