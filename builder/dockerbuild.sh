@@ -21,7 +21,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
 	-r)
-      APTLY_REPO="asl3-$2"
+      REPO_LEVEL="$2"
       shift
       shift	
       ;;
@@ -59,16 +59,19 @@ BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 if [ $BRANCH == "develop" ]; then
   REPO_ENV="-devel"
-elif [ $BRANCH = "testing"]; then
+elif [ $BRANCH == "testing"]; then
   REPO_ENV="-testing"
 else
   REPO_ENV=""
 fi
 
+APTLY_REPO="asl3-${OPERATING_SYSTEMS}-${REPO_LEVEL}"
+
 ## Need to clean this up to be more elegant
 echo "Architectures: $ARCH"
 echo "Targets: $TARGETS"
 echo "Operating Systems: $OPERATING_SYSTEMS"
+echo "Aptly Repo: ${APTLY_REPO}"
 echo "PWD: $(pwd)"
 echo "BS: ${BASH_SOURCE[0]}"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -79,7 +82,8 @@ ALL_PKG_ROOT=$(dirname ${PDIR})
 echo "ALL_PKG_ROOT: ${ALL_PKG_ROOT}"
 echo "GH_REL: ${GH_REL}"
 
-D_TAG="allmon3_builder.${OPERATING_SYSTEMS}.${ARCH}${REPO_ENV}"
+
+D_TAG="$(echo "${GH_REPO_NAME}" | cut -d'/' -f2 | tr '[:upper:]' '[:lower:]').${OPERATING_SYSTEMS}.${ARCH}${REPO_ENV}"
 
 docker build -f $DIR/Dockerfile -t $D_TAG \
 	--build-arg ARCH="$ARCH" \
@@ -91,7 +95,7 @@ docker build -f $DIR/Dockerfile -t $D_TAG \
 docker run -v $ALL_PKG_ROOT:/build $D_TAG
 
 DEBIAN_FRONTEND=noninteractive apt-get -y install gh
-gh release upload -R AllStarLink/Allmon3 $GH_REL $ALL_PKG_ROOT/_debs/*.deb
+gh release upload -R ${GH_REPO_NAME} $GH_REL $ALL_PKG_ROOT/_debs/*.deb
 
 docker image rm --force $D_TAG
 
