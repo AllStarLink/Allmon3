@@ -1,3 +1,12 @@
+allmon3 (1.6.1-1) stable; urgency=medium
+
+  * Fix uptimes that display -1 (#292)
+  * Cleanly handle atob errors (#294)
+  * Permit 'susb' and 'radio' command types (#295)
+  * Fix typo (#290)
+
+ -- Jason McCormick <jason@mfamily.org>  Mon, 06 Oct 2025 19:22:42 -0400
+
 allmon3 (1.6.0-3) stable; urgency=medium
 
   * Hide paraenthesis when no tx time accrued (#281)
