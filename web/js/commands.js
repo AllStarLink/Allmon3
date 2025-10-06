@@ -24,7 +24,10 @@ async function sendCommand(node, cmdStr) {
 	let cmdout = await postAPIForm("master/cmd", cmdForm);
 	let res = "";
 	if( cmdout["SUCCESS"] ){
-		let out = atob(cmdout["SUCCESS"]);
+		let out = cmdout['SUCCESS'];
+		try {
+			out = atob(cmdout["SUCCESS"]);
+		} catch(e) {}
 		res = `
 			<div class="alert alert-success" role="alert">Command Successful</div>
 			<pre>${out}<pre>
