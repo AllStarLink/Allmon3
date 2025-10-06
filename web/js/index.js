@@ -193,7 +193,7 @@ function nodeEntry(nodeid, nodeinfo){
     headerDescSpan.innerHTML = hdsih;
 
 	let hdup = secondsToDhms(node["UPTIME"]);
-	headerUptimeSpan.innerHTML = hdup;
+	headerUptimeSpan.innerHTML = Number.isInteger( node['UPTIME'] ) && node['UPTIME'] > 0 ? hdup : 'SERVER TIME ERROR';
 
     // update the tx line
     // let currTXState = false;
