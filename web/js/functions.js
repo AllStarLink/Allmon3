@@ -41,7 +41,7 @@ function secondsToDhms(seconds) {
 	let s = Math.floor(seconds % 60);
 	let dDisplay = d > 0 ? d + "d " : "";
 	return dDisplay + zeroPad(h) + ":" + zeroPad(m) + ":" + zeroPad(s);
-	
+
 }
 
 // Generic AJAX functions
@@ -51,7 +51,7 @@ async function getAPIJSON(url){
 		let resp =  await response.json();
 		if(resp['SUCCESS']){
 			return resp['SUCCESS'];
-		} 
+		}
 		if(resp['SECURITY']){
 			return resp;
 		}
@@ -74,7 +74,7 @@ async function postAPIForm(url, form){
 
 //
 // Authentication
-// 
+//
 
 // Check Logon Status
 async function checkLogonStatus(){
@@ -89,13 +89,13 @@ async function checkLogonStatus(){
 			</div>
 		`;
 		loggedIn = true;
-	} 
+	}
 	else if(sessionStatus["SECURITY"]){
 		loginRegion.innerHTML = `
 			<div class="d-grid gap-2 col-6 mx-auto">
 				<button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
 					Login
-				</button>	
+				</button>
 			</div>
 		`;
 		loggedIn = false;
@@ -180,7 +180,7 @@ function clearLogout(){
 
 //
 // UI / Menuing
-// 
+//
 
 // Generate and Draw Menus
 async function createSidebarMenu(){
@@ -245,7 +245,7 @@ async function createSidebarMenu(){
 				}
 				if(menuType){
 					navMenu = navMenu.concat(`</div></div>`);
-				} 
+				}
 			}
 		}
 	} else {
@@ -262,8 +262,8 @@ async function createSidebarMenu(){
 					<a class="btn btn-secondary" role="button" href="${newp}" ${onClickSlot}>${n}</a>
 				</div>`);
 		}
-	}	
-	
+	}
+
 	navMenu = navMenu.concat(`</div>`); // closes vstack
 	document.getElementById("asl-node-navigation").innerHTML = navMenu;
 }

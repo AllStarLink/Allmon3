@@ -20,7 +20,7 @@ optional arguments:
   -h, \-\-help  show this help message and exit
 
 # DESCRIPTION
-**allmon3-cmd-client** executes an AMI command 
+**allmon3-cmd-client** executes an AMI command
 via an allmon3 port and returns
 the information. This script is only useful for
 AllStarLink Asterisk.

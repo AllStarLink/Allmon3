@@ -40,7 +40,7 @@ allmon3 (1.5.0-2) stable; urgency=medium
 allmon3 (1.4.3-1) stable; urgency=medium
 
   * Add CSS tweaks to connected node table display (#267)
-  * Fix quoting issue for non-numeric node parameters 
+  * Fix quoting issue for non-numeric node parameters
     for "quick disconnect" button (#270)
 
  -- Jason McCormick <jason@mfamily.org>  Tue, 27 May 2025 19:12:33 -0400
@@ -56,7 +56,7 @@ allmon3 (1.4.1-1) stable; urgency=medium
 
   * Additional fixes to parse Echolink and other
     white-space-embedded name issues
-  * Echolink nodes are now overwritable by a  
+  * Echolink nodes are now overwritable by a
     custom node list in web.ini
 
 
@@ -74,7 +74,7 @@ allmon3 (1.4.0-1) stable; urgency=medium
 
 allmon3 (1.3.4-1) stable; urgency=medium
 
-  * Fix voter colorization for voted-in node (#230) 
+  * Fix voter colorization for voted-in node (#230)
 
  -- Jason McCormick <jason@mfamily.org>  Thu, 05 Sep 2024 18:57:26 -0400
 
@@ -134,7 +134,7 @@ allmon3 (1.2.0-1) stable; urgency=medium
  -- Jason McCormick <jason@mfamily.org>  Tue, 26 Dec 2023 11:28:53 -0500
 
 allmon3 (1.1.1-1) stable; urgency=medium
-  
+
   * Fix missing await in ws_voter keepalive (fix #191)
   * Fix reloading user database when called in USR1 handler (fix #192)
   * Only enable Apache2 modules in postinst when apache2 is installed (fix #195)
@@ -149,7 +149,7 @@ allmon3 (1.1.0-1) stable; urgency=medium
   * Ensure ASLNodeDB objects are fully async and non-blocking (#185)
   * Docker containers have provisional support (#182)
   * Fix HTML page title (#186)
-  * Remove extraneous info-level logging for websocket-based classes 
+  * Remove extraneous info-level logging for websocket-based classes
   * Better logging around database retrieval errors
   * build for 1.1.1-1
 
@@ -243,7 +243,7 @@ allmon3 (0.11.0-1) stable; urgency=medium
 allmon3 (0.10.2-2) stable; urgency=medium
 
   * Support per-node command templates (see web.ini)
-  * Retain order of menu.ini submenus in the HTML dropdown 
+  * Retain order of menu.ini submenus in the HTML dropdown
   * Add the command modals to the voter display page
   * Implement binding IP configuration directive (see web.ini)
   * allmon3_server objects now listen on all IPs by default
@@ -266,7 +266,7 @@ allmon3 (0.10.0-3) stable; urgency=medium
   * Nearly-complete rewrite from Beta 0.9
   * Configuration files from Beta 0.9 are likely incompatible
   * Review configuration files in /usr/share/doc/allmon3 and fix files from
-    beta 0.9 accordingly 
+    beta 0.9 accordingly
   * Apache configuration is fundamentally different
   * Debian 10 / Raspian 10 is now semi-supported
 
@@ -276,7 +276,7 @@ allmon3 (0.10.0-3) stable; urgency=medium
 allmon3 (0.9.7-1) stable; urgency=medium
 
   * INCOMPATIBLE CHANGE: ip= fields in allmon3.ini and
-  *  votermon.ini are now host= (or related names) and 
+  *  votermon.ini are now host= (or related names) and
   *  can specify an IPv4, IPv6, or DNS item
   * Private node labels supported in web.ini
   * asl-{statmon,cmdlink,votermon} now support DNS and IPv6
@@ -289,7 +289,7 @@ allmon3 (0.9.6-1) stable; urgency=medium
   * Implement subsecond polling as a option in `allmon3.ini`. When using the .deb file, `allmon3.ini` will not be updated with the newest information. See https://github.com/AllStarLink/Allmon3/commit/bda1e74e218c217e4381715297eaea72a8d2a236 for specifics
   * Implement the voter functionality. Requires `voter.ini`. See `asl-votermon`.
   * System commands are now configured in `web.ini`
-  * Customizable home button href in `web.ini`* 
+  * Customizable home button href in `web.ini`*
 
  -- Jason McCormick <jason@mfamily.org>  Sat, 15 Apr 2023 13:05:02 -0400
 

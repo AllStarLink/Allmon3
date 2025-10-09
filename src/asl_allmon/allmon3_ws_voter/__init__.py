@@ -64,7 +64,7 @@ class NodeVoterWS:
         asl_ok = True
         parser = ami_parser.AMIParser(self.ami)
         last_socket_send = time.time()
- 
+
         while True:
             if asl_ok:
                 try:
@@ -91,21 +91,21 @@ class NodeVoterWS:
                     error_msg = "<div class=\"p-3 my-2 text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded-3\"Allmon3 is trying to reconnect...</div>"
                     self.voter_ws.publish(error_msg)
                     asl_ok = False
-    
+
             else:
                 await self.ami.close()
                 asl_dead = True
                 retry_counter = 0
-    
+
                 while asl_dead:
                     log.info("node: %s - sleeping for RETRY_INTERVAL of %s", self.node_id, self.node_config.retryinterval)
                     await asyncio.sleep(self.node_config.retryinterval)
                     retry_counter += 1
-    
+
                     if self.node_config.retrycount == -1 or self.node_config.retrycount <= retry_counter:
                         log.info("node: %s - attempting reconnection retry #%d", self.node_id, retry_counter)
-                    
-                        try: 
+
+                        try:
                             c_stat = await self.ami.asl_create_connection()
                             if c_stat:
                                 log.info("node: %s - connection reestablished after %d retries", self.node_id, retry_counter)
@@ -117,11 +117,11 @@ class NodeVoterWS:
                         log.error("node: %s - could not reestablish connection after %d retries - exiting",
                             self.node_id, retry_counter)
                         raise NodeVoterWSException(f"count not reestablish connection after {retry_counter} retries - exiting")
- 
+
                 # re-enable the innter loop processing
                 asl_ok = True
-    
-    
+
+
     # Primary broadcaster
     async def main(self):
         log.debug("enter node_voter_main()")

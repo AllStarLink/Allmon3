@@ -63,7 +63,7 @@ class ServerWS:
 
             elif c[2] == "logout":
                 session = await get_session(request)
-                session["auth_sess"] = "" 
+                session["auth_sess"] = ""
                 r_json = self.__get_json_security("No Session")
 
         except (IndexError, KeyError):
@@ -73,7 +73,7 @@ class ServerWS:
         finally:
             if r_json:
                 return web.Response(text=r_json, content_type="text/json")
-    
+
             return web.Response(status=400)
 
     async def __proc_login(self, request):
@@ -90,12 +90,12 @@ class ServerWS:
             session_id = self.server_security.create_session(client_ip, req.get("user"))
             session["auth_sess"] = session_id
             r_txt = self.__get_json_success("OK")
-            log.info("successful login by user %s from %s", 
+            log.info("successful login by user %s from %s",
                 req.get("user"), client_ip)
         else:
             r_txt = self.__get_json_security("invalid user or pass")
             session["auth_sess"] = None
-            log.info("invalid login %s:%s from %s", 
+            log.info("invalid login %s:%s from %s",
                 req.get("user"), req.get("pass"), client_ip)
 
         return web.Response(text=r_txt, content_type="text/json")
@@ -115,7 +115,7 @@ class ServerWS:
                 node = int(c[2])
                 if int(c[2]) in self.config_nodes.colo_nodes:
                     node = self.config_nodes.colo_nodes[int(c[2])]
- 
+
                 if c[3] == "config":
                     log.debug("self.__proc_node_config(%s)", node)
                     r_txt = self.__proc_node_config(node)
@@ -127,12 +127,12 @@ class ServerWS:
         except (IndexError, KeyError):
             log.debug("IndexError/KeyError")
             r_txt = None
-        
+
         finally:
             if r_txt:
                 r_json = self.__get_json_success(r_txt)
                 return web.Response(text=r_json, content_type="text/json")
-    
+
             return web.Response(status=400)
 
     def __proc_node_listall(self):
@@ -148,11 +148,11 @@ class ServerWS:
         return json.dumps(nc)
 
     def __proc_voter_config(self, conf_node, voter_node):
-        try: 
+        try:
             vc = dict()
             vc.update({ "voterport" : self.config_nodes.nodes[conf_node].voterports[voter_node] })
             if voter_node in self.config_web.voter_titles:
-                vc.update({ "votertitle" : self.config_web.voter_titles[voter_node] }) 
+                vc.update({ "votertitle" : self.config_web.voter_titles[voter_node] })
             else:
                 vc.update({ "votertitle" : f"Voter {voter_node}" })
             return json.dumps(vc)
@@ -167,7 +167,7 @@ class ServerWS:
 
     def __proc_ui(self, request):
         try:
-            c = request.url.path.split("/") 
+            c = request.url.path.split("/")
             r_txt = None
             if c[2] == "custom":
                 if c[3] == "html":
@@ -188,7 +188,7 @@ class ServerWS:
                         r_txt = json.dumps(self.config_web.per_node_commands[c[4]])
                     else:
                         r_txt = "{}"
- 
+
         except (IndexError, KeyError):
             log.exception("index error")
             r_txt = None
@@ -200,7 +200,7 @@ class ServerWS:
             if r_txt:
                 r_json = self.__get_json_success(r_txt)
                 return web.Response(text=r_json, content_type="text/json")
-    
+
             return web.Response(status=400)
 
     def __proc_ui_html(self):
@@ -256,15 +256,15 @@ class ServerWS:
                         r_json = f"{{ \"SUCCESS\" : \"{message}\" }}"
             else:
                 r_json = f"{{ \"ERROR\" : \"user not authorized\" }}"
-                        
+
             if r_json:
                 return web.Response(text=r_json, content_type="text/json")
-    
+
             return web.Response(status=400)
-  
+
         except KeyError as e:
             log.debug(e)
- 
+
         except Exception:
             pass
 
@@ -287,7 +287,7 @@ class ServerWS:
         self.httpserver.add_routes(api_routes)
         runner = web.AppRunner(self.httpserver)
         await runner.setup()
-        site = web.TCPSite(runner, 
+        site = web.TCPSite(runner,
             self.config_web.ws_bind_addr,
             self.config_web.http_port)
         await site.start()

@@ -2,16 +2,16 @@
  **
  ** Customize the colors of Allmon3
  **
- ** All colors use the rgba() function 
+ ** All colors use the rgba() function
  ** Read more at https://www.w3schools.com/cssref/func_rgba.php
  ** on how to use rgba.
  **
- **/ 
+ **/
 
 :root{
 
 	/* Background of the top navbar */
-	--am3-navbar-background: rgba(0, 0, 0, 1); 
+	--am3-navbar-background: rgba(0, 0, 0, 1);
 
 	/* Text/Foreground color of the top navbar */
 	--am3-navbar-color: rgba(255, 255, 255, 1);
@@ -21,12 +21,12 @@
 
 	/* Text/Forground color of the node titlebar */
 	--am3-nodetitle-color: rgba(255, 255, 255, 1);
-	
+
 	/* Button highlight color of buttons in the node titlebar */
-	--am3-nodetitle-button-hl: rgba(145, 24, 92, 1);	
+	--am3-nodetitle-button-hl: rgba(145, 24, 92, 1);
 
 	/* Node connection table header text color */
-	--am3-conntable-header-text: rgba(255, 255, 255, 1); 
+	--am3-conntable-header-text: rgba(255, 255, 255, 1);
 
 	/* Node connection table header background color */
 	--am3-conntable-header-bg: rgba(33, 37, 41, 1);

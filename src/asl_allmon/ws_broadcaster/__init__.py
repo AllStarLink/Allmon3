@@ -2,7 +2,7 @@ import asyncio
 import websockets
 
 class WebsocketBroadcaster:
-	
+
 	def __init__(self):
 		self.waiter = asyncio.Future()
 

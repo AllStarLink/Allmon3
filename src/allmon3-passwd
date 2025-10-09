@@ -74,7 +74,7 @@ if args.delete:
         if(u["user"] == args.user):
             to_delete = i
             log.debug("marking for delete element {}: {}".format(to_delete,userdb[i]))
-    
+
     if to_delete > -1:
         del userdb[to_delete]
     else:
@@ -88,7 +88,7 @@ else:
         except GetPassWarning:
             log.error("unable to turn off echo for password entry")
             sys.exit(-1)
-    
+
         if(pass_a != pass_b):
             log.error("passwords do not match")
             sys.exit(-1)

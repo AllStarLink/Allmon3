@@ -31,17 +31,17 @@ class AMIParser:
 
     async def asl_cmd(self, cmdstr):
         log.debug("enter asl_cmd()")
-        
+
         try:
             cmd = f"ACTION: COMMAND\r\nCOMMAND: {cmdstr}\r\n"
             c_response = await self.__ami_conn.asl_cmd_response(cmd)
-    
+
             # For Asterisk 20/ASL3 look for Output:
             if  re.match(r"^Response\:\s+Error\s", c_response):
                 output = re.search(r"^.*Output:\s+(.*)", c_response, re.MULTILINE)
                 if output:
                     return "ERR: {}".format(output.group(1))
-    
+
             # For Asterisk 20/ASL3 we look for Output: lines
             if  re.match(r"^Response\:\s+Success\s", c_response):
                 output = re.split("\r\n", c_response)
@@ -52,7 +52,7 @@ class AMIParser:
                         log.debug(output.group(1))
                         r += output.group(1) + "\r\n"
                 return r
-    
+
             # For Asterisk 1.4/Classic ASL we have to assume the ordering
             # and there's no valid command check
             if  re.match(r"^Response\:\s+Follows\s", c_response):
@@ -60,24 +60,24 @@ class AMIParser:
                 log.debug(cmd_output)
                 if not re.match(r"No such command", cmd_output) and not re.match(r"Unknown action name", cmd_output):
                     return f"OK:\r\n{cmd_output}"
-                
+
                 return f"ERR:\r\n{cmd_output}"
-    
+
             return "ERR: command output responded with something I didn't understand"
-    
+
         except Exception as e:
             log.error("asl_cmd() exception %s", e.__class__)
             log.error("asl_cmd() message %s", e.__class__)
-            raise e    
-    
+            raise e
+
     ##
     ## Status Broadcasting Functions
     ##
-    
+
     # Parse the (String) response from a SawStat command
     async def parse_saw_stat(self, curr_node, node_mon_list):
         log.debug("enter parse_saw_stat(%s)", curr_node)
-        
+
         # Clear the CONNKEYED* status
         node_mon_list[curr_node].update( { "CONNKEYED" : False } )
         node_mon_list[curr_node].update( { "CONNKEYEDNODE" : False } )
@@ -91,12 +91,12 @@ class AMIParser:
                 ce = re.split(r"\s+", l)
                 # Conn: NODE PTT SEC_SINCE_KEY SEC_SINCE_UNKEY
                 if ce[1] in node_mon_list[curr_node]["CONNS"]:
-                    node_mon_list[curr_node]["CONNS"][ce[1]].update( { "PTT" : ce[2] , "SSK" : ce[3] , "SSU" : ce[4] } )                
+                    node_mon_list[curr_node]["CONNS"][ce[1]].update( { "PTT" : ce[2] , "SSK" : ce[3] , "SSU" : ce[4] } )
                     if int(ce[2]) == 1:
                         node_mon_list[curr_node].update( { "CONNKEYED" : True } )
                         node_mon_list[curr_node].update( { "CONNKEYEDNODE" : ce[1] } )
         log.debug("exiting parse_saw_stat(%s)", curr_node)
-    
+
     # Query/Parse Echolink Node Info
     async def get_echolink_name(self, echolink_id):
         log.debug("enter get_echolink_name(%s)", echolink_id)
@@ -104,7 +104,7 @@ class AMIParser:
             echolink_id = re.sub(r"^0", "", echolink_id[-6:])
             elnodecmd = "ACTION: COMMAND\r\nCOMMAND: echolink dbget nodename %s\r\n" % (echolink_id)
             el_info_full = await self.__ami_conn.asl_cmd_response(elnodecmd)
-            
+
             # ASL3 behaves normally, HamVOIP has incorrect behavior to overcome
             if re.match(r"^Response:\s+Success", el_info_full):
                 # This is an modern node
@@ -132,21 +132,21 @@ class AMIParser:
         except IndexError as e:
             log.debug(f"get_echolink_name exception IndexError: {e}")
             log.debug("Invalid response about echolink - exiting get_echolink_name")
-            return "Echolink DB Error" 
+            return "Echolink DB Error"
         except Exception as e:
             log.error(e)
             return "No Database Information"
 
         return "No Database Information"
         log.debug("exiting get_echolink_name(%s)", echolink_id)
-    
+
     # Parse the (String) response from XStat command
     async def parse_xstat(self, curr_node, node_database, node_mon_list):
         log.debug("entering parse_xstat(%s)", curr_node)
         conn_count = 0
         rens = re.compile(r'\s', re.MULTILINE)
         renol = re.compile(r'LinkedNodes:', re.MULTILINE)
-    
+
         # {
         #    NODE : {
         #       IP : str            (ip adderss)
@@ -157,20 +157,20 @@ class AMIParser:
         #       SSK : int           (sec since key)
         #       SSU : int           (sec since unkey)
         #       MODE : str          (mode)
-        #   } , 
+        #   } ,
         #    NODE { ... } ,
-        #    ... 
+        #    ...
         # }
         node_conns = {}
 
         xstat_cmd = f"ACTION: RptStatus\r\nCOMMAND: XStat\r\nNODE: {curr_node}\r\n"
         xstat = await self.__ami_conn.asl_cmd_response(xstat_cmd)
-        ra = re.split(r'[\n\r]+', xstat) 
+        ra = re.split(r'[\n\r]+', xstat)
         for l in ra:
             if re.match("^Conn", l):
                 ce = l.replace("Conn: ", "").rsplit(maxsplit=6)
                 nname = ce[0].strip()
-                
+
                 # If the array has 6 elements, it's a node with an IP. If it's
                 # only 5 then there's no IP. It's all space delimited so... fun...
                 if len(ce) == 6:
@@ -194,14 +194,14 @@ class AMIParser:
 
                 # If nname is in the downloaded database, set it and move on
                 if nname in node_database:
-                    node_conns[nname]["DESC"] = "{0} {1} {2}".format(node_database[nname]['CALL'], 
+                    node_conns[nname]["DESC"] = "{0} {1} {2}".format(node_database[nname]['CALL'],
                         node_database[nname]['DESC'], node_database[nname]['LOC']).strip()
-                
+
                 # Connections of 3nnnnnn are Echolink
                 elif re.match(r'^3[0-9]{6}$', nname):
                     ename = await self.get_echolink_name(nname)
                     node_conns[nname]["DESC"] = ename
-    
+
                 # Connections ending in -P treat as phone portal
                 elif re.match(r'^.*\-P$', nname):
                     node_conns[nname].update( { "DESC" : "Allstar Telephone Portal User",
@@ -214,12 +214,12 @@ class AMIParser:
                 # Finally anything else is unknown
                 else:
                     node_conns[nname]["DESC"] = "Private or Unavailable"
-                    
+
                 conn_count += 1
 
             elif re.match(r"^LinkedNodes:", l):
                 for link in l.split(","):
-                    link = rens.sub("", link)            
+                    link = rens.sub("", link)
                     link = renol.sub("", link)
                     if re.match(r"^[A-Z]\S+", link):
                         ns = re.search(r'^([A-Z])(\S+)', link)
@@ -244,12 +244,12 @@ class AMIParser:
                 node_mon_list[curr_node].update( { "TXEKEYED" : False } )
             elif re.match(r"^Var:\sRPT_RXKEYED=0", l):
                 node_mon_list[curr_node].update( { "RXKEYED" : False } )
-    
+
         if conn_count == 0:
             log.debug("no nodes connected")
         else:
             log.debug("processed %s connections", conn_count)
-    
+
         node_mon_list[curr_node]["CONNS"] = node_conns
 
         uptimes = await self.get_node_uptime()
@@ -257,7 +257,7 @@ class AMIParser:
         node_mon_list[curr_node]["RELOADTIME"] = uptimes[1]
 
         log.debug("exiting parse_xstat(%s)", curr_node)
-   
+
     async def parse_voter_data(self, curr_node):
         log.debug("entering parse_voter_data()")
         # voters = { VOTED : None , VOTERS : { clientid : RSSI , .... } }
@@ -265,7 +265,7 @@ class AMIParser:
         curr_client = 0
 
         voterstatus_cmd = f"ACTION: VoterStatus\r\nNODE: {curr_node}\r\n"
-        response = await self.__ami_conn.asl_cmd_response(voterstatus_cmd)    
+        response = await self.__ami_conn.asl_cmd_response(voterstatus_cmd)
 
         lines = re.split(r'[\n\r]+', response)
         for line in lines:
@@ -279,7 +279,7 @@ class AMIParser:
             elif re.match(r'Voted', line):
                 voted = re.split(r":\s", line)
                 voters["VOTED"] = voted[1]
-    
+
         voter_html = ""
         for n, r in voters["VOTERS"].items():
             rssipct = 0
@@ -287,13 +287,13 @@ class AMIParser:
                 rssipct = 100
             else:
                 rssipct = int(r) * .35 + 10
-    
+
             barcolor = "primary"
             if n == voters["VOTED"]:
                 barcolor = "success"
             if re.match(r"\s[Mm]ix", n):
                 barcolor = "info"
-    
+
             voter_html += "<div class=\"row justify-content-md-center\">"
             voter_html += "  <div class=\"col-4 col-md-2 text-end\">"
             voter_html += "    <b>{}</b>".format(n)
@@ -305,15 +305,15 @@ class AMIParser:
             voter_html += "    </div>"
             voter_html += "  </div>"
             voter_html += "</div>"
-    
-    
+
+
         voter_html += "<div class=\"row d-flex align-items-center\">"
         voter_html += "  <div class=\"col-2\">&nbsp</div>"
         voter_html += "  <div class=\"col-8\">"
         voter_html += "    Last Update: {}".format(datetime.now())
         voter_html += "  </div>"
         log.debug("exiting parse_voter_data()")
-    
+
         return voter_html
 
     async def get_node_uptime(self):
@@ -336,10 +336,10 @@ class AMIParser:
                     log.debug("last reload seconds: %d", last_reload)
 
             return (sys_uptime, last_reload)
-    
+
         except Exception as e:
             log.error(e)
- 
+
 # To prevent casual interception/hacking, the cmd messages
 # are xor'd with the node admin key. The messages are base64-encoded.
 # Note: this is _not_ cryptographically secure... if you're concerned
