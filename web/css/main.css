@@ -1,7 +1,7 @@
 /**
  *
  **
- ** NOTE: Do NOT customize CSS in this file. It will be overwritten by 
+ ** NOTE: Do NOT customize CSS in this file. It will be overwritten by
  ** updates. Put all customization inside of css/custom.css.
  **
  **/
@@ -62,7 +62,7 @@
 }
 
 .am3-no-tx{
-	
+
 }
 
 body {
@@ -86,7 +86,7 @@ body {
   top: 0;
   bottom: 0;
   left: 0;
-  z-index: 100; 
+  z-index: 100;
   padding: 48px 0 0;
   box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
 }
@@ -113,7 +113,7 @@ body {
 }
 
 .navbar-midbar {
-	color: var(--am3-navbar-color); 
+	color: var(--am3-navbar-color);
 	font-size: 1.2em;
 	font-weight: bold;
 }

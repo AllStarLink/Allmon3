@@ -2,8 +2,8 @@
  * Copyright(C) 2023-2024 AllStarLink
  * Allmon3 and all components are Licensed under the AGPLv3
  * see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
- * 
- * This excludes the use of the Bootstrap libraries which are licensed 
+ *
+ * This excludes the use of the Bootstrap libraries which are licensed
  * separately.
  *
  */
@@ -44,7 +44,7 @@ function startup(){
                 getVotes();
             } else {
                 drawVoterPanelFamework("ERROR");
-                displayError(result["ERROR"]);            
+                displayError(result["ERROR"]);
             }
         });
 }

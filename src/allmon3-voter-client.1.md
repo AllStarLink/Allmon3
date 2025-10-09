@@ -6,7 +6,7 @@
 allmon3-voter-client - Connect to an ASL Asterisk server and issue commands
 
 # SYNOPSIS
-usage: allmon3-voter-client [-h] host port passwd 
+usage: allmon3-voter-client [-h] host port passwd
 
 Simple client to asl-voterlink
 

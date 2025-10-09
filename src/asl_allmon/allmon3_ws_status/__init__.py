@@ -47,29 +47,29 @@ class NodeStatusWS:
         try:
             async for message in self.bcast_ws:
                 await websocket.send(message)
-    
+
         except asyncio.IncompleteReadError:
             log.debug("Other side went away: %s", websocket.remote_address)
             self.connections.remove(websocket)
-    
+
         except ws_exceptions.ConnectionClosedError:
             log.debug("ConnctionClosed with Error from %s", websocket.remote_address)
             self.connections.remove(websocket)
-    
+
         except ws_exceptions.ConnectionClosedOK:
             log.debug("ConnctionClosed from %s", websocket.remote_address)
             self.connections.remove(websocket)
 
-    # Websocket broadcaster 
+    # Websocket broadcaster
     async def broadcast(self):
         log.debug("enter node_status_broadcast()")
         asl_ok = True
         parser = ami_parser.AMIParser(self.ami)
         last_socket_send = time.time()
- 
+
         while True:
             if asl_ok:
-                try: 
+                try:
                     if len(self.connections) > 0:
                         log.debug("Node %s - status_connections: %s", self.node_id, len(self.connections))
                         last_socket_send = time.time()
@@ -86,11 +86,11 @@ class NodeStatusWS:
                             log.debug("Node %s: sending keepalive command", self.node_id)
                             await parser.asl_cmd("core show version")
                             last_socket_send = time.time()
-                
+
                     # Sleep for the polling time
                     log.debug("status asyncio.sleep(%d)", self.node_config.pollinterval)
                     await asyncio.sleep(self.node_config.pollinterval)
- 
+
                 except ami_conn.AMIException as e:
                     log.warning("ami_conn socket problem for node %s: %s", self.node_id, e)
                     error_msg = { self.node_id : "ERROR", "ERROR" : "Allmon3 is trying to re-establish this connection..." }
@@ -98,21 +98,21 @@ class NodeStatusWS:
                     asl_ok = False
                 except Exception as e:
                     log.error("ERROR: %s", e)
-   
+
             else:
                 await self.ami.close()
                 asl_dead = True
                 retry_counter = 0
-    
+
                 while asl_dead:
                     log.info("node: %s - sleeping for RETRY_INTERVAL of %s", self.node_id, self.node_config.retryinterval)
                     await asyncio.sleep(self.node_config.retryinterval)
                     retry_counter += 1
-    
+
                     if self.node_config.retrycount == -1 or self.node_config.retrycount <= retry_counter:
                         log.info("node: %s - attempting reconnection retry #%d", self.node_id, retry_counter)
-   
-                        try: 
+
+                        try:
                             c_stat = await self.ami.asl_create_connection()
                             if c_stat:
                                 log.info("node: %s - connection reestablished after %d retries", self.node_id, retry_counter)
@@ -120,13 +120,13 @@ class NodeStatusWS:
                         except ami_conn.AMIException as e:
                             log.error(e)
                     else:
-                        log.error("node: %s - could not reestablish connection after %d retries - exiting", 
+                        log.error("node: %s - could not reestablish connection after %d retries - exiting",
                             self.node_id, retry_counter)
                         raise NodeStatusWSException(f"count not reestablish connection after {retry_counter} retries - exiting")
-    
+
                 # re-enable the innter loop processing
                 asl_ok = True
-    
+
     # Primary broadcaster
     async def main(self):
         log.debug("enter node_status_main(%s)", self.node_config.node)
@@ -134,7 +134,7 @@ class NodeStatusWS:
         have_conn = False
         while not have_conn:
             try:
-                self.ami = ami_conn.AMI(self.node_config.host, self.node_config.port, 
+                self.ami = ami_conn.AMI(self.node_config.host, self.node_config.port,
                     self.node_config.user, self.node_config.password)
                 await self.ami.asl_create_connection()
                 have_conn = True
@@ -151,7 +151,7 @@ class NodeStatusWS:
             host = self.web_config.ws_bind_addr,
             port = self.node_config.monport,
             ):
-            log.info("broadcasting status for %s on port %s", 
+            log.info("broadcasting status for %s on port %s",
                 self.node_config.node, self.node_config.monport)
             await self.broadcast()
 

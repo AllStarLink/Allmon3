@@ -48,7 +48,7 @@ async def main():
                 decm_b = base64.b64decode(msg_b)
                 decm = decm_b.decode("UTF-8")
                 print(decm)
-    
+
     except Exception as e:
         print("Error: {}".format(e))
         sys.exit(1)

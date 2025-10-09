@@ -3,7 +3,7 @@ BINS = \
 	allmon3-passwd \
 	allmon3-cmd-client \
 	allmon3-status-client \
-	allmon3-voter-client 
+	allmon3-voter-client
 
 #SYSDS = \
 #	allmon3.service \
@@ -18,7 +18,7 @@ bin_prefix ?= $(exec_prefix)/bin
 pylibdir ?= $(exec_prefix)/lib/python3/dist-packages
 mandir ?= $(prefix)/share/man
 #sysd_service ?= /lib/systemd/system
-	
+
 BINS_EXP = $(patsubst %, $(DESTDIR)$(bin_prefix)/%, $(BINS))
 #SYSDS_EXP = $(patsubst %, $(DESTDIR)$(sysd_service)/%, $(SYSDS))
 MANS_EXP = $(patsubst %.md, $(DESTDIR)$(mandir)/man1/%, $(MANS_SRC))
@@ -42,4 +42,4 @@ $(DESTDIR)$(mandir)/man1/%:	%.md
 	pandoc $< -s -t man > $@
 
 $(DESTDIR)$(pylibdir)/%:	%
-	install -D -m 0644 $< $@	
+	install -D -m 0644 $< $@

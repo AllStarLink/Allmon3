@@ -23,7 +23,7 @@ while [[ $# -gt 0 ]]; do
 	-r)
       REPO_LEVEL="$2"
       shift
-      shift	
+      shift
       ;;
 	-*|--*|*)
       echo "Unknown option $1"
@@ -91,7 +91,7 @@ docker build -f $DIR/Dockerfile -t $D_TAG \
 	--build-arg USER_ID=$(id -u) \
 	--build-arg GROUP_ID=$(id -g) \
 	$DIR
- 
+
 docker run -v $ALL_PKG_ROOT:/build $D_TAG
 
 DEBIAN_FRONTEND=noninteractive apt-get -y install gh

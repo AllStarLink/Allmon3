@@ -69,17 +69,17 @@ class WebConfigs:
             self.commands = dict()
             for k in config["syscmds"]:
                 self.commands.update({ k : config["syscmds"][k] })
-    
+
             self.node_overrides = dict()
             for k in config["node-overrides"]:
-                self.node_overrides.update({ k : config["node-overrides"][k] })       
-    
+                self.node_overrides.update({ k : config["node-overrides"][k] })
+
             self.voter_titles = dict()
             for k in config["voter-titles"]:
                 self.voter_titles.update({ int(k) : config["voter-titles"][k].replace("'","") })
 
             self.menu = str()
-        
+
         except (KeyError, NameError) as e:
             log.error("Missing required web.ini configuration section %s", e)
             sys.exit(1)
@@ -92,6 +92,6 @@ class WebConfigs:
                 for kn in config[k]:
                     cmds_node_dict.update({ kn : config[k][kn] })
                 self.per_node_commands.update({ cmds_node : cmds_node_dict })
-            
+
 class WebConfigsException(Exception):
     """ Exception for ASLNodeConfig{,s} """
