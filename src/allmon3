@@ -194,7 +194,7 @@ try:
     web_configuration = web_configs.WebConfigs(web_config_file)
 
     if not os.path.exists(menu_config_file):
-        log.info("no %s found; no menu data available")
+        log.info(f"no {menu_config_file} found; no menu data available")
     else:
         menu_ini = configparser.ConfigParser()
         menu_ini.optionxform = str
