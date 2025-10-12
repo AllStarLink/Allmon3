@@ -66,10 +66,14 @@ class AMI:
 
         except socket.error as error:
             log.warning("connection failed to %s:%s: %s", self.ami_host, self.ami_port, error)
+            self.ami_reader = None
+            self.ami_writer = None
             return False
 
         except TypeError as e:
             log.warning("failed connection on connect(): %s", e)
+            self.ami_reader = None
+            self.ami_writer = None
             return False
 
         return True
@@ -77,6 +81,10 @@ class AMI:
     # Generic construct for sending ASL Manager commands and reading responses
     async def asl_cmd_response(self, cmd):
         log.debug("enter asl_cmd_response()")
+
+        if self.ami_writer is None or self.ami_reader is None:
+            raise AMIException(f"No active connection for {self.ami_host}:{self.ami_port}")
+
         try:
             aid = uuid.uuid4()
             cmd += " ActionID: %s\r\n\r\n" % aid
@@ -124,16 +132,18 @@ class AMI:
     # (try) to logout of ASL Manager neatly
     async def __asl_logout(self):
         try:
-            self.ami_writer.write("ACTION: Logoff\r\n\r\n".encode())
-            await self.ami_writer.drain()
+            if self.ami_writer is not None:
+                self.ami_writer.write("ACTION: Logoff\r\n\r\n".encode())
+                await self.ami_writer.drain()
         except Exception as e:
             log.warning(e)
 
     async def close(self):
         try:
             await self.__asl_logout()
-            self.ami_writer.close()
-            await self.ami_writer.wait_closed()
+            if self.ami_writer is not None:
+                self.ami_writer.close()
+                await self.ami_writer.wait_closed()
 
         except Exception as e:
             log.warning(e)

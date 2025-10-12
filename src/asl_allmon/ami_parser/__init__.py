@@ -67,7 +67,7 @@ class AMIParser:
 
         except Exception as e:
             log.error("asl_cmd() exception %s", e.__class__)
-            log.error("asl_cmd() message %s", e.__class__)
+            log.error("asl_cmd() message %s", e)
             raise e
 
     ##
