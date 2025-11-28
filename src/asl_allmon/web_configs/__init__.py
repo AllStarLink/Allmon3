@@ -30,6 +30,11 @@ class WebConfigs:
         else:
             self.header_logo = None
 
+        if "CONFIG_MENU_SINGLE_TARGET" in config["web"]:
+           self.menu_target = config["web"]["CONFIG_MENU_SINGLE_TARGET"]
+        else:
+           self.menu_target = ""
+
         if "USERS_TABLE_LOCATION" in config["web"]:
             self.user_table = re.sub(r'[\'\"]', '', config["web"]["USERS_TABLE_LOCATION"])
         else:
