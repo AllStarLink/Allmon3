@@ -1,5 +1,5 @@
 /*
- * Copyright(C) 2023-2024 AllStarLink
+ * Copyright(C) @@COPYDATE@@ AllStarLink
  * Allmon3 and all components are Licensed under the AGPLv3
  * see https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE
  *

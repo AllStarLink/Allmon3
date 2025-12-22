@@ -38,6 +38,7 @@ $(DESTDIR)$(docdir)/%: %
 
 verset:
 	perl -pi -e 's/\@\@HEAD-DEVELOP\@\@/$(RELVER)/g' `grep -rl @@HEAD-DEVELOP@@ src/ web/`
+	perl -pi -e 's/\@\@COPYDATE\@\@/2023-$(shell date +%Y)/g' `grep -rl @@COPYDATE@@ src/ web/`
 
 deb:	debclean debprep verset
 	debchange --distribution stable --package $(PKGNAME) \
@@ -79,4 +80,3 @@ debclean:
 	rm -rf debian/$(SRCNAME)/ debian/.debhelper/
 	rm -f debian/debhelper-build-stamp debian/files debian/$(SRCNAME).substvars
 	rm -f debian/*.debhelper
-
