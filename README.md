@@ -24,7 +24,7 @@ ASL communities.
 
 ## Quickstart
 
-Allmon3 is only supported on Debian 12 (or the Raspbian/Raspberry Pi OS
+Allmon3 is only supported on Debian 12 and 13 (or the Raspbian/Raspberry Pi OS
 equivalent - e.g. "Raspbian 12").
 
 Support for Debian 10 and Debian 11 ended with the release of AllStarLink v3
@@ -35,12 +35,21 @@ observed at [branch 1.2.1](https://github.com/AllStarLink/Allmon3/tree/rel_1_2_1
 1. If not running an a system already running AlLStarLink software, install
 the ASL software repository:
 
-```bash
-cd /tmp
-wget https://repo.allstarlink.org/public/asl-apt-repos.deb12_all.deb
-sudo dpkg -i asl-apt-repos.deb12_all.deb
-sudo apt update
-```
+#### Debian 12
+    ```bash
+    cd /tmp
+    wget https://repo.allstarlink.org/public/asl-apt-repos.deb12_all.deb
+    sudo dpkg -i asl-apt-repos.deb12_all.deb
+    sudo apt update
+    ```
+
+#### Debian 13
+    ```bash
+    cd /tmp
+    wget https://repo.allstarlink.org/public/asl-apt-repos.deb12_all.deb
+    sudo dpkg -i asl-apt-repos.deb12_all.deb
+    sudo apt update
+    ```
 
 2. Install allmon3:
 
