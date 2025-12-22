@@ -188,6 +188,7 @@ async function createSidebarMenu(){
 	const pageName = "index.html";
 
 	let customMenu = await getAPIJSON("master/ui/custom/menu");
+  let customElements = await getAPIJSON("master/ui/custom/html");
 	if(Object.keys(customMenu).length > 0){
 		for(let majMenu of Object.keys(customMenu)){
 			let majMenuObj = customMenu[majMenu];
@@ -225,7 +226,8 @@ async function createSidebarMenu(){
 									if( currp === newp ){
 										onClickSlot = "onclick=\"window.location.reload()\"";
 									}
-									navMenu = navMenu.concat(`<a class="dropdown-item" href="${newp}" ${onClickSlot}">${ml}</a>`);
+                  target = 'target="' + customElements.CONFIG_MENU_SINGLE_TARGET +'"';
+									navMenu = navMenu.concat(`<a class="dropdown-item" href="${newp}" ${onClickSlot} ${target}">${ml}</a>`);
 								}
 							}
 						} else {
@@ -236,8 +238,9 @@ async function createSidebarMenu(){
 								if( currp === newp ){
 									onClickSlot = "onclick=\"window.location.reload()\"";
 								}
+                target = 'target="' + customElements.CONFIG_MENU_SINGLE_TARGET +'"';
 								navMenu = navMenu.concat(`<div class="btn-group">
-									<a href="${newp}" ${onClickSlot} class="btn btn-secondary" role="button">${ml}</a>
+                  <a href="${newp}" ${onClickSlot} ${target} class="btn btn-secondary" role="button">${ml}</a>
 									</div>`);
 							}
 						}

@@ -208,6 +208,7 @@ class ServerWS:
         ui_html.update({ "HEADER_TITLE" : self.config_web.header_title })
         ui_html.update({ "HEADER_LOGO" : self.config_web.header_logo })
         ui_html.update({ "HOME_BUTTON_URL" : self.config_web.home_loc })
+        ui_html.update({ "CONFIG_MENU_SINGLE_TARGET" : self.config_web.menu_target })
         return json.dumps(ui_html)
 
     ##
