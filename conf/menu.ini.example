@@ -54,4 +54,7 @@
 ;	type = single
 ;	SARA = https://w8wky.org
 ;
-;
+; Open external link in new tab example
+; [ Community ]
+; type = single
+; Forums = https://community.allstarlink.org/_blank

@@ -226,7 +226,13 @@ async function createSidebarMenu(){
 									if( currp === newp ){
 										onClickSlot = "onclick=\"window.location.reload()\"";
 									}
-                  target = 'target="' + customElements.CONFIG_MENU_SINGLE_TARGET +'"';
+                  _target = newp.match( /_[blank|self|parent|top]+$/ )
+                  if ( _target ) {
+                      target = 'target="' + _target[0] +'"';
+                      newp = newp.replace(_target[0], '')
+                  } else {
+                      target = 'target="' + customElements.CONFIG_MENU_SINGLE_TARGET +'"';
+                  }
 									navMenu = navMenu.concat(`<a class="dropdown-item" href="${newp}" ${onClickSlot} ${target}">${ml}</a>`);
 								}
 							}
@@ -238,7 +244,13 @@ async function createSidebarMenu(){
 								if( currp === newp ){
 									onClickSlot = "onclick=\"window.location.reload()\"";
 								}
-                target = 'target="' + customElements.CONFIG_MENU_SINGLE_TARGET +'"';
+                _target = newp.match( /_[blank|self|parent|top]+$/ )
+                if ( _target ) {
+                    target = 'target="' + _target[0] +'"';
+                    newp = newp.replace(_target[0], '')
+                } else {
+                    target = 'target="' + customElements.CONFIG_MENU_SINGLE_TARGET +'"';
+                }
 								navMenu = navMenu.concat(`<div class="btn-group">
                   <a href="${newp}" ${onClickSlot} ${target} class="btn btn-secondary" role="button">${ml}</a>
 									</div>`);
