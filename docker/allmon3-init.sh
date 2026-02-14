@@ -5,7 +5,7 @@ export DEBIAN_FRONTEND=noninteractive
 # install the repo
 apt update
 apt upgrade -y
-apt install -y wget
+apt install -y wget supervisor
 wget https://repo.allstarlink.org/public/asl-apt-repos.deb13_all.deb
 dpkg -i asl-apt-repos.deb13_all.deb
 apt update
