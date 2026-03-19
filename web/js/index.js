@@ -239,6 +239,17 @@ function nodeEntry(nodeid, nodeinfo){
 
     // update the connection table
     divConntable.innerHTML = nodeConnTable(node.CONNS, node.CONNKEYED, node.CONNKEYEDNODE, nodeid);
+
+    // update the favicons
+    if (Object.values(currTXState).some(x => x)) {
+        document.head.querySelectorAll('link[rel=icon],link[rel=apple-touch-icon]').forEach(link => {
+            link.href = link.href.replace(/(?<=favicons\/)favicon(?!-w)/, 'favicon-w')
+        })
+    } else {
+        document.head.querySelectorAll('link[rel=icon],link[rel=apple-touch-icon]').forEach(link => {
+            link.href = link.href.replace(/(?<=favicons\/)favicon-w/, 'favicon')
+        })
+    }
 }
 
 function nodeEntrySetError(nodeid, errorMessage){
