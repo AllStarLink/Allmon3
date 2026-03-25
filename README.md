@@ -109,8 +109,6 @@ After changing `allmon3.ini` the service `allmon3` must be restarted - `systemct
 
 ## Usernames / Passwords for the Site
 Usernames and passwords are stored in `/etc/allmon3/users`.
-The default-configured username and password combination is `allmon3 / password`.
-**You *must* change this**.
 
 Allmon3's user database is managed by `allmon3-passwd`. Adding a new user
 or editing an existing user is the same command. If the user does not exist,

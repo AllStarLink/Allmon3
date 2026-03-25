@@ -238,11 +238,30 @@ async function createSidebarMenu(){
 							}
 						} else {
 							for( let ml of Object.keys(menuItem)){
-								let currp = window.location.href.split("/").at(-1);
-								let newp = menuItem[ml];
-								let onClickSlot = "";
-								if( currp === newp ){
-									onClickSlot = "onclick=\"window.location.reload()\"";
+								const mo = menuItem[ml];
+								if(mo.match(/^[0-9]+$/)){
+									let currp = window.location.href.split("/").at(-1);
+									let newp = `${pageName}#${mo}`;
+									let onClickSlot = "";
+									if( currp === newp ){
+										onClickSlot = "onclick=\"window.location.reload()\"";
+									}
+									navMenu = navMenu.concat(`
+										<div class="btn-group">
+											<a class="btn btn-secondary" role="button" href="${newp}" ${onClickSlot}>${ml}</a>
+										</div>`);
+								} else {
+									let currp = window.location.href.split("/").at(-1);
+									let newp = menuItem[ml];
+									let onClickSlot = "";
+									if( currp === newp ){
+										onClickSlot = "onclick=\"window.location.reload()\"";
+									}
+                  					target = 'target="' + customElements.CONFIG_MENU_SINGLE_TARGET +'"';
+									navMenu = navMenu.concat(`
+										<div class="btn-group">
+											<a class="btn btn-secondary" role="button" href="${newp}" ${onClickSlot} ${target}>${ml}</a>
+										</div>`);
 								}
                 _target = newp.match( /_[blank|self|parent|top]+$/ )
                 if ( _target ) {

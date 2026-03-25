@@ -1,0 +1,5 @@
+# /usr/bin/bash
+
+# This is to avoid problems with .postinst scripts
+
+exit 0
