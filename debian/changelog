@@ -1,3 +1,12 @@
+allmon3 (1.8.0-1) stable; urgency=medium
+
+  * Allow targets to be set for individual links (#307)
+  * Fix creation of URLs when type=single (#310)
+  * Favicon toggles during transmit (#312)
+  * Fix comment in web.ini for logo location (#314)
+
+ -- Jason McCormick <jason@mfamily.org>  Wed, 25 Mar 2026 17:44:28 -0400
+
 allmon3 (1.7.0-1) stable; urgency=medium
 
   * Add configuration to open links in _blank target (#304)
