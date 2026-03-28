@@ -1,3 +1,9 @@
+allmon3 (1.8.1-1) stable; urgency=medium
+
+  * Fixes mis-merge of #307 + #310 which broke custom menus (#315)
+
+ -- Jason McCormick <jason@mfamily.org>  Sat, 28 Mar 2026 09:11:27 -0400
+
 allmon3 (1.8.0-1) stable; urgency=medium
 
   * Allow targets to be set for individual links (#307)
