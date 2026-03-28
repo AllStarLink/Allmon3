@@ -188,7 +188,7 @@ async function createSidebarMenu(){
 	const pageName = "index.html";
 
 	let customMenu = await getAPIJSON("master/ui/custom/menu");
-  let customElements = await getAPIJSON("master/ui/custom/html");
+	let customElements = await getAPIJSON("master/ui/custom/html");
 	if(Object.keys(customMenu).length > 0){
 		for(let majMenu of Object.keys(customMenu)){
 			let majMenuObj = customMenu[majMenu];
@@ -226,52 +226,34 @@ async function createSidebarMenu(){
 									if( currp === newp ){
 										onClickSlot = "onclick=\"window.location.reload()\"";
 									}
-                  _target = newp.match( /_[blank|self|parent|top]+$/ )
-                  if ( _target ) {
-                      target = 'target="' + _target[0] +'"';
-                      newp = newp.replace(_target[0], '')
-                  } else {
-                      target = 'target="' + customElements.CONFIG_MENU_SINGLE_TARGET +'"';
-                  }
+									_target = newp.match( /_[blank|self|parent|top]+$/ )
+									if ( _target ) {
+										target = 'target="' + _target[0] +'"';
+										newp = newp.replace(_target[0], '')
+									} else {
+										target = 'target="' + customElements.CONFIG_MENU_SINGLE_TARGET +'"';
+									}
 									navMenu = navMenu.concat(`<a class="dropdown-item" href="${newp}" ${onClickSlot} ${target}">${ml}</a>`);
 								}
 							}
 						} else {
 							for( let ml of Object.keys(menuItem)){
-								const mo = menuItem[ml];
-								if(mo.match(/^[0-9]+$/)){
-									let currp = window.location.href.split("/").at(-1);
-									let newp = `${pageName}#${mo}`;
-									let onClickSlot = "";
-									if( currp === newp ){
-										onClickSlot = "onclick=\"window.location.reload()\"";
-									}
-									navMenu = navMenu.concat(`
-										<div class="btn-group">
-											<a class="btn btn-secondary" role="button" href="${newp}" ${onClickSlot}>${ml}</a>
-										</div>`);
-								} else {
-									let currp = window.location.href.split("/").at(-1);
-									let newp = menuItem[ml];
-									let onClickSlot = "";
-									if( currp === newp ){
-										onClickSlot = "onclick=\"window.location.reload()\"";
-									}
-                  					target = 'target="' + customElements.CONFIG_MENU_SINGLE_TARGET +'"';
-									navMenu = navMenu.concat(`
-										<div class="btn-group">
-											<a class="btn btn-secondary" role="button" href="${newp}" ${onClickSlot} ${target}>${ml}</a>
-										</div>`);
+								let currp = window.location.href.split("/").at(-1);
+								let v = menuItem[ml];
+								let newp = /^\d+$/.test(v) ? "#" + v : v;
+								let onClickSlot = null;
+								if( currp === newp ){
+									onClickSlot = "onclick=\"window.location.reload()\"";
 								}
-                _target = newp.match( /_[blank|self|parent|top]+$/ )
-                if ( _target ) {
-                    target = 'target="' + _target[0] +'"';
-                    newp = newp.replace(_target[0], '')
-                } else {
-                    target = 'target="' + customElements.CONFIG_MENU_SINGLE_TARGET +'"';
-                }
+                				_target = newp.match( /_[blank|self|parent|top]+$/ )
+                				if ( _target ) {
+                    			target = 'target="' + _target[0] +'"';
+                    			newp = newp.replace(_target[0], '')
+                				} else {
+                    				target = 'target="' + customElements.CONFIG_MENU_SINGLE_TARGET +'"';
+                				}
 								navMenu = navMenu.concat(`<div class="btn-group">
-                  <a href="${newp}" ${onClickSlot} ${target} class="btn btn-secondary" role="button">${ml}</a>
+                  					<a href="${newp}" ${onClickSlot} ${target} class="btn btn-secondary" role="button">${ml}</a>
 									</div>`);
 							}
 						}
