@@ -98,6 +98,13 @@ function startup(){
                 }
             });
             WSRunners.push(p);
+
+            const iframepre = document.getElementById(`asl-statmon-iframpre-${n}`);
+            iframepre.innerHTML = `<iframe src=${result["iframepre"]}></iframe>`;
+            const iframepost = document.getElementById(`asl-statmon-iframpost-${n}`);
+            iframepost.innerHTML = `<iframe src=${result["iframepost"]}></iframe>`;
+
+
         });
     }
     Promise.all(WSRunners);
@@ -140,6 +147,10 @@ function updateDashboardAreaStructure(){
             let newNodeDiv = document.createElement("div");
             newNodeDiv.id = `asl-statmon-dashboard-${n}`;
 
+            let newNodeIFramePre = document.createElement("div");
+            newNodeIFramePre.id = `asl-statmon-iframpre-${n}`;
+            newNodeDiv.appendChild(newNodeIFramePre);
+
             let newNodeDivHeader = document.createElement("div");
             newNodeDivHeader.id = `asl-statmon-dashboard-${n}-header`;
             newNodeDivHeader.innerHTML = nodeLineHeader(n, "")
@@ -152,6 +163,10 @@ function updateDashboardAreaStructure(){
             let newNodeDivConntable = document.createElement("div");
             newNodeDivConntable.id = `asl-statmon-dashboard-${n}-conntable`;
             newNodeDiv.appendChild(newNodeDivConntable);
+
+            let newNodeIFramePost = document.createElement("div");
+            newNodeIFramePost.id = `asl-statmon-iframpost-${n}`;
+            newNodeDiv.appendChild(newNodeIFramePost);
 
             dashArea.appendChild(newNodeDiv);
             dashUpdates = true;
