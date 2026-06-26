@@ -65,6 +65,8 @@ class AllmonNodeConfig:
         self.votertitle = str()
         self.nodes_on_host = set()
         self.node_mon_list = dict()
+        self.iframepre = str()
+        self.iframepost = str()
 
         if "colocated_on" in config:
             raise ASLNodeConfigException("colocated_on no longer supported; remove from configuration")
@@ -116,6 +118,12 @@ class AllmonNodeConfig:
             self.node_mon_list.update({ node : {
                     "ME" : self.node , "DESC" : None , "RXKEYED" : False, "TXKEYED" : False ,
                     "TXEKEYED" : False, "CONNKEYED" : False, "CONNKEYEDNODE" : None , "CONNS" : None }})
+
+        if "iframepre" in config:
+            self.iframepre = str(config["iframepre"])
+
+        if "iframepost" in config:
+            self.iframepost = str(config["iframepost"])
 
 class ASLNodeConfigException(Exception):
     """ Exception for ASLNodeConfig{,s} """
