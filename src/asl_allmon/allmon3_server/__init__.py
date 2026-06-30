@@ -70,11 +70,10 @@ class ServerWS:
             log.debug("IndexError/KeyError")
             r_txt = None
 
-        finally:
-            if r_json:
-                return web.Response(text=r_json, content_type="text/json")
+        if r_json:
+            return web.Response(text=r_json, content_type="text/json")
 
-            return web.Response(status=400)
+        return web.Response(status=400)
 
     async def __proc_login(self, request):
         req = await request.post()
@@ -128,12 +127,11 @@ class ServerWS:
             log.debug("IndexError/KeyError")
             r_txt = None
 
-        finally:
-            if r_txt:
-                r_json = self.__get_json_success(r_txt)
-                return web.Response(text=r_json, content_type="text/json")
+        if r_txt:
+            r_json = self.__get_json_success(r_txt)
+            return web.Response(text=r_json, content_type="text/json")
 
-            return web.Response(status=400)
+        return web.Response(status=400)
 
     def __proc_node_listall(self):
         ret = []
@@ -145,6 +143,8 @@ class ServerWS:
         nc = dict()
         nc.update({ "statport" : self.config_nodes.nodes[node].monport })
         nc.update({ "cmdport" : self.config_nodes.nodes[node].cmdport })
+        nc.update({ "iframepre" : self.config_nodes.nodes[node].iframepre })
+        nc.update({ "iframepost" : self.config_nodes.nodes[node].iframepost })
         return json.dumps(nc)
 
     def __proc_voter_config(self, conf_node, voter_node):
@@ -196,12 +196,11 @@ class ServerWS:
         except Exception as e:
             log.debug(e)
 
-        finally:
-            if r_txt:
-                r_json = self.__get_json_success(r_txt)
-                return web.Response(text=r_json, content_type="text/json")
+        if r_txt:
+            r_json = self.__get_json_success(r_txt)
+            return web.Response(text=r_json, content_type="text/json")
 
-            return web.Response(status=400)
+        return web.Response(status=400)
 
     def __proc_ui_html(self):
         ui_html = dict()

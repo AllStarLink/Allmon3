@@ -100,11 +100,10 @@ function startup(){
             WSRunners.push(p);
 
             const iframepre = document.getElementById(`asl-statmon-iframpre-${n}`);
-            iframepre.innerHTML = `<iframe src=${result["iframepre"]}></iframe>`;
+            iframepre.replaceChildren(buildAutoIframe(result["iframepre"]));
+
             const iframepost = document.getElementById(`asl-statmon-iframpost-${n}`);
-            iframepost.innerHTML = `<iframe src=${result["iframepost"]}></iframe>`;
-
-
+            iframepost.replaceChildren(buildAutoIframe(result["iframepost"]));
         });
     }
     Promise.all(WSRunners);

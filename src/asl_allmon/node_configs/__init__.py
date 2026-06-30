@@ -65,8 +65,8 @@ class AllmonNodeConfig:
         self.votertitle = str()
         self.nodes_on_host = set()
         self.node_mon_list = dict()
-        self.iframepre = str()
-        self.iframepost = str()
+        self.iframepre = None
+        self.iframepost = None
 
         if "colocated_on" in config:
             raise ASLNodeConfigException("colocated_on no longer supported; remove from configuration")
