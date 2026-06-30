@@ -95,7 +95,7 @@ class ServerWS:
         else:
             r_txt = self.__get_json_security("invalid user or pass")
             session["auth_sess"] = None
-            log.info("invalid login %s:%s from %s",
+            log.info("invalid login %s from %s",
                 req.get("user"), req.get("pass"), client_ip)
 
         return web.Response(text=r_txt, content_type="text/json")
