@@ -31,7 +31,7 @@ do_configure() {
 	chmod 660 /etc/allmon3/allmon3.ini /etc/allmon3/user*
 
 	## Apache Management
-	if [ -e /usr/sbin/apache2 ]; then
+	if [ -e /usr/share/apache2/apache2-maintscript-helper ]; then
 		apache2_invoke enmod proxy_http || exit $?
 		apache2_invoke enmod proxy_wstunnel || exit $?
 		apache2_invoke enmod rewrite || exit $?

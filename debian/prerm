@@ -21,7 +21,9 @@ fi
 
 do_unconfigure() {
 	## Apache Management
-	apache2_invoke disconf allmon3 || exit $?
+	if [ -e /usr/share/apache2/apache2-maintscript-helper ]; then
+		apache2_invoke disconf allmon3 || exit $?
+	fi
 }
 
 case "$1" in
