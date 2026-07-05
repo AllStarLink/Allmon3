@@ -283,3 +283,19 @@ async function createSidebarMenu(){
 	navMenu = navMenu.concat(`</div>`); // closes vstack
 	document.getElementById("asl-node-navigation").innerHTML = navMenu;
 }
+
+// Generate IFrames
+function buildAutoIframe(src) {
+  const iframe = document.createElement("iframe");
+  iframe.src = src;
+  iframe.classList.add("d-block", "w-100", "border-0");
+  iframe.scrolling = "no";
+
+  iframe.addEventListener("load", () => {
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    iframe.style.height = doc.documentElement.scrollHeight + "px";
+  });
+
+  return iframe;
+}
+
