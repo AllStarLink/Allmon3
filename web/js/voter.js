@@ -37,14 +37,21 @@ function pageLoad(){
 function startup(){
     uiConfigs();
     setInterval(checkLogonStatus, 900000);
+
+    // Pre-create all panels in URL order before async API calls so display
+    // order always matches the hash regardless of response timing
+    for (const n of voterNodes) {
+        drawVoterPanelFamework(n, "Loading...");
+    }
+
     for (const n of voterNodes) {
         getAPIJSON(`master/node/${n}/voter`)
             .then((result) => {
                 if(result){
-                    drawVoterPanelFamework(n, result["votertitle"]);
+                    document.getElementById(`asl-votermon-${n}-header-desc`).innerHTML = `${n} - ${result["votertitle"]}`;
                     getVotes(n, result["voterport"]);
                 } else {
-                    drawVoterPanelFamework(n, "ERROR");
+                    document.getElementById(`asl-votermon-${n}-header-desc`).innerHTML = `${n} - ERROR`;
                     displayError(n, "Could not retrieve voter configuration from API");
                 }
             });
