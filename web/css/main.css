@@ -224,3 +224,16 @@ body {
 }
 
 
+/*** Voter RSSI Display ***/
+/* On mobile, the default two-column layout (label left, bar right) causes
+ * label text to be cut off on narrow screens. Stack the label above the bar
+ * instead, matching Bootstrap's md breakpoint at 768px. */
+@media (max-width: 767.98px) {
+    #asl-votermon-area .col-4 {
+        width: 100% !important;
+        text-align: left !important;
+    }
+    #asl-votermon-area .col-8 {
+        width: 100% !important;
+    }
+}
