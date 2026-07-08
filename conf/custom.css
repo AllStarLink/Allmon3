@@ -2,16 +2,16 @@
  **
  ** Customize the colors of Allmon3
  **
- ** All colors use the rgba() function
+ ** All colors use the rgba() function 
  ** Read more at https://www.w3schools.com/cssref/func_rgba.php
  ** on how to use rgba.
  **
- **/
+ **/ 
 
 :root{
 
 	/* Background of the top navbar */
-	--am3-navbar-background: rgba(0, 0, 0, 1);
+	--am3-navbar-background: rgba(0, 0, 0, 1); 
 
 	/* Text/Foreground color of the top navbar */
 	--am3-navbar-color: rgba(255, 255, 255, 1);
@@ -21,12 +21,12 @@
 
 	/* Text/Forground color of the node titlebar */
 	--am3-nodetitle-color: rgba(255, 255, 255, 1);
-
+	
 	/* Button highlight color of buttons in the node titlebar */
-	--am3-nodetitle-button-hl: rgba(145, 24, 92, 1);
+	--am3-nodetitle-button-hl: rgba(145, 24, 92, 1);	
 
 	/* Node connection table header text color */
-	--am3-conntable-header-text: rgba(255, 255, 255, 1);
+	--am3-conntable-header-text: rgba(255, 255, 255, 1); 
 
 	/* Node connection table header background color */
 	--am3-conntable-header-bg: rgba(33, 37, 41, 1);
@@ -44,15 +44,15 @@
 
    /* Node Tx Local */
     --am3-node-tx-local-color: rgb(0, 0, 0);
-    --am3-node-tx-local-bg-color: rgb(245, 198, 203);
+    --am3-node-tx-local-bg-color: rgb(230, 60, 210);
 
-    /* NOde Tx Network */
+    /* Node Tx Network */
     --am3-node-tx-network-color: rgb(0, 0, 0);
     --am3-node-tx-network-bg-color: rgb(245, 198, 203);
 
     /* Node Tx Telem */
     --am3-node-tx-telemetry-color: rgb(0, 0, 0);
-    --am3-node-tx-telemetry-bg-color: rgb(245, 198, 203);
+    --am3-node-tx-telemetry-bg-color: rgb(65, 210, 230);
 
     /* Node Tx Remote */
     --am3-node-tx-playback-remote-color: rgb(0, 0, 0);
@@ -88,5 +88,20 @@
 }
 */
 
+/* ==== RSSI Graph Customizations ==== */
+	/* This section adjusts the RSSI meater height */
+	#asl-votermon-area div.progress {
+		height: 40px !important;
+	}
+	/* This section makes the RSSI meter 100% wide */
 
+	#asl-votermon-area .col-8 {
+		width: 95% !important;
+	}
+	/* This section moves voter title to above RSSI meter */
 
+	#asl-votermon-area .text-end {
+		text-align: center !important;
+		width: 100%;
+		margin-top: 15px;
+	}
