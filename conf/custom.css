@@ -89,19 +89,33 @@
 */
 
 /* ==== RSSI Graph Customizations ==== */
-	/* This section adjusts the RSSI meater height */
-	#asl-votermon-area div.progress {
-		height: 40px !important;
-	}
-	/* This section makes the RSSI meter 100% wide */
+/* Taller RSSI bars */
+#asl-votermon-area div.progress {
+    height: 40px !important;
+}
 
-	#asl-votermon-area .col-8 {
-		width: 95% !important;
-	}
-	/* This section moves voter title to above RSSI meter */
+/* Spacing between individual voter rows */
+#asl-votermon-area [id$="-data"] .row {
+    margin-bottom: 8px;
+}
 
-	#asl-votermon-area .text-end {
-		text-align: center !important;
-		width: 100%;
-		margin-top: 15px;
-	}
+/* Desktop: narrow label column, wide bar */
+@media (min-width: 768px) {
+    #asl-votermon-area .col-md-2 {
+        width: 12% !important;
+    }
+    #asl-votermon-area .col-md-10 {
+        width: 88% !important;
+    }
+}
+
+/* Mobile: stack label above bar, full width */
+@media (max-width: 767.98px) {
+    #asl-votermon-area .col-4 {
+        width: 100% !important;
+        text-align: left !important;
+    }
+    #asl-votermon-area .col-8 {
+        width: 100% !important;
+    }
+}
