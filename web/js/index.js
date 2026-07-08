@@ -99,11 +99,15 @@ function startup(){
             });
             WSRunners.push(p);
 
-            const iframepre = document.getElementById(`asl-statmon-iframpre-${n}`);
-            iframepre.replaceChildren(buildAutoIframe(result["iframepre"]));
+			if( result["iframepre"] !== null ){
+            	const iframepre = document.getElementById(`asl-statmon-iframpre-${n}`);
+            	iframepre.replaceChildren(buildAutoIframe(result["iframepre"]));
+			}
 
-            const iframepost = document.getElementById(`asl-statmon-iframpost-${n}`);
-            iframepost.replaceChildren(buildAutoIframe(result["iframepost"]));
+			if( result["iframepost"] !== null ){
+            	const iframepost = document.getElementById(`asl-statmon-iframpost-${n}`);
+            	iframepost.replaceChildren(buildAutoIframe(result["iframepost"]));
+			}
         });
     }
     Promise.all(WSRunners);
