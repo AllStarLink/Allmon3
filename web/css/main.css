@@ -237,3 +237,10 @@ body {
         width: 100% !important;
     }
 }
+
+/* Voter legend color swatches - fixed width so labels line up */
+.voter-legend-label {
+    display: inline-block;
+    width: 6.5em;
+    text-align: center;
+}
