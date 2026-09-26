@@ -270,8 +270,8 @@ class AMIParser:
         lines = re.split(r'[\n\r]+', response)
         for line in lines:
             if re.match(r'^Client', line):
-                client = re.split(r"\s", line)
-                curr_client = client[1]
+                parts = line.split(maxsplit=1)
+                curr_client = parts[1] if len(parts) > 1 else ""
                 voters["VOTERS"][curr_client] = 0
             elif re.match(r'^RSSI', line):
                 rssi = re.split(r":\s", line)
@@ -291,7 +291,7 @@ class AMIParser:
             barcolor = "primary"
             if n == voters["VOTED"]:
                 barcolor = "success"
-            if re.match(r"\s[Mm]ix", n):
+            if re.search(r"\s[Mm]ix", n):
                 barcolor = "info"
 
             voter_html += "<div class=\"row justify-content-md-center\">"
