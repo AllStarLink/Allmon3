@@ -59,9 +59,18 @@ userfields = [ 'user' , 'pass' ]
 userdb = []
 
 with open(user_filename, newline="") as user_file:
-    users = csv.DictReader(user_file, delimiter="|")
+    users = csv.reader(user_file, delimiter="|")
+    first_row = True
     for row in users:
-        userdb.append({ "user" : row["user"] , "pass" : row["pass"] })
+        if len(row) < 2:
+            continue
+        # The header row is optional on read; it is always rewritten on save
+        if first_row:
+            first_row = False
+            if [f.strip() for f in row[:2]] == userfields:
+                continue
+            log.warning(f"{user_filename} missing \"user|pass\" header; it will be restored")
+        userdb.append({ "user" : row[0] , "pass" : row[1] })
 
 log.debug("userdb:")
 log.debug(userdb)

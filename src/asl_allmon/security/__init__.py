@@ -36,8 +36,12 @@ class Security:
             users = csv.DictReader(uf, delimiter="|")
             for row in users:
                 self.userdb.update({ row["user"] : row["pass"] })
-        log.debug("loaded %s entries from %s", len(self.userdb), self.user_file)
         uf.close()
+
+        if len(self.userdb) == 0:
+            log.warning(f"no entries found in {self.user_file} file, ensure file has headers and at least one entry")
+        else:
+            log.info("loaded %s entries from %s", len(self.userdb), self.user_file)
 
         with open(self.user_restrictions, newline="") as rf:
             restrictions = csv.DictReader(rf, delimiter="|", fieldnames=["user","rs"])
@@ -50,7 +54,7 @@ class Security:
                     n = n.strip()
                     log.debug("adding %s:%s", u, n)
                     self.restrictdb.append(f"{u}{n}")
-        log.debug("loaded %s entries from %s", len(self.restrictdb), self.user_restrictions)
+        log.info("loaded %s entries from %s", len(self.restrictdb), self.user_restrictions)
         rf.close()
 
     def reload_db(self):
