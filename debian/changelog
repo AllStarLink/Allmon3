@@ -1,3 +1,11 @@
+allmon3 (1.10-1) stable; urgency=medium
+
+  * voter.html - Display inactive voters, Fix mix color, align legend (#331)
+  * users file - warn on no users loaded, allmon3-passwd
+    always fixes headers (#332)
+
+ -- Helium <jason@mfamily.org>  Sat, 26 Sep 2026 18:47:07 -0400
+
 allmon3 (1.9.1-1) stable; urgency=medium
 
   * Re-add missing null check from index.js
