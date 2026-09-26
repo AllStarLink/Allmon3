@@ -293,6 +293,10 @@ class AMIParser:
                 barcolor = "success"
             if re.search(r"\s[Mm]ix", n):
                 barcolor = "info"
+                n = re.sub(r"\s[Mm]ix", "", n)
+            if re.search(r"\sInactive", n):
+                barcolor = "danger"
+                n = re.sub(r"\sInactive", "", n)
 
             voter_html += "<div class=\"row justify-content-md-center\">"
             voter_html += "  <div class=\"col-4 col-md-2 text-end\">"
