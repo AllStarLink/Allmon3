@@ -1,3 +1,9 @@
+allmon3 (1.11-1) stable; urgency=medium
+
+  * Fix Logging of Invalid Passwords (GHSA-c795-9q35-56xw) - #333
+
+ -- Helium <jason@mfamily.org>  Sat, 03 Oct 2026 19:03:30 -0400
+
 allmon3 (1.10-1) stable; urgency=medium
 
   * voter.html - Display inactive voters, Fix mix color, align legend (#331)
