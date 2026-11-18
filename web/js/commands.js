@@ -57,7 +57,7 @@ async function sendCommand(node, cmdStr) {
 //
 // Command Handling
 //
-function openCmdModalLink(node, defCmd){
+async function openCmdModalLink(node, defCmd){
 	const modal = new bootstrap.Modal(document.getElementById("commandModal"), {});
 		document.getElementById("commandModalTitleBox").innerHTML = `Execute Command on ${node}`;
 	if(loggedIn){
@@ -66,6 +66,106 @@ function openCmdModalLink(node, defCmd){
 		document.getElementById("command-modal-body").innerHTML = `<div class="alert alert-danger role="alert">Must Logon First</div>`;
 	}
 	modal.show();
+	if(loggedIn){
+		const favoritesSelect = document.getElementById("cmf-link-favorite");
+		try {
+			const favorites = await getAPIJSON(`master/node/${node}/favorites`);
+			// The user may have closed this modal or opened it for another node.
+			if (document.getElementById("cmf-link-favorite") !== favoritesSelect) return;
+			if (Array.isArray(favorites)) {
+				renderLinkFavorites(favoritesSelect, favorites);
+			} else {
+				favoritesSelect.replaceChildren(new Option("Favorites unavailable", ""));
+			}
+		} catch (e) {
+			if (document.getElementById("cmf-link-favorite") === favoritesSelect) {
+				favoritesSelect.replaceChildren(new Option("Favorites unavailable", ""));
+			}
+		}
+	}
+}
+
+function renderLinkFavorites(select, favorites, selectedNode = "") {
+	select._favoriteLabels = new Map(favorites.map(item => [item.node, item.label]));
+	select.replaceChildren(new Option(
+		favorites.length ? "Choose a favorite" : "No favorites saved", ""));
+	for (const favorite of favorites) {
+		// Option assigns text, so names from other users never become HTML.
+		select.add(new Option(`${favorite.label} (${favorite.node})`, favorite.node));
+	}
+	select.disabled = favorites.length === 0;
+	select.value = selectedNode;
+	document.getElementById("cmf-favorite-delete").disabled = !selectedNode;
+	document.getElementById("cmf-favorite-save").textContent = selectedNode ? "Save changes" : "Add favorite";
+}
+
+function selectLinkFavorite() {
+	const select = document.getElementById("cmf-link-favorite");
+	const selected = select.value;
+	document.getElementById("cmf-favorite-delete").disabled = !selected;
+	document.getElementById("cmf-favorite-save").textContent = selected ? "Save changes" : "Add favorite";
+	if (!selected) document.getElementById("cmf-favorite-name").value = "";
+	if (selected) {
+		const nodeInput = document.getElementById("cmf-link-node-num");
+		nodeInput.value = selected;
+		nodeInput.classList.remove("is-invalid");
+		document.getElementById("cmf-favorite-name").value = select._favoriteLabels.get(selected) || "";
+	}
+}
+
+function newLinkFavorite() {
+	document.getElementById("cmf-link-favorite").value = "";
+	document.getElementById("cmf-favorite-name").value = "";
+	document.getElementById("cmf-favorite-delete").disabled = true;
+	document.getElementById("cmf-favorite-save").textContent = "Add favorite";
+	setFavoriteFeedback("Adding a new favorite. Enter its node number and name.");
+}
+
+function setFavoriteFeedback(message, isError = false) {
+	const feedback = document.getElementById("cmf-favorite-feedback");
+	feedback.textContent = message;
+	feedback.className = isError ? "small mt-2 text-danger" : "small mt-2 text-success";
+}
+
+async function changeLinkFavorite(source, action) {
+	const select = document.getElementById("cmf-link-favorite");
+	const nodeInput = document.getElementById("cmf-link-node-num");
+	const nameInput = document.getElementById("cmf-favorite-name");
+	const selected = select.value;
+	const node = action === "delete" ? selected : nodeInput.value.trim();
+	const label = nameInput.value.trim();
+	if (!/^[0-9]{1,10}$/.test(node) || (action === "save" && (!label || label.length > 80))) {
+		setFavoriteFeedback("Enter a numeric node ID and a name of 1 to 80 characters.", true);
+		return;
+	}
+	const saveButton = document.getElementById("cmf-favorite-save");
+	const deleteButton = document.getElementById("cmf-favorite-delete");
+	saveButton.disabled = deleteButton.disabled = true;
+	try {
+		const response = await fetch(`master/node/${source}/favorites`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ action, node, label, original_node: selected || null }),
+		});
+		const result = await response.json();
+		if (!response.ok || !Array.isArray(result.SUCCESS)) {
+			throw new Error(result.ERROR || result.SECURITY || "Unable to save favorites");
+		}
+		if (document.getElementById("cmf-link-favorite") !== select) return;
+		const editing = action === "save" && !!selected;
+		renderLinkFavorites(select, result.SUCCESS, editing ? node : "");
+		if (!editing) nameInput.value = "";
+		setFavoriteFeedback(action === "delete" ? "Favorite deleted." :
+			editing ? "Favorite updated. Choose New favorite to add another." :
+			"Favorite added. Enter another node number and name to add more.");
+	} catch (e) {
+		if (document.getElementById("cmf-link-favorite") === select) {
+			setFavoriteFeedback(e.message || "Unable to save favorites", true);
+			deleteButton.disabled = !selected;
+		}
+	} finally {
+		if (document.getElementById("cmf-link-favorite") === select) saveButton.disabled = false;
+	}
 }
 
 async function openCmdModalCLI(node){
@@ -136,6 +236,11 @@ function getLinkCommandModalForm(node, defCmd){
 				<div class="invalid-feedback">
 					Enter a node
 				</div>
+				<label for="cmf-link-favorite" class="form-label mt-2">Favorites</label>
+				<select id="cmf-link-favorite" class="form-select" aria-label="Favorite node"
+						onchange="selectLinkFavorite()" disabled>
+					<option value="">Loading favorites...</option>
+				</select>
 			</div>
 			<div class="col">
 				<select id="cmf-link-node-perm" name="cmf-link-node-perm" class="form-select"
@@ -153,7 +258,23 @@ function getLinkCommandModalForm(node, defCmd){
 				</div>
 			</div>
 		</div>
-	<form>
+		<div class="row g-2 mt-3 align-items-end">
+			<div class="col-sm-5">
+				<label for="cmf-favorite-name" class="form-label">Favorite name</label>
+				<input id="cmf-favorite-name" class="form-control" type="text" maxlength="80"
+						placeholder="Name this node">
+			</div>
+			<div class="col-sm-7 d-flex flex-wrap gap-2">
+				<button id="cmf-favorite-save" type="button" class="btn btn-outline-primary"
+						onclick="changeLinkFavorite(${node}, 'save')">Add favorite</button>
+				<button type="button" class="btn btn-primary" onclick="newLinkFavorite()">New favorite</button>
+				<button id="cmf-favorite-delete" type="button" class="btn btn-outline-danger"
+						onclick="changeLinkFavorite(${node}, 'delete')" disabled>Delete</button>
+			</div>
+		</div>
+		<div class="small mt-2">Select a favorite to edit it, or choose New favorite to add another.</div>
+		<div id="cmf-favorite-feedback" class="small mt-2" role="status" aria-live="polite"></div>
+	</form>
 </div>
 <div id="cmd-output" class="container my-2"></div>
 	`);

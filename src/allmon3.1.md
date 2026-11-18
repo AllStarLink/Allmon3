@@ -7,7 +7,8 @@ allmon3 - Monitor and communicate with AllStarLink Asterisk node
 
 # SYNOPSIS
 usage: allmon3 [-h] [\-\-nodes NODES] [\-\-config CONFIG]
- [\-\-webconfig WEBCONFIG] [\-\-menuconfig MENUCONFIG] [\-\-debug] [\-\-version]
+ [\-\-webconfig WEBCONFIG] [\-\-menuconfig MENUCONFIG] [\-\-favoritesconfig FAVORITESCONFIG]
+ [\-\-debug] [\-\-version]
 
 Connect to an ASL Asterisk server and print rpt stats
 
@@ -24,6 +25,8 @@ optional arguments:
   \-\-webconfig WEBCONFIG path to INI configuration for web services (default /etc/allmon3/web.ini
 
   \-\-menuconfig MENUCONFIG path to INI configuration for menus (default /etc/allmon3/menu.ini
+
+  \-\-favoritesconfig FAVORITESCONFIG path to writable JSON storage for link favorites (default /var/lib/allmon3/favorites.json)
 
   \-\-version   get the version of the software
 
