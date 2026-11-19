@@ -4,13 +4,14 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 
-function dialog(favorites) {
+function dialog(favorites, group = ["1999"]) {
   let input;
   let select;
   let name;
   let deleteButton;
   let saveButton;
   let feedback;
+  let groupInfo;
   const saved = new Map(favorites.map(item => [item.node, item.label]));
   const requests = [];
   const body = {
@@ -27,6 +28,7 @@ function dialog(favorites) {
       deleteButton = { disabled: true };
       saveButton = { disabled: false };
       feedback = { textContent: '', className: '' };
+      groupInfo = { textContent: '' };
     },
   };
   const elements = { commandModal: {}, commandModalTitleBox: {}, 'command-modal-body': body };
@@ -38,11 +40,12 @@ function dialog(favorites) {
       if (id === 'cmf-favorite-delete') return deleteButton;
       if (id === 'cmf-favorite-save') return saveButton;
       if (id === 'cmf-favorite-feedback') return feedback;
+      if (id === 'cmf-favorite-group') return groupInfo;
       return elements[id];
     } },
     bootstrap: { Modal: class { show() {} } },
     Option: class { constructor(label, value) { this.label = label; this.value = value; } },
-    getAPIJSON: async () => favorites,
+    getAPIJSON: async url => url.endsWith("/favorite-group") ? group : favorites,
     fetch: async (url, options) => {
       const request = JSON.parse(options.body);
       requests.push({ url, request });
@@ -58,7 +61,7 @@ function dialog(favorites) {
   const source = fs.readFileSync(path.join(__dirname, '../web/js/commands.js'), 'utf8');
   vm.runInContext(source, context);
   return { context, body, requests, getInput: () => input, getSelect: () => select,
-    getName: () => name, getDelete: () => deleteButton, getFeedback: () => feedback };
+    getGroup: () => groupInfo, getName: () => name, getDelete: () => deleteButton, getFeedback: () => feedback };
 }
 
 test('favorites fill Node # only on selection, keeping row and manual entries', async () => {
@@ -128,4 +131,28 @@ test('successive new saves append favorites instead of replacing the previous on
   }
   assert.deepEqual(ui.getSelect().options.slice(1).map(x => x.value), ['11111', '22222', '33333']);
   assert.ok(ui.requests.every(x => x.url === 'master/node/1999/favorites'));
+});
+
+
+test('group disclosure explains automatic add/edit/delete without changing manual input', async () => {
+  const ui = dialog([], ['1999', '2000']);
+  vm.runInContext('cmdShortcut = "12345"', ui.context);
+  await ui.context.openCmdModalLink(1999, 3);
+  assert.match(ui.getGroup().textContent, /Automatically synchronized across nodes 1999, 2000/);
+  assert.match(ui.getGroup().textContent, /deleting affects every node/);
+  assert.equal(ui.getInput().value, '12345');
+  assert.equal(ui.requests.length, 0);
+});
+
+test('ungrouped nodes report per-node scope and stale group responses are ignored', async () => {
+  const ui = dialog([]);
+  await ui.context.openCmdModalLink(1999, 3);
+  assert.equal(ui.getGroup().textContent, 'Favorites are saved for this node only.');
+  let resolve;
+  ui.context.getAPIJSON = () => new Promise(r => { resolve = r; });
+  const pending = ui.context.loadFavoriteGroup(1999, ui.getSelect());
+  ui.body.innerHTML = ui.body.html;
+  resolve(['1999', '2000']);
+  await pending;
+  assert.equal(ui.getGroup().textContent, '');
 });

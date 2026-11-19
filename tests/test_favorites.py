@@ -56,6 +56,72 @@ class FavoritesTest(unittest.TestCase):
                 store.change(1999, "save", "111", "New")
             self.assertEqual(path.read_text(), "{not json")
 
+class FavoritesGroupsTest(unittest.TestCase):
+    def test_union_bidirectional_edits_deletes_and_restart(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / 'favorites.json'
+            independent = FavoritesStore(path)
+            independent.change(1999, 'save', '111', 'First')
+            independent.change(2000, 'save', '222', 'Second')
+            independent.change(2001, 'save', '333', 'Separate')
+            store = FavoritesStore(path, [['1999', '2000']])
+            store.synchronize()
+            self.assertEqual(len(store.list(1999)), 2)
+            self.assertEqual(store.list(1999), store.list(2000))
+            store.change(2000, 'save', '444', 'Renamed', original_node='111')
+            self.assertIn({'node': '444', 'label': 'Renamed'}, store.list(1999))
+            store.change(1999, 'delete', '222')
+            store = FavoritesStore(path, [['1999', '2000']])
+            store.synchronize()
+            self.assertEqual(store.list(2000), [{'node': '444', 'label': 'Renamed'}])
+            self.assertEqual(store.list(2001), [{'node': '333', 'label': 'Separate'}])
+            # Removing the group leaves both nodes with the last synchronized copy.
+            self.assertEqual(FavoritesStore(path).list(1999), FavoritesStore(path).list(2000))
+
+    def test_conflicting_startup_is_atomic_for_all_groups(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / 'favorites.json'
+            store = FavoritesStore(path)
+            store.change(1999, 'save', '111', 'First')
+            store.change(2001, 'save', '222', 'One label')
+            store.change(2002, 'save', '222', 'Another label')
+            original = path.read_bytes()
+            grouped = FavoritesStore(path, [['1999', '2000'], ['2001', '2002']])
+            with self.assertRaisesRegex(FavoritesError, 'Conflicting names'):
+                grouped.synchronize()
+            self.assertEqual(path.read_bytes(), original)
+
+    def test_validation_and_failed_group_edit_preserve_file(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / 'favorites.json'
+            for groups in ([['1999']], [['1999', '1999']], [['1999', 'bad']],
+                           [['1999', '2000'], ['2000', '2001']], [['1999', '01999']]):
+                with self.assertRaises(FavoritesError):
+                    FavoritesStore(path, groups)
+            store = FavoritesStore(path, [['1999', '2000']])
+            store.change(1999, 'save', '111', 'First')
+            original = path.read_bytes()
+            with self.assertRaises(FavoritesError):
+                store.change(2000, 'save', '222', 'Stale edit', original_node='333')
+            self.assertEqual(path.read_bytes(), original)
+            path.write_text('{invalid')
+            with self.assertRaises(FavoritesError):
+                store.synchronize()
+            self.assertEqual(path.read_text(), '{invalid')
+
+    def test_concurrent_writes_from_both_nodes_do_not_lose_updates(self):
+        from concurrent.futures import ThreadPoolExecutor
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / 'favorites.json'
+            def add(n):
+                store = FavoritesStore(path, [['1999', '2000']])
+                store.change(1999 if n % 2 else 2000, 'save', str(10000+n), f'Favorite {n}')
+            with ThreadPoolExecutor(max_workers=4) as pool:
+                list(pool.map(add, range(20)))
+            store = FavoritesStore(path, [['1999', '2000']])
+            self.assertEqual(len(store.list(1999)), 20)
+            self.assertEqual(store.list(1999), store.list(2000))
+
 
 if __name__ == "__main__":
     unittest.main()

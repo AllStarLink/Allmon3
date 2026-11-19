@@ -14,3 +14,8 @@ git diff --check
 Coverage includes per-source persistence, rename/delete, conflicts and damaged
 files, anonymous/restricted-user access, row/manual Node # preservation,
 HTML-safe labels, and successive additions without replacing earlier favorites.
+
+Group coverage includes startup union and conflict rollback, bidirectional
+rename/delete and restart persistence, unaffected ungrouped nodes, concurrent
+writes, malformed/overlapping groups, unmanaged members, group-wide access
+checks, and UI scope disclosure with stale-response protection.

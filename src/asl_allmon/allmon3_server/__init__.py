@@ -31,7 +31,12 @@ class ServerWS:
         self.config_nodes = configs_node
         self.httpserver = web.Application()
         self.server_security = server_security
-        self.favorites = favorites.FavoritesStore(favorites_file)
+        self.favorites = favorites.FavoritesStore(
+            favorites_file, getattr(configs_web, "favorite_groups", None))
+        managed = {str(node) for node in configs_node.all_nodes}
+        if any(member not in managed for group in self.favorites.groups for member in group):
+            raise favorites.FavoritesError("Favorites groups must contain only managed nodes")
+        self.favorites.synchronize()
 
     @staticmethod
     def __get_json_error(message):
@@ -124,6 +129,12 @@ class ServerWS:
                     log.debug("self.__proc_voter_config(%s, %s)", node, int(c[2]))
                     r_txt = self.__proc_voter_config(node, int(c[2]))
 
+                if c[3] == "favorite-group":
+                    denied = await self.__favorites_access(request, c[2])
+                    if denied is not None:
+                        return denied
+                    r_txt = json.dumps(self.favorites.members(c[2]))
+
                 if c[3] == "favorites":
                     denied = await self.__favorites_access(request, c[2])
                     if denied is not None:
@@ -160,8 +171,10 @@ class ServerWS:
             return web.json_response({"SECURITY": "Log in to manage favorites"}, status=403)
         user = self.server_security.session_db[session_id].user
         if (user in self.server_security.restricted_users
-                and f"{user}{source}" not in self.server_security.restrictdb):
-            return web.json_response({"SECURITY": "Not permitted on this node"}, status=403)
+                and any(f"{user}{member}" not in self.server_security.restrictdb
+                        for member in self.favorites.members(source))):
+            return web.json_response(
+                {"SECURITY": "Not permitted on every node in this favorites group"}, status=403)
         return None
 
     async def __proc_favorites_write(self, request):

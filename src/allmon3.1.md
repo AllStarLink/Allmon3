@@ -44,3 +44,15 @@ Report bugs to https://github.com/AllStarLink/Allmon3/issues
 # COPYRIGHT
 Copyright (C) 2023 Jason McCormick and AllStarLink
 under the terms of the AGPL v3.
+
+# FAVORITES SYNCHRONIZATION
+
+The optional [favorites-groups] section of web.ini maps group names to
+comma-separated managed node IDs, for example station = 1999,2000.
+Each node may belong to one group. After restarting Allmon3, additions,
+edits and deletions on any member propagate atomically to every member.
+Ungrouped nodes remain independent; separate Allmon3 servers are not replicated.
+Users require access to every group member for favorites reads and writes.
+Existing entries merge on startup; conflicting names stop startup without
+modifying storage. Resolve conflicts before enabling a group. Removing a group
+retains the last synchronized copies. No radio command is dispatched.

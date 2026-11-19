@@ -74,6 +74,7 @@ async function openCmdModalLink(node, defCmd){
 			if (document.getElementById("cmf-link-favorite") !== favoritesSelect) return;
 			if (Array.isArray(favorites)) {
 				renderLinkFavorites(favoritesSelect, favorites);
+				await loadFavoriteGroup(node, favoritesSelect);
 			} else {
 				favoritesSelect.replaceChildren(new Option("Favorites unavailable", ""));
 			}
@@ -81,6 +82,22 @@ async function openCmdModalLink(node, defCmd){
 			if (document.getElementById("cmf-link-favorite") === favoritesSelect) {
 				favoritesSelect.replaceChildren(new Option("Favorites unavailable", ""));
 			}
+		}
+	}
+}
+
+async function loadFavoriteGroup(source, favoritesSelect) {
+	try {
+		const members = await getAPIJSON(`master/node/${source}/favorite-group`);
+		if (document.getElementById("cmf-link-favorite") !== favoritesSelect) return;
+		const info = document.getElementById("cmf-favorite-group");
+		if (!Array.isArray(members)) throw new Error("Group unavailable");
+		info.textContent = members.length > 1 ?
+			`Automatically synchronized across nodes ${members.join(", ")}. Adding, editing, or deleting affects every node in this group.` :
+			"Favorites are saved for this node only.";
+	} catch (e) {
+		if (document.getElementById("cmf-link-favorite") === favoritesSelect) {
+			document.getElementById("cmf-favorite-group").textContent = "Favorites sharing information unavailable.";
 		}
 	}
 }
@@ -273,6 +290,7 @@ function getLinkCommandModalForm(node, defCmd){
 			</div>
 		</div>
 		<div class="small mt-2">Select a favorite to edit it, or choose New favorite to add another.</div>
+		<div id="cmf-favorite-group" class="small mt-2" role="status">Loading favorites sharing information...</div>
 		<div id="cmf-favorite-feedback" class="small mt-2" role="status" aria-live="polite"></div>
 	</form>
 </div>
