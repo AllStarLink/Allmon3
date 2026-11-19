@@ -14,7 +14,7 @@ Architecture: all
 Recommends: apache2 | httpd
 Depends: python3-argon2, python3, ${misc:Depends}, adduser,
 	python3-aiohttp, python3-aiohttp-session,
-	python3-websockets
+	python3-websockets, sudo
 Description: Web monitoring interface for AllStarLink
 	application. Allmon3 is the next generation of
 	the venerable Allmon2 that is rewritten for

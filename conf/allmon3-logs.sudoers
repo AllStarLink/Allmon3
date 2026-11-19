@@ -1,0 +1,2 @@
+# A fixed, argument-validating reader; no shell, arbitrary path, or write operations.
+allmon3 ALL=(asterisk) NOPASSWD: /usr/lib/allmon3/log-reader

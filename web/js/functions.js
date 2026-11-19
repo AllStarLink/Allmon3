@@ -107,6 +107,7 @@ async function checkLogonStatus(){
 	let bodyClass = loggedIn ? 'logged-in' : 'logged-out';
 	document.body.classList.remove(...bodyClasses);
 	document.body.classList.add(bodyClass);
+	if (typeof logsAuthChanged === "function") logsAuthChanged();
 }
 
 

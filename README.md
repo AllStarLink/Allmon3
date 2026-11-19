@@ -239,3 +239,9 @@ sudo a2enconf allmon3
 sudo systemctl enable allmon3
 sudo systemctl start allmon3
 ```
+
+## Local log viewer
+
+An authenticated **Logs & Connection Logging** panel can display local Asterisk
+diagnostics and connection history, with per-node connection-recording controls.
+See [setup, permissions, and limitations](doc/log-viewer.md).

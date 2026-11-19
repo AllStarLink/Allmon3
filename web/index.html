@@ -170,6 +170,9 @@
 					</a>
 				</div>
 				<div id="asl-node-navigation"></div>
+                <div class="d-grid gap-2 col-9 mx-auto my-2">
+                    <button id="logs-navigation" class="btn btn-outline-secondary d-none" type="button" onclick="openLogsPanel()">Logs &amp; Connection Logging</button>
+                </div>
 				<hr>
 				<div id="login-out-region"></div>
 				<hr>
@@ -183,8 +186,34 @@
 
 		<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
 		<div id="asl-statmon-dashboard-area"></div>
+        <details id="logs-manager" style="scroll-margin-top:5rem" class="border rounded p-3 my-4 d-none">
+            <summary id="logs-title" class="h4 mb-0" tabindex="-1">Logs &amp; Connection Logging</summary>
+            <p class="text-muted mt-3">Review connection history and Asterisk diagnostics. Recording controls apply immediately and do not change radio links.</p>
+            <div id="logs-feedback" role="status" aria-live="polite"></div>
+            <section aria-labelledby="logs-recording-title" class="card mb-3"><div class="card-body">
+                <h3 id="logs-recording-title" class="h5">Connection recording by node</h3>
+                <div id="logs-node-controls" class="d-flex flex-wrap gap-4"></div>
+                <p class="small text-muted mt-2 mb-0">Turning recording off stops new CONNECT / DISCONNECT entries for that node. Existing history is kept. No audio is recorded. Failed attempts and shutdown disconnects may not appear in this log.</p>
+            </div></section>
+            <div class="row g-3 align-items-end mb-3">
+                <div class="col-md-4"><label for="logs-kind" class="form-label">Log</label>
+                    <select id="logs-kind" class="form-select"><option value="connections">Connection history · connectlog</option><option value="messages">Asterisk messages · messages.log</option></select></div>
+                <div class="col-md-3"><label for="logs-node" class="form-label">Local node</label><select id="logs-node" class="form-select"></select></div>
+                <div class="col-md-3"><label for="logs-limit" class="form-label">Recent lines</label><select id="logs-limit" class="form-select"><option>100</option><option selected>200</option><option>500</option><option>1000</option></select></div>
+                <div class="col-md-2"><button id="logs-refresh" class="btn btn-outline-primary w-100" type="button">Refresh</button></div>
+            </div>
+            <p id="logs-scope" class="small text-muted"></p>
+            <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
+                <input id="logs-search" class="form-control" style="max-width:28rem" type="search" aria-label="Search displayed log lines" placeholder="Search displayed lines…">
+                <div class="form-check form-switch"><input id="logs-auto" class="form-check-input" type="checkbox" role="switch"><label class="form-check-label" for="logs-auto">Auto-refresh every 5 seconds</label></div>
+                <button id="logs-download" class="btn btn-sm btn-outline-secondary" type="button" disabled>Download shown lines</button>
+            </div>
+            <p id="logs-read-status" class="small" role="status" aria-live="polite"></p>
+            <pre id="logs-output" class="border rounded p-3 bg-light" style="max-height:30rem;min-height:8rem;white-space:pre-wrap;overflow-wrap:anywhere;overflow:auto;font-size:.85rem" tabindex="0" aria-label="Log contents">Open this panel to load logs.</pre>
+            <p class="small text-muted mb-0">Current files only, up to the latest 256 KiB per read. Connection history rotates weekly. Asterisk messages are shared across all nodes and remain enabled independently of these switches.</p>
+        </details>
 		</main>
-		<footer class="col-md-9 ms-sm-auto col-lg-10 px-md-4 my-2 mx-3">
+		<footer class="col-md-9 ms-sm-auto col-lg-10 px-md-4 my-2 px-3">
 			<hr>
 			<p>Copyright &copy; @@COPYDATE@@ AllStarLink<br>
 			Allmon3 is distributed under the terms of the <a href="https://raw.githubusercontent.com/AllStarLink/Allmon3/develop/LICENSE">AGPLv3</a></p>
@@ -196,6 +225,7 @@
 <script src="js/bootstrap.bundle.min.js?v=@@HEAD-DEVELOP@@" crossorigin="anonymous"></script>
 <script src="js/functions.js?v=@@HEAD-DEVELOP@@" crossorigin="anonymous"></script>
 <script src="js/commands.js?v=@@HEAD-DEVELOP@@" crossorigin="anonymous"></script>
+<script src="js/logs.js?v=@@HEAD-DEVELOP@@" crossorigin="anonymous"></script>
 <script src="js/index.js?v=@@HEAD-DEVELOP@@" crossorigin="anonymous"></script>
 </body>
 </html>

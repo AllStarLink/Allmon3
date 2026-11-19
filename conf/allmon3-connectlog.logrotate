@@ -1,0 +1,10 @@
+/var/log/asterisk/connectlog {
+    weekly
+    rotate 52
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 640 asterisk asterisk
+    su asterisk asterisk
+}
