@@ -1,0 +1,11 @@
+[Unit]
+Description=Check Allmon3 playback timeout recovery leases
+
+[Timer]
+OnBootSec=15s
+OnUnitActiveSec=15s
+AccuracySec=1s
+Unit=allmon3-audio-tot-recovery.service
+
+[Install]
+WantedBy=timers.target

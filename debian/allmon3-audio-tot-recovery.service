@@ -1,0 +1,10 @@
+[Unit]
+Description=Recover expired Allmon3 playback timeout overrides
+After=asterisk.service
+
+[Service]
+Type=oneshot
+User=allmon3
+Group=allmon3
+ExecStart=/usr/bin/python3 -m asl_allmon.audio_tot
+TimeoutStartSec=45

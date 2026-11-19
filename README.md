@@ -77,6 +77,18 @@ systemctl restart allmon3
 
 5. Open your web browser to the IP or hostname - for example: http://192.0.2.10/allmon3/
 
+# Audio Player & Scheduler
+
+The authenticated dashboard includes a collapsed audio player for **local Asterisk
+nodes sharing this host's filesystem**. Upload/preview audio, build ordered stacks,
+queue playback, or schedule Once, Daily, or Weekly. Daily/weekly times use Pacific
+time. Stack names are spoken before and after playback using local Piper TTS.
+Pause/Resume, Stop, and a persistent master-enable checkbox control playback.
+
+See [audio setup, behavior, and testing](doc/audio-player.md) before enabling
+scheduled radio playback. This includes Piper installation, AMI permissions,
+segmentation, timeout recovery, and the limits of playback status reporting.
+
 # Configuration
 
 ## Node and Daemon Configuration

@@ -30,6 +30,9 @@ do_configure() {
 	chown allmon3:allmon3 /etc/allmon3/allmon3.ini /etc/allmon3/user*
 	chmod 660 /etc/allmon3/allmon3.ini /etc/allmon3/user*
 
+	install -d -m 0750 -o allmon3 -g allmon3 /var/lib/allmon3
+	install -d -m 0755 -o allmon3 -g allmon3 /var/cache/allmon3
+
 	## Apache Management
 	if [ -e /usr/share/apache2/apache2-maintscript-helper ]; then
 		apache2_invoke enmod proxy_http || exit $?
