@@ -70,6 +70,14 @@ class WebConfigs:
             self.ws_bind_addr = None
             log.info("Binding sevices to all addresses")
 
+        # LAN addresses do not always resolve through the machine hostname.
+        # An operator can explicitly list Asterisk nodes whose audio filesystem
+        # is the same machine as the Allmon3 service.
+        self.audio_local_nodes = {
+            int(value.strip()) for value in config["web"].get("AUDIO_LOCAL_NODES", "").split(",")
+            if value.strip()
+        }
+
         try:
             self.commands = dict()
             for k in config["syscmds"]:

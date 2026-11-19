@@ -10,7 +10,7 @@ BINS = \
 
 MANS_SRC = $(wildcard *.1.md)
 
-PY_SRC = $(wildcard asl_allmon/*/__init__.py)
+PY_SRC = $(wildcard asl_allmon/*/*.py)
 
 prefix ?= /usr
 exec_prefix ?= $(prefix)

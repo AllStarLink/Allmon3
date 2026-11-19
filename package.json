@@ -1,0 +1,10 @@
+{
+  "name": "allmon3-browser-tests",
+  "private": true,
+  "scripts": {
+    "test:audio-ui": "node tests/test_audio_ui.js && node tests/test_audio_controls_ui.js"
+  },
+  "devDependencies": {
+    "playwright": "1.62.0"
+  }
+}
