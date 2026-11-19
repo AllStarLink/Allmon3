@@ -63,6 +63,46 @@ apt install allmon3
 
 2. Edit `/etc/allmon3/web.ini` as desired.
 
+In the link command dialog, select a saved node from the Favorites dropdown to
+fill the Node # field. Enter a node number and a favorite name, then use **Add
+favorite** to add it. After adding, enter another node number and name to add
+more. Select a favorite to rename it or change its node ID with **Save changes**,
+or to delete it. **New favorite** clears the selection so you can add another.
+Saving a favorite does not connect to that node; use **Execute** to connect.
+Favorites are shared among Allmon3 users with access to the same local node and
+are saved per local node in `/var/lib/allmon3/favorites.json`. The Allmon3
+service needs write access to that directory; the Debian package and systemd
+unit set it up automatically. For a manual installation, create the directory
+owned by the account running Allmon3. Use `--favoritesconfig PATH` to choose a
+different writable file.
+
+#### Automatically synchronized favorites
+
+To share one live favorites list among selected nodes managed by this Allmon3
+instance, add an optional group to `/etc/allmon3/web.ini`:
+
+```ini
+[favorites-groups]
+station = 1999,2000
+```
+
+Restart Allmon3 after configuring groups. Each member must be a managed node
+(including `multinodes` members), and a node may belong to only one group.
+The dialog displays the group: adding, renaming, changing a favorite's node ID,
+or deleting on any member immediately updates every member in one locked,
+atomic file transaction. Reopen an already-open dialog to refresh its list.
+No link commands are sent. This is synchronization within one Allmon3 instance,
+not replication between separate servers.
+
+Existing lists are merged when the service starts, retaining all unique entries.
+If the same favorite node has different names, startup refuses the group without
+changing the favorites file. Back up the file, remove/disable the proposed group,
+and resolve those names in the independent lists before enabling it again.
+Users must have access to **every** group member to read or change its favorites;
+a per-node restriction cannot be bypassed through another group member.
+Nodes outside groups keep independent lists. Removing a group leaves each member
+with its last synchronized copy. The existing JSON format remains compatible.
+
 3. Set a password for the default user allmon3:
 ```
 allmon3-passwd allmon3

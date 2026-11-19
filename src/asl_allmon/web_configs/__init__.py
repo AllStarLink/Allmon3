@@ -19,6 +19,11 @@ class WebConfigs:
     def __init__(self, config_file):
         config = configparser.ConfigParser()
         config.read(config_file)
+        # Optional, administrator-managed groups; absent means per-node lists.
+        self.favorite_groups = [
+            [node.strip() for node in members.split(",")]
+            for members in config["favorites-groups"].values()
+        ] if config.has_section("favorites-groups") else []
 
         if "CONFIG_HEADER_TITLE" in config["web"]:
             self.header_title = re.sub(r'[\'\"]', '', config["web"]["CONFIG_HEADER_TITLE"])

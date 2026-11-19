@@ -7,6 +7,8 @@ After=asterisk.service
 Type=exec
 User=allmon3
 Group=allmon3
+StateDirectory=allmon3
+StateDirectoryMode=0750
 Environment="PATH=/usr/bin:/bin:/usr/sbin:/sbin"
 ExecStart=allmon3
 ExecReload=kill -USR1 $MAINPID

@@ -94,7 +94,7 @@ async def start_tasks():
 
         log.info("starting allmon3 master ws on port %s", web_configuration.http_port)
         a3server = allmon3_server.ServerWS(web_configuration,
-            node_configuration, server_security)
+            node_configuration, server_security, favorites_config_file)
         tasks.append(asyncio.create_task(a3server.main()))
 
         log.info("starting node_db updater")
@@ -136,6 +136,7 @@ ap.add_argument("--nodes", type=str, help="Only start the node(s) listed as --no
 ap.add_argument("--config", help="path to INI configuration allmon3 nodes (default /etc/allmon3/allmon3.ini)")
 ap.add_argument("--webconfig", help="path to INI configuration for web services (default /etc/allmon3/web.ini")
 ap.add_argument("--menuconfig", help="path to INI configuration for menus (default /etc/allmon3/menu.ini")
+ap.add_argument("--favoritesconfig", help="path to JSON storage for link favorites (default /var/lib/allmon3/favorites.json)")
 ap.add_argument("--debug", help="enable debug-level logging output", action="store_true")
 ap.add_argument("--debugmodule", type=str, help="enable debugging only for module specified")
 ap.add_argument("--version", help="get the version of the software", action="version", version='%(prog)s {}'.format(_BUILD_ID))
@@ -174,6 +175,11 @@ if args.menuconfig:
     menu_config_file = args.menuconfig
 else:
     menu_config_file = "/etc/allmon3/menu.ini"
+
+if args.favoritesconfig:
+    favorites_config_file = args.favoritesconfig
+else:
+    favorites_config_file = "/var/lib/allmon3/favorites.json"
 
 try:
     # Config Parse
