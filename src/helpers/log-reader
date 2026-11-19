@@ -1,0 +1,49 @@
+#!/usr/bin/python3 -I
+"""Allowlisted bounded reader, run as asterisk (never root) by Allmon3."""
+import json
+import os
+import re
+import stat
+import sys
+
+PATHS = {'connections': '/var/log/asterisk/connectlog', 'messages': '/var/log/asterisk/messages.log'}
+MAX_BYTES = 256 * 1024
+
+def read_log(path, kind, node, limit):
+    try:
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    except FileNotFoundError:
+        return {'lines': [], 'exists': False, 'truncated': False}
+    with os.fdopen(fd, 'rb') as stream:
+        meta = os.fstat(stream.fileno())
+        if not stat.S_ISREG(meta.st_mode):
+            raise ValueError('Not a regular log file')
+        offset = max(0, meta.st_size - MAX_BYTES)
+        stream.seek(offset)
+        data = stream.read(MAX_BYTES)
+    if offset:
+        data = data.partition(b'\n')[2]  # do not display a partial leading record
+    lines = data.decode('utf-8', errors='replace').splitlines()
+    if kind == 'connections':
+        marker = re.compile(r'(?:^|\s)local=' + re.escape(node) + r'(?:\s|$)')
+        lines = [line for line in lines if marker.search(line)]
+    # Text only, remove control chars; never interpret ANSI or HTML.
+    lines = [re.sub(r'[\x00-\x08\x0b-\x1f\x7f]', '', line) for line in lines]
+    return {'lines': lines[-limit:], 'exists': True,
+            'truncated': bool(offset or len(lines) > limit), 'modified_at': meta.st_mtime}
+
+def main():
+    if len(sys.argv) != 4:
+        raise ValueError('Expected log, node and line count')
+    kind, node, raw_limit = sys.argv[1:]
+    if kind not in PATHS or not raw_limit.isdecimal() or not 1 <= int(raw_limit) <= 1000:
+        raise ValueError('Invalid log selection')
+    if (kind == 'connections' and not re.fullmatch(r'[0-9]{1,10}', node)) or (kind == 'messages' and node != '-'):
+        raise ValueError('Invalid node selection')
+    print(json.dumps(read_log(PATHS[kind], kind, node, int(raw_limit))))
+
+if __name__ == '__main__':
+    try: main()
+    except (OSError, ValueError):
+        print('Unable to read requested log', file=sys.stderr)
+        sys.exit(1)

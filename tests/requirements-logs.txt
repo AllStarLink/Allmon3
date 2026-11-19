@@ -1,0 +1,7 @@
+aiohttp>=3.9
+aiohttp-session>=2.12
+argon2-cffi
+websockets
+pytest>=8
+pytest-asyncio>=0.24
+playwright

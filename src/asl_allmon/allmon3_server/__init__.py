@@ -14,9 +14,10 @@ from itertools import cycle
 import json
 import logging
 import re
+import socket
 import time
 import websockets
-from .. import node_configs, security, web_configs
+from .. import logs, node_configs, security, web_configs
 
 __BUILD_ID = "@@HEAD-DEVELOP@@"
 log = logging.getLogger(__name__)
@@ -31,6 +32,80 @@ class ServerWS:
         self.config_nodes = configs_node
         self.httpserver = web.Application()
         self.server_security = server_security
+        local_hosts = {"127.0.0.1", "localhost", "::1", socket.gethostname(), socket.getfqdn()}
+        try:
+            local_hosts.update(info[4][0] for info in socket.getaddrinfo(socket.gethostname(), None))
+        except socket.gaierror:
+            pass
+        local_nodes = [n for n in configs_node.all_nodes
+                       if configs_node.nodes[configs_node.colo_nodes.get(n, n)].host in local_hosts]
+        self.logs = logs.LogService(local_nodes)
+
+    async def __logs_allowed(self, request):
+        session = await get_session(request)
+        session_id = session.get("auth_sess")
+        if session_id not in self.server_security.session_db:
+            raise web.HTTPForbidden(text='Log in to view logs')
+        user = self.server_security.session_db[session_id].user
+        allowed = {n for n in self.logs.host_nodes
+                   if user not in self.server_security.restricted_users
+                   or f"{user}{n}" in self.server_security.restrictdb}
+        if not allowed:
+            raise web.HTTPForbidden(text='No permitted local logging nodes')
+        return allowed
+
+    @staticmethod
+    def __logs_response(data):
+        return web.json_response({"SUCCESS": data}, headers={"Cache-Control": "no-store"})
+
+    async def __logs_state(self, request):
+        allowed = await self.__logs_allowed(request)
+        try:
+            return self.__logs_response(self.logs.snapshot(allowed))
+        except logs.LogError as exc:
+            return web.json_response({"ERROR": str(exc)}, status=503)
+
+    async def __logs_read(self, request):
+        allowed = await self.__logs_allowed(request)
+        kind = request.match_info["kind"]
+        node = request.query.get("node", "")
+        if kind == "messages":
+            if not self.logs.host_nodes <= allowed:
+                raise web.HTTPForbidden(text='Shared messages require access to every local node')
+        elif node not in allowed:
+            raise web.HTTPForbidden(text='Not permitted on this node')
+        try:
+            limit = int(request.query.get("limit", "200"))
+            return self.__logs_response(await self.logs.read(kind, node, limit))
+        except (logs.LogError, ValueError) as exc:
+            return web.json_response({"ERROR": str(exc)}, status=400)
+        except OSError:
+            return web.json_response({"ERROR": "Log reader is unavailable"}, status=503)
+
+    async def __logs_toggle(self, request):
+        allowed = await self.__logs_allowed(request)
+        node = request.match_info["node"]
+        if node not in allowed:
+            raise web.HTTPForbidden(text='Not permitted on this node')
+        origin = request.headers.get("Origin")
+        if origin:
+            from urllib.parse import urlparse
+            parsed = urlparse(origin)
+            if parsed.scheme not in {"http", "https"} or parsed.netloc.lower() != request.host.lower():
+                raise web.HTTPForbidden(text='Logging request origin is not allowed')
+        if request.content_type != "application/json":
+            raise web.HTTPUnsupportedMediaType(text='Expected JSON')
+        try:
+            payload = await request.json()
+            if not isinstance(payload, dict) or set(payload) != {"enabled"}:
+                raise logs.LogError('Expected an enabled boolean')
+            result = self.logs.set_enabled(node, payload['enabled'])
+            log.info('Connection logging for node %s set to %s', node, result['enabled'])
+            return self.__logs_response(result)
+        except (logs.LogError, ValueError) as exc:
+            return web.json_response({"ERROR": str(exc)}, status=400)
+        except OSError:
+            return web.json_response({"ERROR": "Unable to save logging setting"}, status=503)
 
     @staticmethod
     def __get_json_error(message):
@@ -278,6 +353,9 @@ class ServerWS:
 
         # Handlers for different API commands
         api_routes = [
+            web.get("/logs/state", self.__logs_state),
+            web.get(r"/logs/{kind:connections|messages}", self.__logs_read),
+            web.post(r"/logs/nodes/{node:[0-9]+}", self.__logs_toggle),
             web.post("/cmd", self.__proc_cmd),
             web.post("/login", self.__proc_login),
             web.get(r"/auth/{cmd:.*}", self.__proc_auth),

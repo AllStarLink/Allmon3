@@ -10,6 +10,10 @@ BINS = \
 
 MANS_SRC = $(wildcard *.1.md)
 
+LOG_HELPERS = helpers/log-reader helpers/connection-log
+libexecdir ?= /usr/lib/allmon3
+LOG_HELPERS_EXP = $(patsubst helpers/%, $(DESTDIR)$(libexecdir)/%, $(LOG_HELPERS))
+
 PY_SRC = $(wildcard asl_allmon/*/__init__.py)
 
 prefix ?= /usr
@@ -27,7 +31,7 @@ PY_EXP = $(patsubst %, $(DESTDIR)$(pylibdir)/%, $(PY_SRC))
 showpy:
 	echo $(PY_EXP)
 
-install: $(BINS_EXP) $(MANS_EXP) $(PY_EXP)
+install: $(BINS_EXP) $(MANS_EXP) $(PY_EXP) $(LOG_HELPERS_EXP)
 
 mans:	$(MANS_EXP)
 
@@ -43,3 +47,6 @@ $(DESTDIR)$(mandir)/man1/%:	%.md
 
 $(DESTDIR)$(pylibdir)/%:	%
 	install -D -m 0644 $< $@
+
+$(DESTDIR)$(libexecdir)/%: helpers/%
+	install -D -m 0755 $< $@

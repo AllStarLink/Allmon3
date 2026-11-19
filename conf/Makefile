@@ -3,14 +3,14 @@ prefix ?= /usr
 docdir ?= $(prefix)/share/doc/allmon3
 apacheconf ?= /etc/apache2/conf-available
 
-CONF_FILES = $(filter-out Makefile allmon3.conf , $(wildcard *))
+CONF_FILES = $(filter-out Makefile allmon3.conf allmon3-logs.sudoers allmon3-connectlog.logrotate , $(wildcard *))
 CONF_INSTALLABLES = $(patsubst %, $(DESTDIR)$(sysconfdir)/%, $(CONF_FILES))
 CONF_DOCABLES = $(patsubst %, $(DESTDIR)$(docdir)/%, $(CONF_FILES))
 
 CONF_APACHE_FILES = allmon3.conf
 CONF_APACHE = $(patsubst %, $(DESTDIR)$(apacheconf)/%, $(CONF_APACHE_FILES))
 
-INSTALLABLES = $(CONF_INSTALLABLES) $(CONF_DOCABLES) $(CONF_APACHE)
+INSTALLABLES = $(DESTDIR)/etc/sudoers.d/allmon3-logs $(DESTDIR)$(docdir)/allmon3-connectlog.logrotate $(CONF_INSTALLABLES) $(CONF_DOCABLES) $(CONF_APACHE)
 
 ifeq ($(shell id -u), 0)
 ifeq ($(shell grep allmon3 /etc/passwd | wc -l), 1)
@@ -43,3 +43,9 @@ $(DESTDIR)$(docdir)/%: %
 	install -D -m 0644  $< $@
 
 
+
+$(DESTDIR)/etc/sudoers.d/allmon3-logs: allmon3-logs.sudoers
+	install -D -m 0440 $< $@
+
+$(DESTDIR)$(docdir)/allmon3-connectlog.logrotate: allmon3-connectlog.logrotate
+	install -D -m 0644 $< $@

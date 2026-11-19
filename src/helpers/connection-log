@@ -1,0 +1,38 @@
+#!/usr/bin/python3 -I
+"""AllStar connection hook: text metadata only, with per-node recording gates."""
+import datetime
+import fcntl
+import json
+import re
+import sys
+
+SETTINGS = '/var/lib/allmon3-log-settings/nodes.json'
+
+def enabled(local, settings=SETTINGS):
+    try:
+        with open(settings) as stream:
+            data = json.loads(stream.read(65537))
+        if not isinstance(data, dict): return True
+        return data.get(local) is not False
+    except (OSError, ValueError):
+        # A missing/broken optional setting must not silently lose connection history.
+        return True
+
+def emit(path, event, local, remote, settings=SETTINGS):
+    if event not in ('CONNECT', 'DISCONNECT', 'LOGGING_ENABLED', 'ALREADY_CONNECTED'):
+        raise ValueError('Invalid event')
+    if not all(re.fullmatch(r'[A-Za-z0-9_.-]{1,64}', value) for value in (local, remote)):
+        raise ValueError('Invalid node identifier')
+    if event in ('CONNECT', 'DISCONNECT') and not enabled(local, settings):
+        return False
+    stamp = datetime.datetime.now().astimezone().isoformat(timespec='seconds')
+    with open(path, 'a', encoding='utf-8') as log:
+        fcntl.flock(log, fcntl.LOCK_EX)
+        log.write(f'{stamp} event={event} local={local} remote={remote}\n')
+        log.flush()
+    return True
+
+if __name__ == '__main__':
+    if len(sys.argv) != 4:
+        raise SystemExit('Usage: connection-log EVENT LOCAL REMOTE')
+    emit('/var/log/asterisk/connectlog', *sys.argv[1:])
