@@ -6,7 +6,7 @@ import json
 import re
 import sys
 
-SETTINGS = '/var/lib/allmon3-log-settings/nodes.json'
+SETTINGS = '/etc/allmon3/logging/nodes.json'
 
 def enabled(local, settings=SETTINGS):
     try:

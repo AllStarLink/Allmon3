@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import runpy
 import sys
+import tarfile
 import types
 from unittest.mock import AsyncMock
 import pytest
@@ -13,10 +14,36 @@ from aiohttp.test_utils import TestClient, TestServer
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
-from asl_allmon.logs import LogService, LogError
+from asl_allmon.logs import LogService, LogError, DEFAULT_LOG_SETTINGS
 from asl_allmon import allmon3_server
 HOOK = runpy.run_path(str(ROOT/'src/helpers/connection-log'))
 READER = runpy.run_path(str(ROOT/'src/helpers/log-reader'))
+
+def test_configuration_backup_restores_switches_and_hook_gates(tmp_path):
+    assert HOOK['SETTINGS'] == DEFAULT_LOG_SETTINGS
+    relative = Path(DEFAULT_LOG_SETTINGS).relative_to('/etc/allmon3')
+    config = tmp_path/'original/etc/allmon3'
+    settings = config/relative
+    settings.parent.mkdir(parents=True, mode=0o755)
+    manifest = config/'logging-nodes.json'
+    manifest.write_text('{"nodes":["1999","2000"]}')
+    service = LogService(['1999','2000'], manifest, settings)
+    service.set_enabled('1999', False)
+    service.set_enabled('2000', True)
+    archive = tmp_path/'config.tar'
+    with tarfile.open(archive, 'w') as backup:
+        backup.add(config, arcname='etc/allmon3')
+    with tarfile.open(archive) as backup:
+        backup.extractall(tmp_path/'restored', filter='data')
+    restored_config = tmp_path/'restored/etc/allmon3'
+    restored = LogService(['1999','2000'], restored_config/'logging-nodes.json', restored_config/relative)
+    assert restored._settings() == {'1999':False, '2000':True}
+    assert restored.settings.stat().st_mode & 0o777 == 0o644
+    log = tmp_path/'connectlog'
+    assert not HOOK['emit'](log,'CONNECT','1999','111',restored.settings)
+    assert HOOK['emit'](log,'CONNECT','2000','222',restored.settings)
+    restored.set_enabled('1999', True)
+    assert HOOK['emit'](log,'CONNECT','1999','111',restored.settings)
 
 @pytest.fixture
 def service(tmp_path):

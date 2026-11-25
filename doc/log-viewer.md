@@ -83,7 +83,7 @@ silent loss of history; malformed settings are reported as an error by the UI.
   It rejects symlinks/non-regular files and reads a bounded tail. It accepts no
   arbitrary paths or commands. Sudoers permits Allmon3 to run this reader as
   **asterisk**, never root; Allmon3 is not added to the asterisk group.
-- State: `/var/lib/allmon3-log-settings/nodes.json`, mode0644 in a mode0755 directory
+- Preferences: `/etc/allmon3/logging/nodes.json`, mode0644 in a mode0755 directory
   owned by allmon3. This holds only boolean flags, no credentials. Writes use a
   stable lock, atomic replacement and fsync. The hook account has read-only access.
 - Debian installs the module, JS, helpers, sudoers rule and empty manifest; postinst
@@ -96,6 +96,40 @@ silent loss of history; malformed settings are reported as an error by the UI.
 The viewer does not clear/delete logs, execute link commands, queue audio or transmit.
 Access to the host-wide messages log intentionally grants visibility of all messages
 in that file, including lines with no identifiable local node.
+
+## Configuration backups and earlier preview versions
+
+Recording preferences now live alongside the node configuration, so recursive
+backups of `/etc/allmon3` preserve the switches and `logging-nodes.json` manifest.
+The JSON is runtime-created, not a packaged conffile. Log history itself remains
+in `/var/log/asterisk`; back it up separately if needed. Only the dedicated
+`/etc/allmon3/logging` directory is service-writable. For manual installations:
+
+```sh
+sudo install -d -m 0755 -o allmon3 -g allmon3 /etc/allmon3/logging
+```
+
+Keep `/etc/allmon3` traversable by the Asterisk hook (normally 0755), without
+making it writable by the hook or Allmon3. Preferences are 0644 and contain only
+boolean flags; credential-file permissions are unchanged. Stop Allmon3 while
+backing up/restoring preferences, restore their `allmon3:allmon3` ownership and
+permissions, then restart. The hook reads the file on each event; during a
+missing-file restore interval it defaults to recording, so coordinate restores
+at idle if precise logging gates are required. No Asterisk restart is needed.
+
+Earlier unreleased versions used `/var/lib/allmon3-log-settings/nodes.json`.
+There is no automatic migration. Stop Allmon3, back up both locations, provision
+the new directory, then copy the old file only if the new one does not exist:
+
+```sh
+sudo sh -ec 'test ! -e /etc/allmon3/logging/nodes.json &&
+    test ! -L /etc/allmon3/logging/nodes.json &&
+    install -m 0644 -o allmon3 -g allmon3 /var/lib/allmon3-log-settings/nodes.json /etc/allmon3/logging/nodes.json'
+```
+
+Keep the old file until the switches and hook behavior are verified. If both
+files already exist, review them instead of overwriting. Update the installed
+connection hook together with the server; both must read the same new path.
 
 ## Tests
 

@@ -7,12 +7,14 @@ from pathlib import Path
 import re
 import tempfile
 
+DEFAULT_LOG_SETTINGS = '/etc/allmon3/logging/nodes.json'
+
 class LogError(ValueError):
     pass
 
 class LogService:
     def __init__(self, local_nodes, manifest='/etc/allmon3/logging-nodes.json',
-                 settings='/var/lib/allmon3-log-settings/nodes.json'):
+                 settings=DEFAULT_LOG_SETTINGS):
         self.settings = Path(settings)
         try:
             configured = json.loads(Path(manifest).read_text())['nodes']
