@@ -1,6 +1,7 @@
 """Regression checks for favorites persistence and edits."""
 
 import importlib.util
+import tarfile
 import tempfile
 import unittest
 from pathlib import Path
@@ -14,6 +15,38 @@ FavoritesError = module.FavoritesError
 
 
 class FavoritesTest(unittest.TestCase):
+    def test_configuration_backup_restores_favorites_and_group_edits(self):
+        # Node backups capture /etc/allmon3, not application state in /var/lib.
+        relative = Path(module.DEFAULT_FAVORITES_CONFIG).relative_to("/etc/allmon3")
+        self.assertNotEqual(relative.parent, Path("."))
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            config = root / "original/etc/allmon3"
+            path = config / relative
+            path.parent.mkdir(parents=True, mode=0o750)
+            other_config = config / "web.ini"
+            other_config.write_text("[favorites-groups]\nsite = 1999,2000\n")
+            store = FavoritesStore(path, [["1999", "2000"]])
+            store.change(1999, "save", "111", "Keep")
+            store.change(2000, "save", "222", "Delete before backup")
+            store.change(1999, "delete", "222")
+
+            archive = root / "node-config-backup.tar"
+            with tarfile.open(archive, "w") as backup:
+                backup.add(config, arcname="etc/allmon3")
+            with tarfile.open(archive) as backup:
+                backup.extractall(root / "restored", filter="data")
+
+            restored_path = root / "restored/etc/allmon3" / relative
+            self.assertEqual(restored_path.read_bytes(), path.read_bytes())
+            self.assertEqual(restored_path.stat().st_mode & 0o777, 0o640)
+            restored = FavoritesStore(restored_path, [["1999", "2000"]])
+            restored.synchronize()
+            self.assertEqual(restored.list(2000), [{"node": "111", "label": "Keep"}])
+            restored.change(2000, "save", "333", "Renamed", original_node="111")
+            self.assertEqual(restored.list(1999), [{"node": "333", "label": "Renamed"}])
+            self.assertEqual(other_config.read_text(), "[favorites-groups]\nsite = 1999,2000\n")
+
     def test_save_rename_delete_and_reload_per_source(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             path = Path(temp_dir) / "favorites.json"

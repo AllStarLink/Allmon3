@@ -26,7 +26,7 @@ class ServerWS:
 
     __MAX_MSG_LEN = 256
 
-    def __init__(self, configs_web, configs_node, server_security, favorites_file="/var/lib/allmon3/favorites.json"):
+    def __init__(self, configs_web, configs_node, server_security, favorites_file=favorites.DEFAULT_FAVORITES_CONFIG):
         self.config_web = configs_web
         self.config_nodes = configs_node
         self.httpserver = web.Application()

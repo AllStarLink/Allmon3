@@ -18,6 +18,7 @@ import signal
 import sys
 from asl_allmon import allmon3_server, allmon3_ws_status, allmon3_ws_cmd, allmon3_ws_voter
 from asl_allmon import node_configs, node_db, security, web_configs
+from asl_allmon.favorites import DEFAULT_FAVORITES_CONFIG
 
 _BUILD_ID = "@@HEAD-DEVELOP@@"
 
@@ -136,7 +137,7 @@ ap.add_argument("--nodes", type=str, help="Only start the node(s) listed as --no
 ap.add_argument("--config", help="path to INI configuration allmon3 nodes (default /etc/allmon3/allmon3.ini)")
 ap.add_argument("--webconfig", help="path to INI configuration for web services (default /etc/allmon3/web.ini")
 ap.add_argument("--menuconfig", help="path to INI configuration for menus (default /etc/allmon3/menu.ini")
-ap.add_argument("--favoritesconfig", help="path to JSON storage for link favorites (default /var/lib/allmon3/favorites.json)")
+ap.add_argument("--favoritesconfig", help=f"path to JSON storage for link favorites (default {DEFAULT_FAVORITES_CONFIG})")
 ap.add_argument("--debug", help="enable debug-level logging output", action="store_true")
 ap.add_argument("--debugmodule", type=str, help="enable debugging only for module specified")
 ap.add_argument("--version", help="get the version of the software", action="version", version='%(prog)s {}'.format(_BUILD_ID))
@@ -179,7 +180,7 @@ else:
 if args.favoritesconfig:
     favorites_config_file = args.favoritesconfig
 else:
-    favorites_config_file = "/var/lib/allmon3/favorites.json"
+    favorites_config_file = DEFAULT_FAVORITES_CONFIG
 
 try:
     # Config Parse
