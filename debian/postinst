@@ -30,6 +30,9 @@ do_configure() {
 	chown allmon3:allmon3 /etc/allmon3/allmon3.ini /etc/allmon3/user*
 	chmod 660 /etc/allmon3/allmon3.ini /etc/allmon3/user*
 
+	# Saved schedules, settings and originals belong in node configuration backups.
+	install -d -m 0750 -o allmon3 -g allmon3 /etc/allmon3/audio
+	# Runtime timeout ownership must remain separate from restored configuration.
 	install -d -m 0750 -o allmon3 -g allmon3 /var/lib/allmon3
 	install -d -m 0755 -o allmon3 -g allmon3 /var/cache/allmon3
 

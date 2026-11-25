@@ -116,7 +116,10 @@ class ControlsTest(unittest.IsolatedAsyncioTestCase):
         (self.s.converted/f'{self.asset}_000.ulaw').write_bytes(b'\xff'*8)
         self.job_id=self.s.enqueue(1998,'checkpoint',['asset:'+self.asset])
         self.job=self.s._claim_job(1998)
-        with patch.object(audio,'GAP_SECONDS',0):
+        # This control-only fixture shortens segment 0 deliberately; cache
+        # validation/rebuilding is exercised with real audio in test_audio.py.
+        segments = sorted(self.s.converted.glob(f'{self.asset}_*.ulaw'))
+        with patch.object(audio,'GAP_SECONDS',0), patch.object(self.s, '_ensure_segments', return_value=segments):
             self.task=asyncio.create_task(self.s._run_job(self.job));self.s.active[1998]=self.task
             await self.wait_calls(2);await self.command('pause');await self.command('resume');await self.wait_calls(3)
             self.assertEqual(self.calls[1],self.calls[2]);self.assertNotEqual(self.calls[0],self.calls[2])

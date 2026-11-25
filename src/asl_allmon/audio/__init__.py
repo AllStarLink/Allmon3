@@ -18,6 +18,8 @@ from zoneinfo import ZoneInfo
 
 import aiohttp
 
+DEFAULT_AUDIO_CONFIG = "/etc/allmon3/audio"
+
 MAX_UPLOAD = 100 * 1024 * 1024
 MAX_SECONDS = 3600
 SEGMENT_SECONDS = 150
@@ -121,6 +123,7 @@ class AudioService:
         self.collect_task = None
         self.last_collect_attempt = 0
         self.tts_lock = asyncio.Lock()
+        self.asset_locks = {}
 
     def initialize(self):
         self.originals.mkdir(mode=0o750, parents=True, exist_ok=True)
@@ -167,6 +170,7 @@ class AudioService:
         db = sqlite3.connect(self.db_path, timeout=10)
         db.row_factory = sqlite3.Row
         try:
+            os.chmod(self.db_path, 0o640)
             with db:
                 yield db
         finally:
@@ -302,6 +306,37 @@ class AudioService:
         if not isinstance(name, str) or not 1 <= len(name.strip()) <= 100:
             raise AudioError("Audio file needs a name")
         return await asyncio.to_thread(self._convert, Path(temp_path), name.strip(), extension, source)
+
+    def _ensure_segments(self, asset_id):
+        """Rebuild disposable playback cache from backed-up originals, keeping IDs."""
+        original = self.asset_original(asset_id)
+        with self._db() as db:
+            row = db.execute("SELECT seconds FROM assets WHERE id=?", (asset_id,)).fetchone()
+        expected_bytes = round(row["seconds"] * 8000)
+        segment_bytes = 8000 * SEGMENT_SECONDS
+        count = (expected_bytes + segment_bytes - 1) // segment_bytes
+        if not 0 < expected_bytes <= MAX_SECONDS * 8000:
+            raise AudioError("Invalid stored audio duration")
+        segments = [self.converted / f"{asset_id}_{index:03d}.ulaw" for index in range(count)]
+        sizes = [min(segment_bytes, expected_bytes - index * segment_bytes) for index in range(count)]
+        if all(path.is_file() and path.stat().st_size == size for path, size in zip(segments, sizes)):
+            return segments
+        # Publish only after conversion and all size checks succeed. No AMI calls.
+        with tempfile.TemporaryDirectory(dir=self.cache) as temp_dir:
+            raw = Path(temp_dir) / "converted.ulaw"
+            self._tool(["ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
+                        "-i", str(original), "-map", "0:a:0", "-vn",
+                        "-af", "highpass=f=300,lowpass=f=3400", "-ar", "8000", "-ac", "1",
+                        "-c:a", "pcm_mulaw", "-f", "mulaw", str(raw)], 600)
+            if raw.stat().st_size != expected_bytes:
+                raise AudioError("Restored audio duration differs from the saved library")
+            with raw.open("rb") as stream:
+                for path, size in zip(segments, sizes):
+                    staged = Path(temp_dir) / path.name
+                    staged.write_bytes(stream.read(size))
+                    os.chmod(staged, 0o644)
+                    os.replace(staged, path)
+        return segments
 
     @staticmethod
     def _tool(args, timeout, input=None):
@@ -640,9 +675,8 @@ class AudioService:
                         asset_id = await self.fetch_source(source)
                     else:
                         asset_id = cached["asset_id"]
-                segments = sorted(self.converted.glob(f"{asset_id}_[0-9][0-9][0-9].ulaw"))
-                if not segments:
-                    raise AudioError("Converted audio is missing; refresh or upload again")
+                async with self.asset_locks.setdefault(asset_id, asyncio.Lock()):
+                    segments = await asyncio.to_thread(self._ensure_segments, asset_id)
                 prepared.append((segments, None))
             except Exception as e:
                 if not source:

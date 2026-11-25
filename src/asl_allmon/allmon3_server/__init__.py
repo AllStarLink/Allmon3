@@ -48,7 +48,7 @@ class ServerWS:
         timeout_guard = audio_tot.TimeoutGuard(
             "/var/lib/allmon3/audio-tot", audio_tot.ami_command(configs_node),
             audio_tot.identities(configs_node, local_nodes))
-        self.audio = audio.AudioService("/var/lib/allmon3", "/var/cache/allmon3",
+        self.audio = audio.AudioService(audio.DEFAULT_AUDIO_CONFIG, "/var/cache/allmon3",
                                         local_nodes, self.__play_audio, timeout_guard, self.__stop_audio)
 
 

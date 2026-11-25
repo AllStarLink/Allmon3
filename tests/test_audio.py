@@ -4,6 +4,7 @@ import importlib.util
 import shutil
 import subprocess
 import tempfile
+import tarfile
 import unittest
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -33,6 +34,53 @@ class BulletinTest(unittest.TestCase):
 
 @unittest.skipUnless(shutil.which("ffmpeg") and shutil.which("ffprobe"), "ffmpeg required")
 class AudioServiceTest(unittest.IsolatedAsyncioTestCase):
+    async def test_config_backup_restores_library_schedules_and_master_without_cache(self):
+        root = Path(self.temp.name)
+        relative = Path(audio.DEFAULT_AUDIO_CONFIG).relative_to("/etc/allmon3")
+        original = audio.AudioService(root / "original/etc/allmon3" / relative,
+                                      root / "original/cache", [1999, 2000], AsyncMock())
+        original.initialize()
+        asset = await original.ingest(self.wav, "Saved station ID", ".wav")
+        original_bytes = original.asset_original(asset).read_bytes()
+        segment_bytes = next(original.converted.glob(f"{asset}_*.ulaw")).read_bytes()
+        schedule = original.create_schedule(1999, "Daily ID", ["asset:" + asset], "daily", local_time="12:00")
+        original.set_playback_enabled(False)
+        archive = root / "config.tar"
+        with tarfile.open(archive, "w") as backup:
+            backup.add(root / "original/etc/allmon3", arcname="etc/allmon3")
+        with tarfile.open(archive) as backup:
+            backup.extractall(root / "restored", filter="data")
+        playback = AsyncMock()
+        restored = audio.AudioService(root / "restored/etc/allmon3" / relative,
+                                      root / "restored/cache", [1999, 2000], playback)
+        restored.initialize()
+        self.assertFalse(restored.playback_enabled())
+        saved = restored.snapshot([1999])["schedules"][0]
+        self.assertEqual(saved["id"], schedule)
+        self.assertEqual(saved["items"], ["asset:" + asset])
+        self.assertEqual(restored.asset_original(asset).read_bytes(), original_bytes)
+        self.assertEqual(restored.db_path.stat().st_mode & 0o777, 0o640)
+        self.assertFalse(list(restored.converted.iterdir()))
+        prepared = await restored._prepare_job_items({"id": "restore-check"}, saved["items"])
+        segments, error = prepared[0]
+        self.assertIsNone(error)
+        self.assertEqual(segments[0].read_bytes(), segment_bytes)
+        self.assertEqual(segments[0].stat().st_mode & 0o777, 0o644)
+        # A truncated cache is also disposable; regenerate without changing asset IDs.
+        segments[0].write_bytes(b"partial")
+        await restored._prepare_job_items({"id": "restore-check"}, saved["items"])
+        self.assertEqual(segments[0].read_bytes(), segment_bytes)
+        playback.assert_not_awaited()
+
+    async def test_missing_original_and_cache_fails_before_playback(self):
+        asset = await self.service.ingest(self.wav, "Missing original", ".wav")
+        self.service.asset_original(asset).unlink()
+        for segment in self.service.converted.glob(f"{asset}_*.ulaw"):
+            segment.unlink()
+        with self.assertRaises(audio.AudioError):
+            await self.service._prepare_job_items({"id": "restore-check"}, ["asset:" + asset])
+        self.assertEqual(self.calls, [])
+
     async def asyncSetUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

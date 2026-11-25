@@ -41,6 +41,7 @@ class AudioAPITest(unittest.TestCase):
                 session_db={"valid": types.SimpleNamespace(user="ham")},
                 restricted_users={"ham"}, restrictdb={"ham1999"})
             server = ServerWS(None, nodes, security)
+            self.assertEqual(server.audio.state, Path("/etc/allmon3/audio"))
             server.audio.state = Path(temp_dir) / "state"
             server.audio.cache = Path(temp_dir) / "cache"
             server.audio.originals = server.audio.state / "audio-originals"

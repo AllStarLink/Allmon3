@@ -35,7 +35,7 @@ class BoundaryTTSTest(unittest.IsolatedAsyncioTestCase):
         self.s=audio.AudioService(Path(self.temp.name)/'s',Path(self.temp.name)/'c',[1998],playback,self.guard,stop)
         self.s.initialize();self.asset='a'*32
         with self.s._db() as db:
-            db.execute('INSERT INTO assets VALUES(?,?,?,?,?,?,?)',(self.asset,'test',None,'.wav',1,0,'sha'))
+            db.execute('INSERT INTO assets VALUES(?,?,?,?,?,?,?)',(self.asset,'test',None,'.wav',0.1,0,'sha'))
         (self.s.converted/f'{self.asset}_000.ulaw').write_bytes(b'\xff'*800)
         name=self.s.converted/'spoken-name.ulaw';name.write_bytes(b'\xff'*800)
         self.s.prepare_stack_name=AsyncMock(return_value=name)
