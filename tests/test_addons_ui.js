@@ -30,6 +30,47 @@ const fs=require('fs'),path=require('path'),assert=require('node:assert/strict')
   assert.ok((await page.locator('.audio-timezone').allTextContents()).every(x=>x==='Europe/London'));
   await page.evaluate(()=>{loggedIn=false;document.dispatchEvent(new Event('allmon3:auth'));refreshAddonNodes()});
   assert.equal(await page.locator('.allmon3-node-addons button').count(),0);assert.equal(await page.locator('#audio-manager').isVisible(),false);
+  // A slow response from the previous login must not repopulate a new session.
+  await page.evaluate(async () => {
+   loggedIn=true; await audioAuthChanged();
+   audioStack=['source:arn']; renderAudioStack();
+   audioEl('audio-stack-name').value='Previous user draft';
+   window.pendingState=[];
+   window.originalAudioRequest=audioRequest;
+   audioRequest=(endpoint, options) => endpoint==='state'
+    ? new Promise((resolve,reject)=>pendingState.push({resolve,reject}))
+    : originalAudioRequest(endpoint,options);
+   window.oldRefresh=refreshAudioState();
+   loggedIn=false; await audioAuthChanged();
+  });
+  assert.equal(await page.locator('#audio-stack-name').inputValue(),'');
+  assert.equal(await page.locator('#audio-node option').count(),0);
+  assert.equal(await page.evaluate(()=>audioState),null);
+  assert.deepEqual(await page.evaluate(()=>audioStack),[]);
+  await page.evaluate(()=>{loggedIn=true;window.newLogin=audioAuthChanged()});
+  assert.equal(await page.evaluate(()=>pendingState.length),2);
+  await page.evaluate(async()=>{
+   pendingState[0].resolve({nodes:[1998],timezone:'UTC',assets:[],sources:[],schedules:[],jobs:[]});
+   await oldRefresh;
+  });
+  assert.equal(await page.evaluate(()=>audioState),null);
+  assert.equal(await page.evaluate(()=>audioRefreshing),true);
+  await page.evaluate(async()=>{
+   pendingState[1].resolve({nodes:[2000],timezone:'UTC',assets:[],sources:[],schedules:[],jobs:[]});
+   await newLogin;
+  });
+  assert.deepEqual(await page.evaluate(()=>audioState.nodes),[2000]);
+  assert.equal(await page.locator('[data-node="1998"] button').count(),0);
+  assert.equal(await page.locator('[data-node="2000"] button').count(),1);
+  // A delayed failure must not reveal old session messages after logout either.
+  await page.evaluate(async()=>{
+   window.oldFailure=refreshAudioState();loggedIn=false;await audioAuthChanged();
+   pendingState[2].reject(new Error('Previous user request failed'));await oldFailure;
+   audioRequest=originalAudioRequest;
+  });
+  assert.equal(await page.locator('#audio-feedback').innerText(),'');
+  assert.equal(await page.evaluate(()=>audioState),null);
+  assert.deepEqual(errors,[]);console.log('PASS: logout clears drafts and discards stale responses/errors across logins.');
   assert.deepEqual(errors,[]);console.log('PASS: base-only no audio requests/UI; optional per-node embedding, timezone labels and logout cleanup; no RF backend.');
  } finally {await browser.close();}
 })().catch(e=>{console.error(e);process.exit(1)});

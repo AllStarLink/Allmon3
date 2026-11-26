@@ -114,7 +114,7 @@ class AnnouncementsAddon:
                 while chunk := await part.read_chunk(65536):
                     size += len(chunk)
                     if size > self.settings.max_upload:
-                        raise audio.AudioError("Audio file exceeds 100 MB")
+                        raise audio.AudioError(f"Audio file exceeds {self.settings.max_upload // (1024 * 1024)} MB")
                     target.write(chunk)
             asset_id = await self.audio.ingest(temp_name, safe_name, extension)
             return web.json_response({"SUCCESS": {"id": asset_id}})

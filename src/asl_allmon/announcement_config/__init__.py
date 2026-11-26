@@ -9,6 +9,8 @@ class AnnouncementConfig:
         if Path(path).exists():
             with Path(path).open() as stream:
                 config.read_file(stream)
+            if set(config.sections()) != {'announcements'} or config.defaults():
+                raise ValueError('announcements.ini must contain only an [announcements] section')
         values = dict(config['announcements']) if 'announcements' in config else {}
         allowed = {'max_upload_mb','max_seconds','segment_seconds','gap_seconds','timezone',
                    'release_hour','local_nodes','state_dir','cache_dir'}
@@ -28,6 +30,8 @@ class AnnouncementConfig:
         if self.timezone != 'system':
             ZoneInfo(self.timezone)
         self.local_nodes = {int(n) for n in values.get('local_nodes','').replace(',',' ').split()}
+        if any(node <= 0 for node in self.local_nodes):
+            raise ValueError('local_nodes must contain positive node numbers')
         self.state_dir = values.get('state_dir','/etc/allmon3/audio')
         self.cache_dir = values.get('cache_dir','/var/cache/allmon3')
         if not all(Path(p).is_absolute() for p in [self.state_dir,self.cache_dir]):

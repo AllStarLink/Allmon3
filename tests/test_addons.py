@@ -56,3 +56,17 @@ class AddonTests(unittest.TestCase):
         start=datetime(2026,3,7,3,tzinfo=c.zone).timestamp()
         expected=datetime(2026,3,15,2,30,tzinfo=c.zone).timestamp()
         self.assertEqual(c.weekly_next(6,'02:30',start),expected)
+
+    def test_existing_announcements_config_cannot_silently_fall_back(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory, 'announcements.ini')
+            for content in ['', '[announcement]\nlocal_nodes=1999\n',
+                            '[announcements]\n[other]\nx=1\n',
+                            '[DEFAULT]\nlocal_nodes=1999\n[announcements]\n',
+                            '[announcements]\nlocal_nodes=0,-1999\n']:
+                with self.subTest(content=content):
+                    path.write_text(content)
+                    with self.assertRaises(ValueError):
+                        AnnouncementConfig(path)
+            path.unlink()
+            self.assertEqual(AnnouncementConfig(path).gap_seconds, 15)

@@ -35,6 +35,11 @@ Settings live in root-owned INI files:
   Default `backend=asl3` uses packaged Piper's CLI. `backend=python` supports an
   already-installed Python Piper runtime, but is not required by the package.
 
+An existing `announcements.ini` must contain exactly `[announcements]`, without
+`[DEFAULT]` or unrelated sections; invalid settings fail startup instead of
+silently expanding the local-node filter or using default limits. Only an absent
+file uses built-in defaults. `local_nodes` accepts positive node numbers.
+
 To select Ryan after installing its model and matching JSON in `model_dir`, change
 just `voice = en_US-ryan-medium`. Do not rename or overwrite stock voice files.
 Validate with `sudo -u allmon3 python3 -m asl_allmon.speech`, then restart Allmon3

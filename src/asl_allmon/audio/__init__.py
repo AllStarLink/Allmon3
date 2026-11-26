@@ -457,7 +457,7 @@ class AudioService:
                             async for chunk in response.content.iter_chunked(65536):
                                 size += len(chunk)
                                 if size > self.settings.max_upload:
-                                    raise AudioError("News file exceeds 100 MB")
+                                    raise AudioError(f"News file exceeds {self.settings.max_upload // (1024 * 1024)} MB")
                                 target.write(chunk)
                     except Exception:
                         temp_path.unlink(missing_ok=True)

@@ -9,6 +9,7 @@ import types
 import unittest
 from pathlib import Path
 from aiohttp import web
+from unittest.mock import AsyncMock
 
 
 def load_server():
@@ -31,6 +32,25 @@ def load_server():
 
 
 class AudioAPITest(unittest.TestCase):
+    def test_configured_upload_limit_is_enforced_reported_and_tempfile_removed(self):
+        cls = load_server()
+        with tempfile.TemporaryDirectory() as directory:
+            server = cls.__new__(cls)
+            server.settings = types.SimpleNamespace(max_upload=1024 * 1024)
+            server.audio = types.SimpleNamespace(originals=directory, ingest=AsyncMock())
+            server._AnnouncementsAddon__audio_authorize = AsyncMock(return_value=[1999])
+            part = types.SimpleNamespace(name='file', filename='sample.wav',
+                                         read_chunk=AsyncMock(return_value=b'x' * (1024 * 1024 + 1)))
+            reader = types.SimpleNamespace(next=AsyncMock(return_value=part))
+            request = types.SimpleNamespace(headers={}, query={'node': '1999'},
+                                            content_type='multipart/form-data',
+                                            multipart=AsyncMock(return_value=reader))
+            response = asyncio.run(server._AnnouncementsAddon__audio_upload(request))
+            self.assertEqual(response.status, 400)
+            self.assertEqual(json.loads(response.text)['ERROR'], 'Audio file exceeds 1 MB')
+            server.audio.ingest.assert_not_awaited()
+            self.assertEqual(list(Path(directory).iterdir()), [])
+
     def test_audio_api_restricts_node_and_origin(self):
         ServerWS = load_server()
         with tempfile.TemporaryDirectory() as temp_dir:

@@ -3,6 +3,7 @@ function audioDate(seconds) { return new Date(seconds * 1000).toLocaleString(und
 let audioState = null;
 let audioStack = [];
 let audioRefreshing = false;
+let audioAuthGeneration = 0;
 let audioVisible = false;
 let audioControlBusy = false;
 let audioMasterBusy = false;
@@ -18,10 +19,24 @@ function audioMessage(message, error = false) {
 async function audioAuthChanged() {
 	if (!audioEl('audio-manager')) return;
 	if (!loggedIn) {
+		// Invalidate in-flight reads before another user can log in.
+		audioAuthGeneration++;
+		audioRefreshing = false;
 		audioEl('audio-navigation').classList.add('d-none');
 		audioEl('audio-manager').classList.add('d-none');
 		audioVisible = false;
 		audioState = null;
+		audioStack = [];
+		for (const id of ['audio-node', 'audio-add-item', 'audio-library', 'audio-sources', 'audio-schedules', 'audio-jobs']) {
+			audioEl(id).replaceChildren();
+		}
+		audioEl('audio-stack-name').value = '';
+		audioEl('audio-upload').value = '';
+		audioEl('audio-manager').open = false;
+		audioMessage('');
+		renderAudioStack();
+		renderAudioControls();
+		if (typeof refreshAddonNodes === 'function') refreshAddonNodes();
 		audioEl('audio-preview').pause();
 		audioEl('audio-preview').removeAttribute('src');
 		return;
@@ -48,15 +63,18 @@ async function audioRequest(path, options) {
 async function refreshAudioState() {
 	if (!loggedIn || audioRefreshing) return;
 	audioRefreshing = true;
+	const generation = audioAuthGeneration;
 	try {
-		audioState = await audioRequest('state');
+		const state = await audioRequest('state');
+		if (!loggedIn || generation !== audioAuthGeneration) return;
+		audioState = state;
 		renderAudioState();
         if (typeof refreshAddonNodes === 'function') refreshAddonNodes();
         document.querySelectorAll('.audio-timezone').forEach(el => { el.textContent = audioState.timezone || 'UTC'; });
 	} catch (e) {
-		audioMessage(e.message, true);
+		if (loggedIn && generation === audioAuthGeneration) audioMessage(e.message, true);
 	} finally {
-		audioRefreshing = false;
+		if (generation === audioAuthGeneration) audioRefreshing = false;
 	}
 }
 
