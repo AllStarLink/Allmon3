@@ -7,6 +7,7 @@ let audioAuthGeneration = 0;
 let audioVisible = false;
 let audioControlBusy = false;
 let audioMasterBusy = false;
+let commandMasterBusy = false;
 
 function audioEl(id) { return document.getElementById(id); }
 
@@ -31,6 +32,10 @@ async function audioAuthChanged() {
 			audioEl(id).replaceChildren();
 		}
 		audioEl('audio-stack-name').value = '';
+        audioEl('command-name').value = '';
+        audioEl('command-text').value = '';
+        audioEl('audio-schedule-kind').value = 'audio';
+        toggleAudioScheduleKind();
 		audioEl('audio-upload').value = '';
 		audioEl('audio-manager').open = false;
 		audioMessage('');
@@ -194,7 +199,7 @@ function renderAudioSchedules() {
 		const repeat = schedule.recurrence === 'daily' ? 'Daily at ' + schedule.local_time + ' ' + (audioState.timezone || 'UTC') + ' · ' : '';
 		summary.textContent = schedule.name + ' · node ' + schedule.node + ' · ' + repeat +
 			(schedule.enabled ? 'next ' + audioDate(schedule.next_at) : 'completed') +
-			' · ' + schedule.items.map(audioLabel).join(' → ');
+			' · ' + (schedule.kind === 'command' ? 'Command: ' + schedule.command : schedule.items.map(audioLabel).join(' → '));
 		row.append(summary, audioButton('Delete schedule', () => removeAudio('schedule', schedule.id), 'btn-outline-danger'));
 		list.append(row);
 	}
@@ -209,7 +214,7 @@ function renderAudioJobs() {
 		row.className = 'border rounded p-2 mb-2';
 		const label = document.createElement('span');
 		label.textContent = job.name + ' · node ' + job.node + ' · ' + job.status +
-			' (' + job.position + '/' + job.items.length + ')' + (job.error ? ' · ' + job.error : '');
+			(job.kind === 'command' ? ' · Command: ' + job.command : ' (' + job.position + '/' + job.items.length + ')') + (job.error ? ' · ' + job.error : '');
 		row.append(label);
 		if (job.status === 'pending') row.append(audioButton('Remove', () => removeAudio('job', job.id), 'btn-outline-danger'));
 		list.append(row);
@@ -274,8 +279,27 @@ function toggleAudioScheduleFields() {
 	}
 }
 
+function toggleAudioScheduleKind() {
+    const command = audioEl('audio-schedule-kind').value === 'command';
+    audioEl('command-schedule-fields').classList.toggle('d-none', !command);
+    audioEl('audio-schedule-help').classList.toggle('d-none', command);
+    if (command) {
+        audioEl('audio-stack-validation').classList.add('d-none');
+        audioEl('audio-add-item').classList.remove('is-invalid');
+        audioEl('audio-add-item').removeAttribute('aria-invalid');
+    }
+}
+
+function commandSchedulePayload() {
+    const name = audioEl('command-name').value.trim();
+    const command = audioEl('command-text').value.trim();
+    if (!name || !command) throw new Error('Name the command schedule and enter a command');
+    return { node: selectedAudioNode(), kind: 'command', name, command, items: [] };
+}
+
 async function scheduleAudio() {
-    if (!audioStack.length) {
+    const command = audioEl('audio-schedule-kind').value === 'command';
+    if (!command && !audioStack.length) {
         audioEl('audio-stack-validation').classList.remove('d-none');
         const selection = audioEl('audio-add-item');
         selection.classList.add('is-invalid');
@@ -284,7 +308,7 @@ async function scheduleAudio() {
         return;
     }
 	try {
-		const data = audioStackPayload();
+		const data = command ? commandSchedulePayload() : audioStackPayload();
 		data.recurrence = audioEl('audio-recurrence').value;
 		if (data.recurrence === 'daily') {
 			data.local_time = audioEl('audio-daily-time').value;
@@ -313,7 +337,7 @@ setInterval(() => { if (audioVisible && !document.hidden) refreshAudioState(); }
 
 function activeAudioJob() {
     const node = Number(audioEl('audio-node').value);
-    return audioState?.jobs.find(job => job.node === node &&
+    return audioState?.jobs.find(job => job.kind !== 'command' && job.node === node &&
         ['playing', 'paused', 'pausing', 'stopping', 'control_failed'].includes(job.status));
 }
 
@@ -334,7 +358,30 @@ async function toggleAudioMaster() {
     }
 }
 
+async function toggleCommandMaster() {
+    if (commandMasterBusy) return;
+    const enabled = audioEl('command-master-enabled').checked;
+    const generation = audioAuthGeneration;
+    commandMasterBusy = true;
+    renderAudioControls();
+    try {
+        await audioRequest('command-enable', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ node: selectedAudioNode(), enabled }) });
+        if (loggedIn && generation === audioAuthGeneration) audioMessage('');
+    } catch (e) {
+        if (loggedIn && generation === audioAuthGeneration) audioMessage(e.message, true);
+    } finally {
+        await refreshAudioState();
+        commandMasterBusy = false;
+        renderAudioControls();
+    }
+}
+
 function renderAudioControls() {
+    const commandMaster = audioEl('command-master-enabled');
+    if (!commandMasterBusy) commandMaster.checked = audioState?.command_enabled === true;
+    commandMaster.disabled = commandMasterBusy || !audioState?.can_manage_playback;
+    commandMaster.title = 'Off cancels queued commands and skips scheduled starts. Commands already dispatched cannot be recalled. Independent of audio playback.';
     const enabled = audioState?.playback_enabled !== false;
     const master = audioEl('audio-master-enabled');
     if (!audioMasterBusy) master.checked = enabled;

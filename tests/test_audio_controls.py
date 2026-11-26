@@ -76,6 +76,20 @@ class ControlsTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.status(other),'pending')
         self.assertEqual(self.s.snapshot([1998])['schedules'][0]['id'],schedule)
         self.assertTrue(self.guard.enabled)
+    async def test_audio_pause_blocks_command_and_stop_preserves_pending_command(self):
+        self.s.set_command_enabled(True)
+        ident = self.s.create_schedule(1998, 'Command', [], 'daily', local_time='14:00',
+                                       kind='command', command='rpt fun 1998 *80')
+        with self.s._db() as db:
+            db.execute('UPDATE schedules SET next_at=? WHERE id=?', (datetime.now().timestamp()-1, ident))
+        self.s._due_schedules()
+        await self.command('pause')
+        self.assertIsNone(self.s._claim_job(1998))
+        await self.command('stop')
+        job = self.s._claim_job(1998)
+        self.assertEqual(job['kind'], 'command')
+        self.assertEqual(job['command'], 'rpt fun 1998 *80')
+
     async def test_wrong_node_and_stale_job_do_not_control_playback(self):
         for node,ident in [(1999,self.job_id),(1998,'0'*32)]:
             with self.assertRaises(audio.AudioError):await self.s.control_job(node,ident,'stop')

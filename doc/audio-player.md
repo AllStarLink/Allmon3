@@ -66,6 +66,68 @@ Install/remove/upgrade the optional package only at audio idle. Removing it
 restarts Allmon3, leaves saved configuration/media intact, and removes the add-in
 UI/worker. A retained registration conffile for an absent package is ignored.
 
+## Scheduling commands
+
+Beside **Enable audio playback**, **Enable Command playback** independently
+controls scheduled Asterisk commands. Command playback defaults **off** on new
+installations and upgrades; its value persists across restarts. Audio enable
+retains its previous value. Either global toggle requires access to every local
+node in the add-in; scheduling/deleting a command requires access to its node.
+
+1. Select the **Target node**.
+2. In **Schedule audio or command**, choose **Command**.
+3. Enter a command schedule name and one complete Asterisk CLI command.
+4. Choose **Once**, **Daily**, or **Weekly** and the date/time in the displayed
+   server timezone, then **Save schedule**. No audio stack or audio enable is needed.
+5. Turn on **Enable Command playback** before the scheduled time.
+
+Supported forms are `rpt cmd NODE ...` and `rpt fun NODE ...`. The explicit node
+number must match the selected permitted local node. The input is one line, at
+most 512 printable ASCII characters; global CLI commands, control characters,
+and multi-line AMI input are rejected. Allmon3 sends the line through AMI, not a
+local shell. As with the normal node command interface, these are trusted
+operator actions: an `rpt cmd NODE cmd ...` helper runs with Asterisk's privileges
+and can have effects beyond that node. Only schedule commands/helpers you trust.
+The scheduler neither installs nor validates an external helper's contents.
+
+For example, with target **59521** and an already-installed weather helper:
+
+```text
+rpt cmd 59521 cmd /usr/lib/allmon3-weather/say-weather-59521
+```
+
+This command is used verbatim by the automated scheduler and API/browser tests,
+with a **fake AMI transport**. Tests do not invoke the helper or transmit weather.
+The weather companion is not included in this package.
+
+The command name is only a label; it is **not spoken**. Command jobs do not use
+Piper, audio segment gaps, or timeout overrides. They appear in the shared
+queue/history and saved schedules with their command text. A pending command can
+be removed; a saved command schedule can be deleted. Audio Pause/Resume/Stop
+controls apply only to audio and do not cancel queued commands.
+
+Turning command playback off cancels pending commands and skips starts due
+while off; turning it back on never catches up those starts. Daily/weekly
+schedules advance normally. The five-minute lateness cutoff applies before
+queueing, at claim, and immediately before command dispatch. A command in flight
+at shutdown/restart is recorded as interrupted and is not replayed. Transport
+failure or timeout is recorded as failed, without automatic retry: an uncertain
+response does not prove the external command did not run.
+
+Audio and command jobs share the per-node worker, so an active/paused audio job
+can delay a command (and the lateness rule may skip it). **Dispatched** means
+Asterisk acknowledged the CLI request, not that the helper succeeded or RF audio
+finished. If Asterisk starts a background script, its work can outlive the request
+and overlap later jobs. Disabling a toggle or deleting a schedule cannot undo an
+already dispatched command. Audio controls and timeout recovery cannot stop or
+protect arbitrary command effects.
+
+Existing schedules/jobs migrate as audio without changing IDs or contents.
+Take the usual idle backup before upgrading. Do not downgrade an updated state
+DB to a pre-command scheduler while command schedules/pending jobs remain; that
+older worker does not understand their type. Restore the matching pre-upgrade
+backup for rollback instead.
+
 ## Backups, restores and earlier preview versions
 
 Debian provisions `/etc/allmon3/audio` as `allmon3:allmon3`, mode 0750. For a
@@ -75,7 +137,7 @@ manual installation, create it with:
 sudo install -d -m 0750 -o allmon3 -g allmon3 /etc/allmon3/audio
 ```
 
-`audio.sqlite3` (mode 0640) contains schedules, the master setting, library
+`audio.sqlite3` (mode 0640) contains schedules, both enable settings, library
 metadata and job history; `audio-originals/` contains the source media needed by
 saved stacks. These are runtime-created, not packaged conffiles. Back up the
 **whole `/etc/allmon3` tree recursively**, including this directory and media.
@@ -83,7 +145,7 @@ Original uploads can be large; check backup capacity and do not exclude them.
 Stop Allmon3 at idle before copying SQLite and originals, and keep it stopped
 while restoring. Restore ownership to `allmon3:allmon3` on the audio subtree,
 with directories 0750 and files 0640; do not make all of `/etc/allmon3` writable.
-Review restored schedules, pending jobs and master enable before restarting:
+Review restored schedules, pending jobs and both enable settings before restarting:
 normal scheduling/late-start rules still apply, so a restored enabled schedule
 can transmit when due. Do not restore old timeout-ownership journals onto a
 running or different radio; use the existing recovery procedure on the original

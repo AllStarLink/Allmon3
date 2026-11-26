@@ -24,6 +24,6 @@ Package: allmon3-announcements-manager
 Architecture: all
 Depends: allmon3 (= ${binary:Version}), python3 (>= 3.11), ffmpeg, asl3-tts, ${misc:Depends}
 Description: Optional audio announcements and scheduler add-in for Allmon3
- Upload, preview and schedule announcements for local AllStar nodes.
+ Upload, preview and schedule audio or node commands for local AllStar nodes.
  Uses the packaged ASL3 Piper runtime; no hand-installed virtual environment.
  Includes its own UI, configuration and timeout-recovery timer.

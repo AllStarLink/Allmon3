@@ -26,3 +26,6 @@
 #audio-manager[open] .audio-master-label { display: inline-flex; align-items: center; gap: .5rem; }
 .audio-master-label .form-check-input { margin: 0; }
 @media (max-width: 575.98px) { #audio-manager[open] .audio-master-label { display: flex; margin: .75rem 0 0 1.25rem; } }
+
+/* Long command paths remain readable without widening the mobile panel. */
+#audio-schedules, #audio-jobs { overflow-wrap: anywhere; }

@@ -40,7 +40,8 @@ class AnnouncementsAddon:
             "/var/lib/allmon3/audio-tot", audio_tot.ami_command(configs_node),
             audio_tot.identities(configs_node, local_nodes))
         self.audio = audio.AudioService(self.settings.state_dir, self.settings.cache_dir,
-                                        local_nodes, self.__play_audio, timeout_guard, self.__stop_audio, settings=self.settings)
+                                        local_nodes, self.__play_audio, timeout_guard, self.__stop_audio, settings=self.settings,
+                                        command_dispatch=self.__dispatch_command)
 
     async def __audio_nodes_for_user(self, request):
         session = await get_session(request)
@@ -76,6 +77,10 @@ class AnnouncementsAddon:
             raise audio.AudioError("Playback requires Asterisk on this Allmon3 host")
         await audio_tot.ami_command(self.config_nodes)(
             node, f"rpt playback {node} {filename_no_extension}")
+
+    async def __dispatch_command(self, node, command):
+        command = self.audio._validate_command(node, command)
+        await audio_tot.ami_command(self.config_nodes)(node, command)
 
     async def __stop_audio(self, node):
         if node not in self.audio.nodes:
@@ -137,17 +142,19 @@ class AnnouncementsAddon:
                 raise audio.AudioError("Select a local playback node")
             await self.__audio_authorize(request, node)
             action = request.match_info["action"]
-            if action == "enable":
+            if action in {"enable", "command-enable"}:
                 allowed = await self.__audio_authorize(request)
                 if not set(self.audio.nodes).issubset(allowed):
                     raise web.HTTPForbidden(text="Master playback control requires access to every local audio node")
-                result = self.audio.set_playback_enabled(payload.get("enabled"))
+                setter = self.audio.set_playback_enabled if action == "enable" else self.audio.set_command_enabled
+                result = setter(payload.get("enabled"))
             elif action == "queue":
                 result = self.audio.enqueue(node, payload.get("name"), payload.get("items"))
             elif action == "schedule":
                 result = self.audio.create_schedule(node, payload.get("name"), payload.get("items"),
                                                     payload.get("recurrence"), payload.get("run_at"),
-                                                    payload.get("weekday"), payload.get("local_time"))
+                                                    payload.get("weekday"), payload.get("local_time"),
+                                                    kind=payload.get("kind", "audio"), command=payload.get("command"))
             elif action in {"pause", "resume", "stop"}:
                 result = await self.audio.control_job(node, payload.get("id"), action)
             elif action == "fetch":
@@ -191,7 +198,7 @@ class AnnouncementsAddon:
         return [
             web.get('/audio/state', self.__audio_state),
             web.post(r'/audio/{action:upload}', self.__audio_upload),
-            web.post(r'/audio/{action:queue|schedule|fetch|pause|resume|stop|enable}', self.__audio_mutation),
+            web.post(r'/audio/{action:queue|schedule|fetch|pause|resume|stop|enable|command-enable}', self.__audio_mutation),
             web.delete(r'/audio/{kind:schedule|job}/{id:[0-9a-f]+}', self.__audio_remove),
             web.get(r'/audio/preview/{id:[0-9a-f]+}', self.__audio_preview),
         ]

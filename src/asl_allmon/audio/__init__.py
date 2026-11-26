@@ -122,7 +122,7 @@ class BulletinSources:
 
 
 class AudioService:
-    def __init__(self, state_dir, cache_dir, nodes, playback, timeout_guard=None, stop_playback=None, settings=None):
+    def __init__(self, state_dir, cache_dir, nodes, playback, timeout_guard=None, stop_playback=None, settings=None, command_dispatch=None):
         self.settings = settings or AnnouncementConfig()
         self.clock = ScheduleClock(self.settings.timezone, self.settings.release_hour)
         self._speech_profile = None
@@ -133,6 +133,7 @@ class AudioService:
         self.db_path = self.state / "audio.sqlite3"
         self.nodes = list(nodes)
         self.playback = playback
+        self.command_dispatch = command_dispatch
         self.timeout_guard = timeout_guard
         self.stop_playback = stop_playback
         self.controls = {}
@@ -151,6 +152,7 @@ class AudioService:
             db.executescript("""
                 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
                 INSERT OR IGNORE INTO settings(key,value) VALUES ('playback_enabled','1');
+                INSERT OR IGNORE INTO settings(key,value) VALUES ('command_enabled','0');
                 CREATE TABLE IF NOT EXISTS assets (
                     id TEXT PRIMARY KEY, name TEXT NOT NULL, source TEXT,
                     extension TEXT NOT NULL, seconds REAL NOT NULL,
@@ -179,9 +181,15 @@ class AudioService:
                 db.execute("ALTER TABLE sources ADD COLUMN edition_date TEXT")
             if "scheduled_for" not in {row[1] for row in db.execute("PRAGMA table_info(jobs)")}:
                 db.execute("ALTER TABLE jobs ADD COLUMN scheduled_for REAL")
+            for table in ("schedules", "jobs"):
+                columns = {row[1] for row in db.execute(f"PRAGMA table_info({table})")}
+                if "kind" not in columns:
+                    db.execute(f"ALTER TABLE {table} ADD COLUMN kind TEXT NOT NULL DEFAULT 'audio'")
+                if "command" not in columns:
+                    db.execute(f"ALTER TABLE {table} ADD COLUMN command TEXT")
             # A command may have reached Asterisk before a daemon restart.
             db.execute("UPDATE jobs SET status='interrupted', finished_at=strftime('%s','now'), "
-                       "error='Service restarted during playback; not replayed' WHERE status IN ('playing','paused','pausing','stopping','control_failed')")
+                       "error='Service restarted during job; not replayed' WHERE status IN ('playing','paused','pausing','stopping','control_failed','running')")
 
     @contextmanager
     def _db(self):
@@ -226,14 +234,44 @@ class AudioService:
         with self._db() as db:
             db.execute("UPDATE settings SET value=? WHERE key='playback_enabled'", ("1" if enabled else "0",))
             if not enabled:
-                db.execute("UPDATE jobs SET status='cancelled',finished_at=?,error='Master playback disabled' WHERE status='pending'",
+                db.execute("UPDATE jobs SET status='cancelled',finished_at=?,error='Master playback disabled' WHERE status='pending' AND kind='audio'",
                            (datetime.now().timestamp(),))
         return enabled
+
+    def command_enabled(self):
+        with self._db() as db:
+            return db.execute("SELECT value FROM settings WHERE key='command_enabled'").fetchone()[0] == "1"
+
+    def set_command_enabled(self, enabled):
+        if type(enabled) is not bool:
+            raise AudioError("Choose whether command playback is enabled")
+        if enabled and not self.command_enabled():
+            self._due_schedules()
+        with self._db() as db:
+            db.execute("UPDATE settings SET value=? WHERE key='command_enabled'", ("1" if enabled else "0",))
+            if not enabled:
+                db.execute("UPDATE jobs SET status='cancelled',finished_at=?,error='Command playback disabled' "
+                           "WHERE status='pending' AND kind='command'", (datetime.now().timestamp(),))
+        return enabled
+
+    def _validate_command(self, node, command):
+        # An AMI Command is one CLI line, not a local shell command. Limit it
+        # to node-scoped app_rpt actions so the explicit target matches the permitted node. A configured
+        # app_rpt cmd helper still has Asterisk privileges; this is not a sandbox.
+        if node not in self.nodes:
+            raise AudioError("Select a local command node")
+        if (not isinstance(command, str) or not 1 <= len(command) <= 512
+                or any(ord(c) < 32 or ord(c) > 126 for c in command)):
+            raise AudioError("Enter one command line of up to 512 printable ASCII characters")
+        command = command.strip()
+        if not re.fullmatch(r"rpt (?:cmd|fun) " + str(node) + r" [^ ].*", command):
+            raise AudioError("Use rpt cmd or rpt fun with the selected node number")
+        return command
 
     def snapshot(self, allowed_nodes):
         if not allowed_nodes:
             return {"nodes": [], "assets": [], "sources": [], "schedules": [], "jobs": [],
-                    "playback_enabled": False, "can_manage_playback": False}
+                    "playback_enabled": False, "command_enabled": False, "can_manage_playback": False}
         placeholders = ",".join("?" for _ in allowed_nodes)
         with self._db() as db:
             assets = self._rows(db.execute("SELECT id,name,source,seconds,created_at FROM assets ORDER BY created_at DESC"))
@@ -241,12 +279,13 @@ class AudioService:
             schedules = self._rows(db.execute(
                 f"SELECT * FROM schedules WHERE node IN ({placeholders}) ORDER BY next_at", allowed_nodes))
             jobs = self._rows(db.execute(
-                f"SELECT * FROM jobs WHERE node IN ({placeholders}) ORDER BY CASE WHEN status IN ('playing','paused','pausing','stopping','control_failed') "
+                f"SELECT * FROM jobs WHERE node IN ({placeholders}) ORDER BY CASE WHEN status IN ('playing','paused','pausing','stopping','control_failed','running') "
                 "THEN 0 ELSE 1 END, created_at DESC LIMIT 50", allowed_nodes))
         for item in schedules + jobs:
             item["items"] = json.loads(item["items"])
         return {"nodes": allowed_nodes, "timezone": self.clock.zone.key, "assets": assets, "sources": sources,
                 "schedules": schedules, "jobs": jobs, "playback_enabled": self.playback_enabled(),
+                "command_enabled": self.command_enabled(),
                 "can_manage_playback": set(self.nodes).issubset(allowed_nodes)}
 
     def enqueue(self, node, name, items):
@@ -263,10 +302,21 @@ class AudioService:
                        (job_id, name.strip(), node, json.dumps(items), "pending", datetime.now().timestamp()))
         return job_id
 
-    def create_schedule(self, node, name, items, recurrence, run_at=None, weekday=None, local_time=None):
+    def create_schedule(self, node, name, items, recurrence, run_at=None, weekday=None, local_time=None,
+                        kind="audio", command=None):
         if node not in self.nodes:
             raise AudioError("This node cannot play files stored on this host")
-        self._validate_items(items)
+        if kind == "command":
+            command = self._validate_command(node, command)
+            if items not in (None, []):
+                raise AudioError("Command schedules cannot contain audio items")
+            items = []
+        elif kind == "audio":
+            self._validate_items(items)
+            if command is not None:
+                raise AudioError("Audio schedules cannot contain a command")
+        else:
+            raise AudioError("Choose an audio or command schedule")
         if not isinstance(name, str) or not 1 <= len(name.strip()) <= 80:
             raise AudioError("Enter a schedule name of 1 to 80 characters")
         if recurrence == "once":
@@ -292,9 +342,9 @@ class AudioService:
             raise AudioError("Choose a one-time, daily, or weekly schedule")
         schedule_id = uuid.uuid4().hex
         with self._db() as db:
-            db.execute("INSERT INTO schedules(id,name,node,items,recurrence,weekday,local_time,next_at) "
-                       "VALUES(?,?,?,?,?,?,?,?)", (schedule_id, name.strip(), node, json.dumps(items),
-                       recurrence, weekday, local_time, next_at))
+            db.execute("INSERT INTO schedules(id,name,node,items,recurrence,weekday,local_time,next_at,kind,command) "
+                       "VALUES(?,?,?,?,?,?,?,?,?,?)", (schedule_id, name.strip(), node, json.dumps(items),
+                       recurrence, weekday, local_time, next_at, kind, command))
         return schedule_id
 
     def delete_schedule(self, schedule_id, allowed_nodes):
@@ -503,14 +553,14 @@ class AudioService:
         return row
 
     def _due_schedules(self):
-        enabled = self.playback_enabled()
+        enabled = {"audio": self.playback_enabled(), "command": self.command_enabled()}
         now = datetime.now().timestamp()
         with self._db() as db:
             due = self._rows(db.execute("SELECT * FROM schedules WHERE enabled=1 AND next_at<=?", (now,)))
             for item in due:
-                status = "pending" if enabled and now - item["next_at"] <= 300 else "missed"
-                db.execute("INSERT INTO jobs(id,name,node,items,status,created_at,scheduled_for) VALUES(?,?,?,?,?,?,?)",
-                           (uuid.uuid4().hex, item["name"], item["node"], item["items"], status, now, item["next_at"]))
+                status = "pending" if enabled.get(item["kind"], False) and now - item["next_at"] <= 300 else "missed"
+                db.execute("INSERT INTO jobs(id,name,node,items,status,created_at,scheduled_for,kind,command) VALUES(?,?,?,?,?,?,?,?,?)",
+                           (uuid.uuid4().hex, item["name"], item["node"], item["items"], status, now, item["next_at"], item["kind"], item["command"]))
                 if item["recurrence"] in ("daily", "weekly"):
                     next_at = (self.clock.daily_next(item["local_time"], now + 1) if item["recurrence"] == "daily"
                                else self.clock.weekly_next(item["weekday"], item["local_time"], now + 1))
@@ -519,7 +569,7 @@ class AudioService:
                     db.execute("UPDATE schedules SET enabled=0 WHERE id=?", (item["id"],))
 
     def _claim_job(self, node):
-        if not self.playback_enabled() or node in self.controls:
+        if node not in self.nodes or node in self.controls:
             return None
         with self._db() as db:
             now = datetime.now().timestamp()
@@ -528,10 +578,12 @@ class AudioService:
                        "WHERE node=? AND status='pending' AND scheduled_for IS NOT NULL AND scheduled_for<?",
                        (now, node, now - 300))
             row = db.execute("SELECT * FROM jobs WHERE node=? AND status='pending' "
-                             "ORDER BY created_at,id LIMIT 1", (node,)).fetchone()
+                             "AND ((kind='audio' AND ?=1) OR (kind='command' AND ?=1)) "
+                             "ORDER BY created_at,id LIMIT 1",
+                             (node, self.playback_enabled(), self.command_enabled())).fetchone()
             if row:
-                db.execute("UPDATE jobs SET status='playing',started_at=? WHERE id=?",
-                           (datetime.now().timestamp(), row["id"]))
+                db.execute("UPDATE jobs SET status=?,started_at=? WHERE id=?",
+                           ("running" if row["kind"] == "command" else "playing", datetime.now().timestamp(), row["id"]))
         return dict(row) if row else None
 
     def _job_update(self, job_id, status=None, position=None, error=None):
@@ -541,7 +593,7 @@ class AudioService:
             if status:
                 db.execute("UPDATE jobs SET status=?,error=?,finished_at=? WHERE id=?",
                            (status, error, datetime.now().timestamp() if status in
-                            {"done", "substituted", "failed", "interrupted", "cancelled"} else None, job_id))
+                            {"done", "substituted", "failed", "interrupted", "cancelled", "dispatched", "missed"} else None, job_id))
 
     def speech_profile(self):
         if self._speech_profile is None:
@@ -616,7 +668,7 @@ class AudioService:
                 # Future schedules remain untouched.
                 with self._db() as db:
                     db.execute("UPDATE jobs SET status='cancelled',finished_at=? "
-                               "WHERE node=? AND status='pending'", (datetime.now().timestamp(), node))
+                               "WHERE node=? AND status='pending' AND kind='audio'", (datetime.now().timestamp(), node))
             control["request"] = action
             self._job_update(job_id, status="pausing" if action == "pause" else "stopping")
             if not task.done():
@@ -716,7 +768,31 @@ class AudioService:
                 prepared.append((None, str(e)[:120]))
         return prepared
 
+    async def _run_command(self, job):
+        try:
+            # Recheck after claim and immediately before dispatch. Never retry
+            # uncertain AMI outcomes: the external action may have started.
+            if not self.command_enabled():
+                self._job_update(job["id"], status="cancelled", error="Command playback disabled")
+                return
+            if job.get("scheduled_for") is not None and datetime.now().timestamp() - job["scheduled_for"] > 300:
+                self._job_update(job["id"], status="missed", error="Scheduled start is more than five minutes late")
+                return
+            command = self._validate_command(job["node"], job["command"])
+            if self.command_dispatch is None:
+                raise AudioError("Command dispatch is unavailable")
+            await self.command_dispatch(job["node"], command)
+            self._job_update(job["id"], status="dispatched", position=1)
+        except asyncio.CancelledError:
+            self._job_update(job["id"], status="interrupted", error="Command outcome unknown; not replayed")
+            raise
+        except Exception as e:
+            self._job_update(job["id"], status="failed", error=str(e)[:240])
+
     async def _run_job(self, job):
+        if job.get("kind", "audio") == "command":
+            await self._run_command(job)
+            return
         node = job["node"]
         control = self.controls.setdefault(node, {
             "job": job, "position": 0, "segment": 0, "segments": None,

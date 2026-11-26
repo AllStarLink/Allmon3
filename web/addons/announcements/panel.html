@@ -5,13 +5,16 @@
                 <label id="audio-master-label" class="audio-master-label" onclick="event.stopPropagation()" onkeydown="event.stopPropagation()">
                     <input id="audio-master-enabled" type="checkbox" class="form-check-input" onchange="toggleAudioMaster()" disabled> Enable audio playback
                 </label>
+                <label id="command-master-label" class="audio-master-label" onclick="event.stopPropagation()" onkeydown="event.stopPropagation()">
+                    <input id="command-master-enabled" type="checkbox" class="form-check-input" onchange="toggleCommandMaster()" disabled> Enable Command playback
+                </label>
             </summary>
             <div id="audio-feedback" role="status" aria-live="polite"></div>
             <section id="audio-playback-panel" class="card audio-playback-panel mb-3" aria-label="Stack name and playback controls">
                 <div class="card-body">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-3">
-                            <label for="audio-node" class="form-label fw-bold">Play on node</label>
+                            <label for="audio-node" class="form-label fw-bold">Target node</label>
                             <select id="audio-node" class="form-select" onchange="renderAudioControls()"></select>
                         </div>
                         <div class="col-md-9">
@@ -39,9 +42,20 @@
 				<p id="audio-stack-validation" class="small text-danger mt-2 mb-0 d-none" role="alert">Add at least one selection to the stack before saving a schedule. Choose an item above, then click Add to stack.</p>
 				<ol id="audio-stack" class="list-group list-group-numbered my-3"></ol>
                 </div></section></div>
-                <div class="col-lg-5"><section class="card h-100" aria-label="Schedule this stack"><div class="card-body">
-				<h3 class="h5">Schedule this stack</h3>
-                <p class="small text-muted">Uses the Stack name and items shown here. Saving does not start playback.</p>
+                <div class="col-lg-5"><section class="card h-100" aria-label="Schedule audio or command"><div class="card-body">
+				<h3 class="h5">Schedule audio or command</h3>
+                <label for="audio-schedule-kind" class="form-label">Schedule type</label>
+                <select id="audio-schedule-kind" class="form-select mb-2" onchange="toggleAudioScheduleKind()">
+                    <option value="audio">Audio stack</option><option value="command">Command</option>
+                </select>
+                <p id="audio-schedule-help" class="small text-muted">Uses the Stack name and items shown here. Saving does not start playback.</p>
+                <div id="command-schedule-fields" class="d-none">
+                    <label for="command-name" class="form-label">Command schedule name</label>
+                    <input id="command-name" class="form-control mb-2" maxlength="80" placeholder="Say weather">
+                    <label for="command-text" class="form-label">Asterisk command</label>
+                    <input id="command-text" class="form-control mb-2" maxlength="512" spellcheck="false" aria-describedby="command-help" placeholder="rpt cmd NODE cmd /path/to/script">
+                    <p id="command-help" class="small text-muted">Use rpt cmd or rpt fun with the target node number selected above. The name is not spoken. Commands can transmit or change node state. Saving does not run the command; enable Command playback to run at its scheduled time.</p>
+                </div>
 				<div class="row g-2 align-items-end">
 					<div class="col-12"><label for="audio-recurrence" class="form-label">Repeat</label>
 						<select id="audio-recurrence" class="form-select" onchange="toggleAudioScheduleFields()">
@@ -84,7 +98,7 @@
                 </div></section></div>
             </div>
             <div class="row g-3">
-                <div class="col-lg-7"><h3 class="h5">Play queue &amp; history</h3><div id="audio-jobs"></div></div>
+                <div class="col-lg-7"><h3 class="h5">Audio / command queue &amp; history</h3><div id="audio-jobs"></div></div>
                 <div class="col-lg-5"><h3 class="h5">Saved schedules</h3><div id="audio-schedules"></div></div>
             </div>
 		</details>
