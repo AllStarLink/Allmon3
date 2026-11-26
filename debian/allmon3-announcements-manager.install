@@ -1,0 +1,10 @@
+usr/lib/python3/dist-packages/asl_allmon/audio
+usr/lib/python3/dist-packages/asl_allmon/audio_tot
+usr/lib/python3/dist-packages/asl_allmon/announcements
+usr/lib/python3/dist-packages/asl_allmon/announcement_config
+usr/lib/python3/dist-packages/asl_allmon/speech
+usr/share/allmon3/addons/announcements
+usr/share/doc/allmon3/audio-player.md
+etc/allmon3/announcements.ini
+etc/allmon3/speech.ini
+etc/allmon3/addons.d/announcements.ini

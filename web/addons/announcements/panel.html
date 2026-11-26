@@ -1,0 +1,90 @@
+					<button id="audio-navigation" class="btn btn-outline-secondary d-none" type="button"
+						onclick="document.getElementById('audio-manager').open = true; document.getElementById('audio-manager').scrollIntoView(); document.getElementById('audio-title').focus()">Audio Player &amp; Scheduler</button>
+		<details id="audio-manager" class="container-fluid my-4 d-none" aria-labelledby="audio-title">
+			<summary id="audio-title" class="audio-toggle mb-3"><h2 class="h4 d-inline">Audio Player &amp; Scheduler</h2>
+                <label id="audio-master-label" class="audio-master-label" onclick="event.stopPropagation()" onkeydown="event.stopPropagation()">
+                    <input id="audio-master-enabled" type="checkbox" class="form-check-input" onchange="toggleAudioMaster()" disabled> Enable audio playback
+                </label>
+            </summary>
+            <div id="audio-feedback" role="status" aria-live="polite"></div>
+            <section id="audio-playback-panel" class="card audio-playback-panel mb-3" aria-label="Stack name and playback controls">
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label for="audio-node" class="form-label fw-bold">Play on node</label>
+                            <select id="audio-node" class="form-select" onchange="renderAudioControls()"></select>
+                        </div>
+                        <div class="col-md-9">
+                            <label for="audio-stack-name" class="form-label fw-bold">Stack name / Announcement Text</label>
+                            <input id="audio-stack-name" class="form-control form-control-lg" maxlength="80" placeholder="Friday audio news" aria-describedby="audio-name-help">
+                        </div>
+                    </div>
+                    <p id="audio-name-help" class="small text-muted mt-2 mb-3">This name is spoken at the start and end of playback.</p>
+                    <div class="audio-playback-actions d-flex flex-wrap gap-2" role="group" aria-label="Playback controls">
+                        <button id="audio-queue" class="btn btn-primary" type="button" onclick="queueAudio()">Queue to play now</button>
+                        <button id="audio-pause" class="btn btn-outline-secondary" type="button" onclick="controlAudio('pause')" disabled>Pause</button>
+                        <button id="audio-stop" class="btn btn-outline-danger" type="button" onclick="controlAudio('stop')" disabled>Stop</button>
+                    </div>
+                    <p id="audio-playback-status" class="audio-playback-status mt-3 mb-0" role="status" aria-live="polite">No active playback.</p>
+                </div>
+            </section>
+            <div class="row g-3 mb-3">
+                <div class="col-lg-7"><section class="card h-100" aria-labelledby="audio-build-title"><div class="card-body">
+				<h3 id="audio-build-title" class="h5">Build a play stack</h3>
+				<p class="small text-muted">Items play in the order shown. A five-second gap follows each segment. News sources use the latest collected episode.</p>
+				<div class="row g-2">
+					<div class="col-md-8"><select id="audio-add-item" class="form-select" aria-label="Audio item to add" aria-describedby="audio-stack-validation"></select></div>
+					<div class="col-md-4"><button class="btn btn-outline-primary" type="button" onclick="addAudioItem()">Add to stack</button></div>
+				</div>
+				<p id="audio-stack-validation" class="small text-danger mt-2 mb-0 d-none" role="alert">Add at least one selection to the stack before saving a schedule. Choose an item above, then click Add to stack.</p>
+				<ol id="audio-stack" class="list-group list-group-numbered my-3"></ol>
+                </div></section></div>
+                <div class="col-lg-5"><section class="card h-100" aria-label="Schedule this stack"><div class="card-body">
+				<h3 class="h5">Schedule this stack</h3>
+                <p class="small text-muted">Uses the Stack name and items shown here. Saving does not start playback.</p>
+				<div class="row g-2 align-items-end">
+					<div class="col-12"><label for="audio-recurrence" class="form-label">Repeat</label>
+						<select id="audio-recurrence" class="form-select" onchange="toggleAudioScheduleFields()">
+							<option value="once">Once</option><option value="daily">Daily</option><option value="weekly">Weekly</option>
+						</select></div>
+					<div id="audio-once-fields" class="col-12"><label for="audio-run-at" class="form-label">Date and time (<span class="audio-timezone">system timezone</span>)</label>
+						<input id="audio-run-at" type="datetime-local" class="form-control"></div>
+					<div id="audio-daily-fields" class="col-12 d-none">
+                        <label for="audio-daily-time" class="form-label">Time each day (<span class="audio-timezone">system timezone</span>)</label>
+                        <input id="audio-daily-time" type="time" class="form-control" value="14:00">
+                    </div>
+					<div id="audio-weekly-fields" class="col-12 d-none">
+						<label for="audio-weekday" class="form-label">Day and time (<span class="audio-timezone">system timezone</span>)</label>
+						<div class="input-group"><select id="audio-weekday" class="form-select">
+							<option value="0">Monday</option><option value="1">Tuesday</option><option value="2">Wednesday</option>
+							<option value="3">Thursday</option><option value="4" selected>Friday</option>
+							<option value="5">Saturday</option><option value="6">Sunday</option>
+						</select><input id="audio-weekly-time" type="time" class="form-control" value="14:00"></div>
+					</div>
+					<div class="col-12"><button class="btn btn-outline-primary" type="button" onclick="scheduleAudio()">Save schedule</button></div>
+				</div>
+                </div></section></div>
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-lg-7"><section class="card h-100" aria-label="Audio library"><div class="card-body">
+                    <h3 class="h5">Audio library</h3>
+                    <label for="audio-upload" class="form-label">Upload audio</label>
+                    <div class="input-group mb-3">
+                        <input id="audio-upload" class="form-control" type="file" accept="audio/*,.mp3,.wav,.flac,.ogg,.opus,.m4a,.aac">
+                        <button class="btn btn-outline-primary" type="button" onclick="uploadAudio()">Upload &amp; convert</button>
+                    </div>
+                    <p class="small text-muted">Preview uploaded or collected audio here, then select it in Build a play stack above.</p>
+                    <div id="audio-library" class="audio-scroll"></div>
+                    <audio id="audio-preview" controls preload="none" class="w-100 mt-2" aria-label="Preview selected audio in this browser"></audio>
+                </div></section></div>
+                <div class="col-lg-5"><section class="card h-100" aria-label="Bulletin sources"><div class="card-body">
+                    <h3 class="h5">Bulletin sources</h3>
+                    <p class="small text-muted">Newsline and ARRL Audio News are checked Friday after the configured publication cutoff in <span class="audio-timezone">system timezone</span>. Refresh either one on demand. If this week's bulletin is unavailable, the selected node speaks a QST notice in its place.</p>
+                    <div id="audio-sources"></div>
+                </div></section></div>
+            </div>
+            <div class="row g-3">
+                <div class="col-lg-7"><h3 class="h5">Play queue &amp; history</h3><div id="audio-jobs"></div></div>
+                <div class="col-lg-5"><h3 class="h5">Saved schedules</h3><div id="audio-schedules"></div></div>
+            </div>
+		</details>

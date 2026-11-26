@@ -7,14 +7,15 @@ const {chromium}=require('playwright');const fs=require('fs'),path=require('path
  await page.addInitScript(()=>{window.loggedIn=true});
  await page.route('http://test/**',route=>{
   const url=new URL(route.request().url());
+  if(url.pathname==='/master/addons')return route.fulfill({json:{addons:[{id:'announcements',label:'Announcements',script:'addons/announcements/audio.js',fragment:'addons/announcements/panel.html',stylesheet:'addons/announcements/audio.css'}]}});
   if(url.pathname==='/master/audio/state')return route.fulfill({json:{SUCCESS:state}});
   if(url.pathname==='/master/audio/enable'){state.playback_enabled=route.request().postDataJSON().enabled;return route.fulfill({json:{SUCCESS:{id:state.playback_enabled}}})}
   if(url.pathname==='/master/audio/schedule'){requests.push(route.request().postDataJSON());return route.fulfill({json:{SUCCESS:{id:'test-only'}}})}
-  if(url.pathname.endsWith('.js')&&!url.pathname.endsWith('/audio.js'))return route.fulfill({contentType:'application/javascript',body:''});
+  if(url.pathname.endsWith('.js')&&!url.pathname.endsWith('/audio.js')&&!url.pathname.endsWith('/addons.js'))return route.fulfill({contentType:'application/javascript',body:''});
   const file=path.join(root,url.pathname==='/'?'index.html':url.pathname);
   return fs.existsSync(file)&&fs.statSync(file).isFile()?route.fulfill({path:file}):route.fulfill({status:404,body:''});
  });
- await page.goto('http://test/');await page.evaluate(()=>audioAuthChanged());assert.equal(await page.locator('#audio-master-label').isVisible(),false);await page.locator('#audio-title h2').click();
+ await page.goto('http://test/');await page.waitForFunction(()=>typeof audioAuthChanged==='function');await page.evaluate(()=>audioAuthChanged());assert.equal(await page.locator('#audio-master-label').isVisible(),false);await page.locator('#audio-title h2').click();
 
  assert.equal(await page.locator('#audio-master-label').isVisible(),true);
  assert.equal(await page.locator('#audio-master-enabled').isChecked(),true);

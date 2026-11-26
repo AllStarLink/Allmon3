@@ -107,7 +107,8 @@ async function checkLogonStatus(){
 	let bodyClass = loggedIn ? 'logged-in' : 'logged-out';
 	document.body.classList.remove(...bodyClasses);
 	document.body.classList.add(bodyClass);
-	if (typeof audioAuthChanged === 'function') audioAuthChanged();
+	document.dispatchEvent(new Event('allmon3:auth'));
+	if (typeof refreshAddonNodes === 'function') refreshAddonNodes();
 }
 
 

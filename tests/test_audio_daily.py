@@ -12,7 +12,7 @@ spec.loader.exec_module(audio)
 
 
 def stamp(value):
-    return datetime.fromisoformat(value).replace(tzinfo=audio.PACIFIC).timestamp()
+    return datetime.fromisoformat(value).replace(tzinfo=audio.ZoneInfo('America/Los_Angeles')).timestamp()
 
 
 class DailyTests(unittest.TestCase):
@@ -20,23 +20,23 @@ class DailyTests(unittest.TestCase):
         for after, expected in [('2026-12-31T13:00', '2026-12-31T14:00'),
                                 ('2026-12-31T14:00', '2027-01-01T14:00'),
                                 ('2026-12-31T23:59', '2027-01-01T14:00')]:
-            self.assertEqual(audio.daily_next('14:00', stamp(after)), stamp(expected))
+            self.assertEqual(audio.ScheduleClock('America/Los_Angeles').daily_next('14:00', stamp(after)), stamp(expected))
 
     def test_calendar_time_survives_dst_offset_changes(self):
         for start, end, hours in [('2026-03-07T14:00', '2026-03-08T14:00', 23),
                                   ('2026-10-31T14:00', '2026-11-01T14:00', 25)]:
-            result = audio.daily_next('14:00', stamp(start))
+            result = audio.ScheduleClock('America/Los_Angeles').daily_next('14:00', stamp(start))
             self.assertEqual(result, stamp(end))
             self.assertEqual(result - stamp(start), hours * 3600)
 
     def test_spring_gap_skipped_and_autumn_fold_not_repeated(self):
-        self.assertEqual(audio.daily_next('02:30', stamp('2026-03-07T02:30')), stamp('2026-03-09T02:30'))
-        self.assertEqual(audio.daily_next('01:30', stamp('2026-11-01T01:30')), stamp('2026-11-02T01:30'))
+        self.assertEqual(audio.ScheduleClock('America/Los_Angeles').daily_next('02:30', stamp('2026-03-07T02:30')), stamp('2026-03-09T02:30'))
+        self.assertEqual(audio.ScheduleClock('America/Los_Angeles').daily_next('01:30', stamp('2026-11-01T01:30')), stamp('2026-11-02T01:30'))
 
     def test_invalid_times_are_user_errors(self):
         for value in [None, 1400, '', '24:00', '14:60', '2:00', '14:00:00']:
             with self.subTest(value=value), self.assertRaises(audio.AudioError):
-                audio.daily_next(value)
+                audio.ScheduleClock('America/Los_Angeles').daily_next(value)
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -44,6 +44,7 @@ class DailyTests(unittest.TestCase):
         async def forbidden(*args):
             raise AssertionError('Scheduling tests must never play audio')
         self.service = audio.AudioService(Path(self.tmp.name) / 'state', Path(self.tmp.name) / 'cache', [1999], forbidden)
+        self.service.clock = audio.ScheduleClock('America/Los_Angeles')
         self.service.initialize()
 
     def create(self):
@@ -63,7 +64,7 @@ class DailyTests(unittest.TestCase):
         with self.service._db() as db:
             db.execute('UPDATE schedules SET next_at=?', (stamp(due),))
         with patch.object(audio, 'datetime', wraps=datetime) as clock:
-            clock.now.return_value = datetime.fromtimestamp(stamp(now), audio.PACIFIC)
+            clock.now.return_value = datetime.fromtimestamp(stamp(now), audio.ZoneInfo('America/Los_Angeles'))
             self.service._due_schedules()
             self.service._due_schedules()
         return self.service.snapshot([1999])
@@ -88,7 +89,7 @@ class DailyTests(unittest.TestCase):
         self.create()
         self.run_due('2026-11-20T14:00', '2026-11-20T14:01')
         with patch.object(audio, 'datetime', wraps=datetime) as clock:
-            clock.now.return_value = datetime.fromtimestamp(stamp('2026-11-20T14:06'), audio.PACIFIC)
+            clock.now.return_value = datetime.fromtimestamp(stamp('2026-11-20T14:06'), audio.ZoneInfo('America/Los_Angeles'))
             self.assertIsNone(self.service._claim_job(1999))
         self.assertEqual(self.service.snapshot([1999])['jobs'][0]['status'], 'missed')
 

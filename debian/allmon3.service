@@ -1,22 +1,14 @@
 [Unit]
 Description=Allmon3 daemon
 After=network.target
-After=asterisk.service allmon3-audio-tot-recovery.timer
-Requires=allmon3-audio-tot-recovery.timer
+After=asterisk.service
 
 [Service]
 Type=exec
 User=allmon3
 Group=allmon3
-StateDirectory=allmon3
-StateDirectoryMode=0750
-CacheDirectory=allmon3
-CacheDirectoryMode=0755
 Environment="PATH=/usr/bin:/bin:/usr/sbin:/sbin"
 ExecStart=allmon3
-ExecStartPre=/usr/bin/python3 -m asl_allmon.audio_tot --force
-ExecStopPost=/usr/bin/python3 -m asl_allmon.audio_tot --force
-TimeoutStopSec=45
 ExecReload=kill -USR1 $MAINPID
 
 [Install]

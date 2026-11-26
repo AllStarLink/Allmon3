@@ -1,0 +1,28 @@
+/* Keep long audio lists usable on narrow screens. */
+.audio-scroll { max-height: 18rem; overflow-y: auto; }
+
+.audio-toggle {
+	cursor: pointer;
+	padding: .75rem 1rem;
+	border: 1px solid #dee2e6;
+	border-radius: .375rem;
+	background: #f8f9fa;
+}
+.audio-toggle:hover { background: #e9ecef; }
+.audio-toggle:focus-visible { outline: 3px solid #0d6efd; outline-offset: 2px; }
+
+/* Put the name and transport controls before stack construction. */
+.audio-playback-panel { border: 1px solid #b6d4fe; border-top: 4px solid #0d6efd; background: #f4f8ff; }
+.audio-playback-actions .btn { min-height: 44px; padding-inline: 1.1rem; }
+.audio-playback-status { font-weight: 600; overflow-wrap: anywhere; }
+#audio-manager .card-body { min-width: 0; }
+@media (max-width: 575.98px) {
+    .audio-playback-actions .btn:first-child { flex-basis: 100%; }
+    .audio-playback-actions .btn:not(:first-child) { flex: 1; }
+}
+
+/* Master playback switch is only shown while the audio panel is expanded. */
+.audio-master-label { display: none; margin-left: 1rem; font-size: 1rem; font-weight: normal; cursor: pointer; }
+#audio-manager[open] .audio-master-label { display: inline-flex; align-items: center; gap: .5rem; }
+.audio-master-label .form-check-input { margin: 0; }
+@media (max-width: 575.98px) { #audio-manager[open] .audio-master-label { display: flex; margin: .75rem 0 0 1.25rem; } }

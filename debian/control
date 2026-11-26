@@ -7,15 +7,23 @@ Standards-Version: 4.5.1
 Homepage: https://github.com/AllStarLink/Allmon3
 Vcs-Browser: https://github.com/AllStarLink/Allmon3
 Vcs-Git: https://github.com/AllStarLink/Allmon3.git
-Rules-Requires-Root: binary-targets
+Rules-Requires-Root: no
 
 Package: allmon3
 Architecture: all
 Recommends: apache2 | httpd
-Depends: python3-argon2, python3 (>= 3.11), ffmpeg, ${misc:Depends}, adduser,
+Depends: python3-argon2, python3, ${misc:Depends}, adduser,
 	python3-aiohttp, python3-aiohttp-session,
 	python3-websockets
 Description: Web monitoring interface for AllStarLink
 	application. Allmon3 is the next generation of
 	the venerable Allmon2 that is rewritten for
 	performance, scalability, and responsiveness.
+
+Package: allmon3-announcements-manager
+Architecture: all
+Depends: allmon3 (= ${binary:Version}), python3 (>= 3.11), ffmpeg, asl3-tts, ${misc:Depends}
+Description: Optional audio announcements and scheduler add-in for Allmon3
+ Upload, preview and schedule announcements for local AllStar nodes.
+ Uses the packaged ASL3 Piper runtime; no hand-installed virtual environment.
+ Includes its own UI, configuration and timeout-recovery timer.

@@ -1,3 +1,4 @@
+function audioDate(seconds) { return new Date(seconds * 1000).toLocaleString(undefined, {timeZone: audioState?.timezone || 'UTC'}); }
 /* Allmon3 audio library and local-node play scheduler. */
 let audioState = null;
 let audioStack = [];
@@ -50,6 +51,8 @@ async function refreshAudioState() {
 	try {
 		audioState = await audioRequest('state');
 		renderAudioState();
+        if (typeof refreshAddonNodes === 'function') refreshAddonNodes();
+        document.querySelectorAll('.audio-timezone').forEach(el => { el.textContent = audioState.timezone || 'UTC'; });
 	} catch (e) {
 		audioMessage(e.message, true);
 	} finally {
@@ -99,7 +102,7 @@ function renderAudioState() {
 		const status = audioState.sources.find(item => item.source === key);
 		const text = document.createElement('span');
 		text.textContent = name + (status ? ' · edition ' + (status.edition_date || 'unverified') +
-			' · fetched ' + new Date(status.fetched_at * 1000).toLocaleString() : ' · not collected');
+			' · fetched ' + audioDate(status.fetched_at) : ' · not collected');
 		row.append(text, audioButton('Refresh', () => refreshNews(key)));
 		sources.append(row);
 	}
@@ -170,9 +173,9 @@ function renderAudioSchedules() {
 		const row = document.createElement('div');
 		row.className = 'border rounded p-2 mb-2';
 		const summary = document.createElement('span');
-		const repeat = schedule.recurrence === 'daily' ? 'Daily at ' + schedule.local_time + ' Pacific · ' : '';
+		const repeat = schedule.recurrence === 'daily' ? 'Daily at ' + schedule.local_time + ' ' + (audioState.timezone || 'UTC') + ' · ' : '';
 		summary.textContent = schedule.name + ' · node ' + schedule.node + ' · ' + repeat +
-			(schedule.enabled ? 'next ' + new Date(schedule.next_at * 1000).toLocaleString() : 'completed') +
+			(schedule.enabled ? 'next ' + audioDate(schedule.next_at) : 'completed') +
 			' · ' + schedule.items.map(audioLabel).join(' → ');
 		row.append(summary, audioButton('Delete schedule', () => removeAudio('schedule', schedule.id), 'btn-outline-danger'));
 		list.append(row);
@@ -274,7 +277,7 @@ async function scheduleAudio() {
 		} else {
 			const when = audioEl('audio-run-at').value;
 			if (!when) throw new Error('Choose a date and time');
-			data.run_at = new Date(when).toISOString();
+			data.run_at = when; // Interpreted in the advertised server timezone.
 		}
 		await audioChange('schedule', data);
 	} catch (e) { audioMessage(e.message, true); }
@@ -353,3 +356,18 @@ async function controlAudio(action) {
         renderAudioControls();
     }
 }
+
+if (typeof registerAllmon3Addon === 'function') registerAllmon3Addon('announcements', {
+    authChanged: audioAuthChanged,
+    renderNode(node, slot) {
+        if (!audioState?.nodes.includes(node)) return;
+        const button = document.createElement('button');
+        button.type = 'button'; button.className = 'btn btn-sm btn-outline-secondary';
+        button.textContent = 'Announcements';
+        button.addEventListener('click', () => {
+            audioEl('audio-node').value = String(node); renderAudioControls();
+            audioEl('audio-manager').open = true; audioEl('audio-manager').scrollIntoView();
+        });
+        slot.append(button);
+    }
+});

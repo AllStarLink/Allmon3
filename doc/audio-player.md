@@ -2,62 +2,64 @@
 
 ## Setup and scope
 
-This feature controls **local Asterisk nodes that share Allmon3's filesystem**.
-It does not copy audio to remote nodes. Authenticated users see only local nodes
-allowed by their existing node restrictions. Set `AUDIO_LOCAL_NODES=1999,2000`
-in the `[web]` section of `/etc/allmon3/web.ini` only when automatic detection
-misses nodes on this same host (for example, an AMI connection using a LAN IP).
-An explicit entry is an operator assertion of shared storage, not file delivery.
-Restart Allmon3 after changing it.
+Install the optional **allmon3-announcements-manager** package. Plain Allmon3
+has no audio UI, worker, ffmpeg dependency, or timeout-recovery dependency.
+The add-in registers through `/etc/allmon3/addons.d/announcements.ini`; the
+core provides generic add-in loading, an asset manifest and per-node UI slots.
+Only the optional package contains the announcements endpoints, assets and timer.
 
-Requirements: Python 3.11+, ffmpeg/ffprobe, and local Piper TTS. AMI credentials
-must permit the CLI commands used by `rpt playback`, `rpt stats`, and `rpt cmd`.
-Asterisk needs read/traverse access to `/var/cache/allmon3/audio/`; converted
-files are mode 0644 under directories mode 0755. Saved schedules, the master
-switch, library metadata and original uploads live under `/etc/allmon3/audio/`,
-so recursive node configuration backups include them. Only this dedicated
-subdirectory is writable by Allmon3, not the parent configuration directory.
-Runtime timeout-recovery journals remain under `/var/lib/allmon3/audio-tot/`;
-they describe live radio ownership and are not configuration to restore.
-
-The Debian package installs ffmpeg and the recovery units, but **does not download
-speech models or install Python packages from the network during installation**.
-Install Piper separately before queueing any stack. One tested setup is:
+The add-in controls **local Asterisk nodes sharing Allmon3's filesystem**.
+An authenticated user sees only local nodes allowed by existing restrictions.
+The optional `local_nodes` list in `/etc/allmon3/announcements.ini` restricts
+local nodes; it cannot turn a remote Asterisk host into a local filesystem.
+Open Announcements from the selected node or the announcements panel.
 
 ```sh
-sudo apt install python3-venv
-sudo python3 -m venv /opt/allmon3-piper
-sudo /opt/allmon3-piper/bin/pip install 'piper-tts==1.8.0'
-sudo install -d -m 0755 /opt/allmon3-piper/voices
-cd /opt/allmon3-piper/voices
-sudo /opt/allmon3-piper/bin/python -m piper.download_voices en_US-lessac-medium
+sudo apt install allmon3-announcements-manager
 ```
 
-Review [Piper's installation documentation](https://github.com/OHF-Voice/piper1-gpl)
-and the [Lessac model card](https://huggingface.co/rhasspy/piper-voices/blob/main/en/en_US/lessac/medium/MODEL_CARD).
-Piper is GPL-licensed; voice models have their own licensing. No runtime/model
-binaries are bundled in this repository. Ensure the service account can execute
-Piper and read both the `.onnx` and matching `.onnx.json` files.
+This installs ffmpeg and **asl3-tts**, including its packaged Piper executable
+and default Amy voice. There is no manual Python venv or package-script download.
+The add-in invokes the packaged `/usr/bin/piper` in generation-only mode, not the
+root/asterisk-only `asl-tts` playback wrapper. This permits unprivileged synthesis,
+180ms sentence pauses and the queue's existing playback/timeout guards. Review
+ASL3/Piper and individual voice model licenses before distributing extra models.
 
-For a different installation location or voice, create a systemd drop-in using
-`systemctl edit allmon3`:
+Settings live in root-owned INI files:
 
-```ini
-[Service]
-Environment=ALLMON3_PIPER_BIN=/opt/allmon3-piper/bin/piper
-Environment=ALLMON3_PIPER_MODEL=/opt/allmon3-piper/voices/en_US-lessac-medium.onnx
-```
+- `/etc/allmon3/announcements.ini`: upload/duration limits, segment/gap lengths,
+  system or explicit IANA timezone, Friday publication cutoff, local-node filter,
+  persistent configuration and cache directories.
+- `/etc/allmon3/speech.ini`: `voice`, `model_dir`, `piper_bin`, `backend`, and bounded
+  speech pace/volume/pause/gain/limiter settings.
+  Default `backend=asl3` uses packaged Piper's CLI. `backend=python` supports an
+  already-installed Python Piper runtime, but is not required by the package.
 
-Then reload systemd and restart Allmon3 while playback is idle. Manual source
-installations can export the same environment variables. Voice paths participate
-in the speech cache identity; if replacing a model in place, clear the generated
-speech cache at idle or use a new model path. No cloud TTS or eSpeak fallback is
-used. Missing speech dependencies fail the job before any audio is dispatched.
+To select Ryan after installing its model and matching JSON in `model_dir`, change
+just `voice = en_US-ryan-medium`. Do not rename or overwrite stock voice files.
+Validate with `sudo -u allmon3 python3 -m asl_allmon.speech`, then restart Allmon3
+at audio idle. Never restart Asterisk for a voice change. Environment overrides
+and hand-written service drop-ins from earlier PR previews should be migrated to
+these INI files. Existing shared weather integrations can read the same profile;
+the optional weather companion is not shipped by this PR.
 
-Source installations also need both `allmon3-audio-tot-recovery.*` units from
-`debian/` installed under the system's systemd unit directory and the timer
-started. The packaged Allmon3 unit requires this timer and runs recovery before
-startup and after shutdown. Preserve these hooks when customizing the service.
+The audio profile is frozen on first synthesis until restart. Model/JSON content
+hashes and synthesis settings participate in both speech cache keys; different
+voices never reuse old cached announcements. In-place model replacement requires
+an idle restart too. A changed model cannot be rendered under its former cache key.
+Missing dependencies fail before playback. Native Asterisk prompts and CW IDs,
+uploaded media and downloaded recordings are not replaced by the voice selector.
+
+AMI permissions must allow `rpt playback`, `rpt stats`, and `rpt cmd`. Asterisk
+needs read/traverse access to `/var/cache/allmon3/audio` (directories 0755, audio
+0644). Saved settings/schedules/originals live under `/etc/allmon3/audio`; only
+this dedicated child directory is service-writable. Native settings are untouched.
+The optional recovery timer is `allmon3-announcements-manager.timer`. Recovery
+runs at add-in startup and through the independent timer; the base service has
+no Requires/After dependency or ExecStartPre/ExecStopPost recovery commands.
+Install/remove/upgrade the optional package only at audio idle. Removing it
+restarts Allmon3, leaves saved configuration/media intact, and removes the add-in
+UI/worker. A retained registration conffile for an absent package is ignored.
 
 ## Backups, restores and earlier preview versions
 
@@ -113,13 +115,13 @@ sources to the ordered stack, then move/remove items as needed. An empty stack
 cannot be saved: the selection field is flagged and focused.
 
 Stack names are spoken as entered at the start and end of a successfully
-completed job, not before every item. The medium-slow Lessac profile uses
-`length_scale=1.25`, Piper volume 0.8, and 4/3 gain followed by a 0.95 peak limiter.
+completed job, not before every item. The default speech profile uses
+`length_scale=1.25`, volume 0.8, 180ms sentence silence, and 4/3 gain followed by a 0.95 peak limiter.
 Speech is converted to 8 kHz mono mu-law. Opening speech precedes **TOT disabled**;
 closing speech precedes **TOT enabled**. Cancellation does not add a closing
 announcement. Acronym/callsign pronunciation is determined by the entered text.
 
-Each content file is split into segments of at most 150 seconds, with a five-second
+Each content file is split into segments of at most 150 seconds, with a configurable 15-second default
 gap between dispatches. Pause interrupts the segment; Resume restarts that segment
 (up to 150 seconds), not the entire stack. Stop cancels the selected node's current
 and pending jobs, leaving future schedules intact. app_rpt COP 24 stops local
@@ -128,10 +130,13 @@ remain visible and block further playback until Stop/recovery succeeds.
 
 ## Scheduling and master enable
 
-- **Once:** browser-local date/time, sent to the server with a UTC offset.
-- **Daily:** a Pacific (`America/Los_Angeles`) wall-clock time each day. The missing
-  spring-forward time is skipped; the repeated fall-back time runs once.
-- **Weekly:** weekday and time in Pacific time.
+- **Once:** the server timezone shown beside the date/time field. API callers may
+  also supply an explicit UTC offset. Nonexistent DST wall times are rejected.
+- **Daily/weekly:** the same advertised server timezone. The default reads the
+  system IANA timezone (UTC fallback); an explicit IANA name can be set in INI.
+  Missing spring-forward times are skipped; fall-back times run once. New next-run
+  calculations re-read the system zone. Restart and review schedules after an OS
+  timezone change; an already-stored next timestamp remains an absolute instant.
 
 Schedules and queued jobs persist. Starts more than five minutes late are marked
 **missed** instead of replaying after downtime. This check also applies to jobs
@@ -148,7 +153,7 @@ Pause and Stop remain available. Re-enabling does not replay cancelled/missed jo
 
 ## News sources
 
-Amateur Radio Newsline and ARRL Audio News are collected Friday after 1 PM Pacific,
+Amateur Radio Newsline and ARRL Audio News are collected Friday after the configured cutoff (default 13:00 in the server timezone),
 or on demand with Refresh. Publisher edition dates are checked. A source item
 uses the latest verified expected edition at playback time; a dated library item
 pins that exact file. If the current edition is unavailable, Piper says
@@ -165,8 +170,8 @@ commands may produce app_rpt TOTDIS/TOTENA announcements.
 
 A durable, locked journal is written before protection is disabled. Each segment
 has a finite lease (expected duration plus 30 seconds); an independent timer checks
-expired leases every 15 seconds. Startup and shutdown hooks also recover owned
-overrides. Recovery needs reachable Asterisk/AMI; failures retain the journal and
+expired leases every 15 seconds. The add-in recovers owned overrides at startup; graceful cancellation restores
+them, and the independent timer handles expired leases after crashes. Recovery needs reachable Asterisk/AMI; failures retain the journal and
 block new playback. A changed app_rpt system state delays recovery until the
 original state returns, rather than altering another state's protection.
 
@@ -181,12 +186,12 @@ Tests use temporary stores and fake playback/AMI callbacks. They do not transmit
 With `aiohttp`, `websockets`, ffmpeg and ffprobe available:
 
 ```sh
-python3 -m unittest discover -s tests -v
-node --check web/js/audio.js
+PYTHONPATH=src python3 -m unittest discover -s tests -v
+node --check web/addons/announcements/audio.js
 ```
 
 The actual Piper synthesis test skips when the configured runtime/model is absent.
-Set `ALLMON3_PIPER_BIN` and `ALLMON3_PIPER_MODEL` to test a different installation.
+Select a different installed runtime/model through `/etc/allmon3/speech.ini`.
 
 For the isolated browser checks:
 
@@ -199,3 +204,15 @@ npm run test:audio-ui
 Optionally set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to an installed Chromium binary.
 All API routes are simulated; checks cover desktop/mobile layout, empty-stack
 validation, Daily payloads, master control, Pause/Resume/Stop, and node selection.
+
+## Existing ASL bulletin tool: integration question still open
+
+`asl-play-arn` (also used for AAN) already downloads/converts/plays bulletins, but
+its inspected CLI has no download-only/export mode. Calling it for Refresh or
+browser preview would transmit; calling it inside this queue would bypass
+segment control, cancellation and owned timeout recovery. The current add-in
+therefore retains generation-only collection and freshness validation. This is
+not presented as a resolved maintainer request: a reusable fetch-only helper/API
+in ASL3, or agreement to reduce this add-in's bulletin scope, is still needed.
+Do not invoke the transmitting tool as a fetch probe. Native speech unification
+is likewise deferred to a separate design discussion.

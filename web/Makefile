@@ -24,6 +24,8 @@ INSTALLABLES = $(CSS_INSTALLABLES) $(IMG_INSTALLABLES) \
 
 .PHONY:	install
 install:	$(INSTALLABLES)
+	install -d $(WEBROOT)/addons/announcements
+	install -m 0644 addons/announcements/* $(WEBROOT)/addons/announcements/
 
 $(WEBROOT)/css/%: $(CSS_DIR)/%
 	install -D -m 0644  $< $@

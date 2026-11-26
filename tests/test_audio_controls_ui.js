@@ -9,6 +9,7 @@ const {chromium}=require('playwright');const fs=require('fs'),path=require('path
  await page.addInitScript(()=>{window.loggedIn=true});
  await page.route('http://allmon-test/**',async route=>{
   const url=new URL(route.request().url());
+  if(url.pathname==='/master/addons')return route.fulfill({json:{addons:[{id:'announcements',label:'Announcements',script:'addons/announcements/audio.js',fragment:'addons/announcements/panel.html',stylesheet:'addons/announcements/audio.css'}]}});
   if(url.pathname.startsWith('/master/audio/')){
    const action=url.pathname.split('/').pop();
    if(action==='state')return route.fulfill({json:{SUCCESS:state}});
@@ -17,11 +18,11 @@ const {chromium}=require('playwright');const fs=require('fs'),path=require('path
    state.jobs[0].status={pause:'paused',resume:'playing',stop:'cancelled'}[action];
    return route.fulfill({json:{SUCCESS:{id:body.id}}});
   }
-  if(url.pathname.endsWith('.js')&&!url.pathname.endsWith('/audio.js'))return route.fulfill({contentType:'application/javascript',body:''});
+  if(url.pathname.endsWith('.js')&&!url.pathname.endsWith('/audio.js')&&!url.pathname.endsWith('/addons.js'))return route.fulfill({contentType:'application/javascript',body:''});
   const file=path.join(root,url.pathname==='/'?'index.html':url.pathname);
   return fs.existsSync(file)&&fs.statSync(file).isFile()?route.fulfill({path:file}):route.fulfill({status:404,body:''});
  });
- await page.goto('http://allmon-test/');await page.evaluate(()=>audioAuthChanged());
+ await page.goto('http://allmon-test/');await page.waitForFunction(()=>typeof audioAuthChanged==='function');await page.evaluate(()=>audioAuthChanged());
  assert.equal(await page.locator('#audio-manager').evaluate(e=>e.open),false);
  await page.locator('#audio-title h2').click();
  assert.equal(await page.locator('#audio-pause').isEnabled(),true);

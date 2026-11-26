@@ -19,7 +19,7 @@ class ControlsAPITest(unittest.TestCase):
                 session={};headers={};host='radio.example';content_type='application/json'
                 match_info={};node=1999
                 async def json(self):return {'node':self.node,'id':'a'*32}
-            request=Request();mutate=server._ServerWS__audio_mutation
+            request=Request();mutate=server._AnnouncementsAddon__audio_mutation
             for action in ['pause','resume','stop']:
                 request.match_info={'action':action};request.session={};request.headers={};request.node=1999
                 with self.assertRaises(web.HTTPForbidden):asyncio.run(mutate(request))
@@ -47,7 +47,7 @@ class ControlsAPITest(unittest.TestCase):
                 session={'auth_sess':'valid'};headers={'Origin':'https://radio.example'}
                 host='radio.example';content_type='application/json';match_info={'action':'enable'}
                 async def json(self):return {'node':1999,'enabled':False}
-            request=Request();mutate=server._ServerWS__audio_mutation
+            request=Request();mutate=server._AnnouncementsAddon__audio_mutation
             with self.assertRaises(web.HTTPForbidden):asyncio.run(mutate(request))
             self.assertEqual(calls,[])
             security.restrictdb.add('ham2000')

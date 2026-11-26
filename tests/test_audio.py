@@ -22,13 +22,13 @@ class BulletinTest(unittest.TestCase):
     def test_publisher_edition_dates_and_friday_cutoff(self):
         arn = "<h1>Amateur Radio Newsline Report 2559 for Friday, November 13th, 2026</h1>"
         aan = '<a href="/files/file/News/Audio%20News/AAN-2026-11-13.mp3">Download</a>'
-        self.assertEqual(audio.edition_date("arn", arn), "2026-11-13")
-        self.assertEqual(audio.edition_date("aan", aan, "https://www.arrl.org/AAN-2026-11-13.mp3"),
+        self.assertEqual(audio.BulletinSources.edition_date("arn", arn), "2026-11-13")
+        self.assertEqual(audio.BulletinSources.edition_date("aan", aan, "https://www.arrl.org/AAN-2026-11-13.mp3"),
                          "2026-11-13")
         pacific = ZoneInfo("America/Los_Angeles")
-        self.assertEqual(audio.expected_news_friday(datetime(2026, 11, 20, 12, tzinfo=pacific)),
+        self.assertEqual(audio.ScheduleClock('America/Los_Angeles').expected_news_friday(datetime(2026, 11, 20, 12, tzinfo=pacific)),
                          "2026-11-13")
-        self.assertEqual(audio.expected_news_friday(datetime(2026, 11, 20, 13, tzinfo=pacific)),
+        self.assertEqual(audio.ScheduleClock('America/Los_Angeles').expected_news_friday(datetime(2026, 11, 20, 13, tzinfo=pacific)),
                          "2026-11-20")
 
 

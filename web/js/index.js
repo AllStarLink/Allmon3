@@ -343,6 +343,8 @@ function nodeLineHeader(nodeNumber, nodeDescription){
             </div>
         </div>
 `;
+    nodeLineHeaderStr += `<div class="allmon3-node-addons" data-node="${nodeNumber}"></div>`;
+    queueMicrotask(() => { if (typeof refreshAddonNodes === 'function') refreshAddonNodes(); });
     return nodeLineHeaderStr;
 }
 

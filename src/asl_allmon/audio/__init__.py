@@ -18,19 +18,12 @@ from zoneinfo import ZoneInfo
 
 import aiohttp
 
+from asl_allmon.speech import load_profile
+from asl_allmon.announcement_config import AnnouncementConfig
+
 DEFAULT_AUDIO_CONFIG = "/etc/allmon3/audio"
 
-MAX_UPLOAD = 100 * 1024 * 1024
-MAX_SECONDS = 3600
-SEGMENT_SECONDS = 150
-GAP_SECONDS = 5
-PIPER_BIN = os.environ.get("ALLMON3_PIPER_BIN", "/opt/allmon3-piper/bin/piper")
-PIPER_MODEL = os.environ.get("ALLMON3_PIPER_MODEL", "/opt/allmon3-piper/voices/en_US-lessac-medium.onnx")
-PIPER_LENGTH_SCALE = "1.25"  # 80% normal speaking rate; 25% longer phonemes.
-SPEECH_PROFILE = f"piper:{PIPER_BIN}:{PIPER_MODEL}:length1.25:volume0.8:gain4over3:limit0.95:v2"
-FALLBACK_FILE = "qst-no-new-file-" + hashlib.sha256(SPEECH_PROFILE.encode()).hexdigest() + ".ulaw"
 FALLBACK_TEXT = "Q S T. No new file is available this week."
-PACIFIC = ZoneInfo("America/Los_Angeles")
 EXTENSIONS = {".mp3", ".wav", ".flac", ".ogg", ".opus", ".m4a", ".aac"}
 NEWS = {
     "arn": {"name": "Amateur Radio Newsline", "url": "https://www.arnewsline.org/s/news.mp3",
@@ -44,70 +37,95 @@ class AudioError(ValueError):
     pass
 
 
-def expected_news_friday(now=None):
-    """The newest edition expected after Friday afternoon Pacific time."""
-    now = now or datetime.now(PACIFIC)
-    days_since_friday = (now.weekday() - 4) % 7
-    if days_since_friday == 0 and now.hour < 13:
-        days_since_friday = 7
-    return (now.date() - timedelta(days=days_since_friday)).isoformat()
+class ScheduleClock:
+    def __init__(self, timezone_name='system', release_hour=13):
+        self.timezone_name = timezone_name
+        self.release_hour = release_hour
+
+    @property
+    def zone(self):
+        if self.timezone_name != 'system':
+            return ZoneInfo(self.timezone_name)
+        try:
+            local = str(Path('/etc/localtime').resolve())
+            if '/zoneinfo/' in local:
+                return ZoneInfo(local.split('/zoneinfo/', 1)[1])
+            return ZoneInfo(Path('/etc/timezone').read_text().strip())
+        except (OSError, ValueError, KeyError):
+            return ZoneInfo('UTC')
+
+    def expected_news_friday(self, now=None):
+        """The newest edition expected after configured Friday publication cutoff."""
+        now = now or datetime.now(self.zone)
+        days_since_friday = (now.weekday() - 4) % 7
+        if days_since_friday == 0 and now.hour < self.release_hour:
+            days_since_friday = 7
+        return (now.date() - timedelta(days=days_since_friday)).isoformat()
 
 
-def edition_date(source, page_html, url=""):
-    """Read the publisher's edition date, not the download timestamp."""
-    if source == "aan":
-        match = re.search(r"AAN-(20\d\d-\d\d-\d\d)\.mp3", url, re.I)
-        if match:
-            return datetime.strptime(match.group(1), "%Y-%m-%d").date().isoformat()
-        text = html_lib.unescape(re.sub(r"<[^>]*>", " ", page_html))
-        match = re.search(r"Download\s+([A-Za-z]+\s+\d{1,2},\s+20\d\d)", text, re.I)
-        if match:
-            return datetime.strptime(match.group(1), "%B %d, %Y").date().isoformat()
-    elif source == "arn":
-        text = html_lib.unescape(re.sub(r"<[^>]*>", " ", page_html))
-        match = re.search(r"Amateur Radio Newsline Report\s+\d+\s+for Friday,\s*"
-                          r"([A-Za-z]+\s+\d{1,2})(?:st|nd|rd|th)?,\s*(20\d\d)", text, re.I)
-        if match:
-            return datetime.strptime(match.group(1) + ", " + match.group(2),
-                                     "%B %d, %Y").date().isoformat()
-    raise AudioError("Could not verify the news bulletin edition date")
+    def weekly_next(self, weekday, hhmm, after=None):
+        if type(weekday) is not int or not 0 <= weekday <= 6 or not re.fullmatch(r"[0-2][0-9]:[0-5][0-9]", hhmm):
+            raise AudioError("Choose a weekday and time")
+        hour, minute = map(int, hhmm.split(":"))
+        if hour > 23:
+            raise AudioError("Invalid time")
+        now = datetime.fromtimestamp(after if after is not None else datetime.now().timestamp(), self.zone)
+        for days in range(15):
+            day = now.date() + timedelta(days=days)
+            if day.weekday() == weekday:
+                candidate = datetime.combine(day, clock_time(hour, minute), self.zone)
+                if datetime.fromtimestamp(candidate.timestamp(), self.zone).replace(tzinfo=None) != candidate.replace(tzinfo=None):
+                    continue
+                if candidate.timestamp() > now.timestamp() + 1:
+                    return candidate.timestamp()
+        raise AudioError("Could not calculate the next run")
 
 
-def weekly_next(weekday, hhmm, after=None):
-    if type(weekday) is not int or not 0 <= weekday <= 6 or not re.fullmatch(r"[0-2][0-9]:[0-5][0-9]", hhmm):
-        raise AudioError("Choose a weekday and time")
-    hour, minute = map(int, hhmm.split(":"))
-    if hour > 23:
-        raise AudioError("Invalid time")
-    now = datetime.fromtimestamp(after if after is not None else datetime.now().timestamp(), PACIFIC)
-    for days in range(8):
-        day = now.date() + timedelta(days=days)
-        if day.weekday() == weekday:
-            candidate = datetime.combine(day, clock_time(hour, minute), PACIFIC)
+    def daily_next(self, hhmm, after=None):
+        """Next configured wall-clock time; skip missing DST times, repeat folds once."""
+        if not isinstance(hhmm, str) or not re.fullmatch(r"(?:[01][0-9]|2[0-3]):[0-5][0-9]", hhmm):
+            raise AudioError("Choose a daily time")
+        hour, minute = map(int, hhmm.split(":"))
+        now = datetime.fromtimestamp(after if after is not None else datetime.now().timestamp(), self.zone)
+        for days in range(3):
+            day = now.date() + timedelta(days=days)
+            candidate = datetime.combine(day, clock_time(hour, minute), self.zone)
+            # A nonexistent spring-forward time round-trips to a different wall time.
+            if datetime.fromtimestamp(candidate.timestamp(), self.zone).replace(tzinfo=None) != candidate.replace(tzinfo=None):
+                continue
             if candidate.timestamp() > now.timestamp() + 1:
                 return candidate.timestamp()
-    raise AudioError("Could not calculate the next run")
+        raise AudioError("Could not calculate the next daily run")
 
 
-def daily_next(hhmm, after=None):
-    """Next Pacific wall-clock time; skip missing DST times, repeat folds once."""
-    if not isinstance(hhmm, str) or not re.fullmatch(r"(?:[01][0-9]|2[0-3]):[0-5][0-9]", hhmm):
-        raise AudioError("Choose a daily time")
-    hour, minute = map(int, hhmm.split(":"))
-    now = datetime.fromtimestamp(after if after is not None else datetime.now().timestamp(), PACIFIC)
-    for days in range(3):
-        day = now.date() + timedelta(days=days)
-        candidate = datetime.combine(day, clock_time(hour, minute), PACIFIC)
-        # A nonexistent spring-forward time round-trips to a different wall time.
-        if datetime.fromtimestamp(candidate.timestamp(), PACIFIC).replace(tzinfo=None) != candidate.replace(tzinfo=None):
-            continue
-        if candidate.timestamp() > now.timestamp() + 1:
-            return candidate.timestamp()
-    raise AudioError("Could not calculate the next daily run")
+class BulletinSources:
+    @staticmethod
+    def edition_date(source, page_html, url=""):
+        """Read the publisher's edition date, not the download timestamp."""
+        if source == "aan":
+            match = re.search(r"AAN-(20\d\d-\d\d-\d\d)\.mp3", url, re.I)
+            if match:
+                return datetime.strptime(match.group(1), "%Y-%m-%d").date().isoformat()
+            text = html_lib.unescape(re.sub(r"<[^>]*>", " ", page_html))
+            match = re.search(r"Download\s+([A-Za-z]+\s+\d{1,2},\s+20\d\d)", text, re.I)
+            if match:
+                return datetime.strptime(match.group(1), "%B %d, %Y").date().isoformat()
+        elif source == "arn":
+            text = html_lib.unescape(re.sub(r"<[^>]*>", " ", page_html))
+            match = re.search(r"Amateur Radio Newsline Report\s+\d+\s+for Friday,\s*"
+                              r"([A-Za-z]+\s+\d{1,2})(?:st|nd|rd|th)?,\s*(20\d\d)", text, re.I)
+            if match:
+                return datetime.strptime(match.group(1) + ", " + match.group(2),
+                                         "%B %d, %Y").date().isoformat()
+        raise AudioError("Could not verify the news bulletin edition date")
+
 
 
 class AudioService:
-    def __init__(self, state_dir, cache_dir, nodes, playback, timeout_guard=None, stop_playback=None):
+    def __init__(self, state_dir, cache_dir, nodes, playback, timeout_guard=None, stop_playback=None, settings=None):
+        self.settings = settings or AnnouncementConfig()
+        self.clock = ScheduleClock(self.settings.timezone, self.settings.release_hour)
+        self._speech_profile = None
         self.state = Path(state_dir)
         self.cache = Path(cache_dir)
         self.originals = self.state / "audio-originals"
@@ -227,7 +245,7 @@ class AudioService:
                 "THEN 0 ELSE 1 END, created_at DESC LIMIT 50", allowed_nodes))
         for item in schedules + jobs:
             item["items"] = json.loads(item["items"])
-        return {"nodes": allowed_nodes, "assets": assets, "sources": sources,
+        return {"nodes": allowed_nodes, "timezone": self.clock.zone.key, "assets": assets, "sources": sources,
                 "schedules": schedules, "jobs": jobs, "playback_enabled": self.playback_enabled(),
                 "can_manage_playback": set(self.nodes).issubset(allowed_nodes)}
 
@@ -254,7 +272,11 @@ class AudioService:
         if recurrence == "once":
             try:
                 parsed = datetime.fromisoformat(run_at.replace("Z", "+00:00"))
-                next_at = parsed.timestamp() if parsed.tzinfo else 0
+                if parsed.tzinfo is None:
+                    parsed = parsed.replace(tzinfo=self.clock.zone)
+                    if datetime.fromtimestamp(parsed.timestamp(), self.clock.zone).replace(tzinfo=None) != parsed.replace(tzinfo=None):
+                        raise ValueError('That local time does not exist due to a daylight-saving change')
+                next_at = parsed.timestamp()
             except (AttributeError, ValueError) as e:
                 raise AudioError("Choose a date and time") from e
             if next_at < datetime.now().timestamp() + 10:
@@ -263,9 +285,9 @@ class AudioService:
             local_time = None
         elif recurrence == "daily":
             weekday = None
-            next_at = daily_next(local_time)
+            next_at = self.clock.daily_next(local_time)
         elif recurrence == "weekly":
-            next_at = weekly_next(weekday, local_time)
+            next_at = self.clock.weekly_next(weekday, local_time)
         else:
             raise AudioError("Choose a one-time, daily, or weekly schedule")
         schedule_id = uuid.uuid4().hex
@@ -313,9 +335,9 @@ class AudioService:
         with self._db() as db:
             row = db.execute("SELECT seconds FROM assets WHERE id=?", (asset_id,)).fetchone()
         expected_bytes = round(row["seconds"] * 8000)
-        segment_bytes = 8000 * SEGMENT_SECONDS
+        segment_bytes = 8000 * self.settings.segment_seconds
         count = (expected_bytes + segment_bytes - 1) // segment_bytes
-        if not 0 < expected_bytes <= MAX_SECONDS * 8000:
+        if not 0 < expected_bytes <= self.settings.max_seconds * 8000:
             raise AudioError("Invalid stored audio duration")
         segments = [self.converted / f"{asset_id}_{index:03d}.ulaw" for index in range(count)]
         sizes = [min(segment_bytes, expected_bytes - index * segment_bytes) for index in range(count)]
@@ -357,7 +379,7 @@ class AudioService:
             duration_text = self._tool(["ffprobe", "-v", "error", "-show_entries", "format=duration",
                                         "-of", "default=noprint_wrappers=1:nokey=1", str(incoming)], 45)
             duration = float(duration_text.strip())
-            if not 0 < duration <= MAX_SECONDS:
+            if not 0 < duration <= self.settings.max_seconds:
                 raise AudioError("Audio must be between 0 and 60 minutes")
             self._tool(["ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
                         "-i", str(incoming), "-map", "0:a:0", "-vn",
@@ -368,7 +390,7 @@ class AudioService:
                 raise AudioError("The audio file contained no playable audio")
             with full.open("rb") as source_file:
                 index = 0
-                while chunk := source_file.read(8000 * SEGMENT_SECONDS):
+                while chunk := source_file.read(8000 * self.settings.segment_seconds):
                     segment = self.converted / f"{asset_id}_{index:03d}.ulaw"
                     segments.append(segment)
                     with segment.open("wb") as target:
@@ -420,8 +442,8 @@ class AudioService:
                     url = urljoin(info["page"], html_lib.unescape(found.group(1)))
                     if urlparse(url).hostname not in {"www.arrl.org", "arrl.org", "content.blubrry.com"} or urlparse(url).scheme != "https":
                         raise AudioError("Unexpected ARRL audio host")
-                published = edition_date(source, page_html, url)
-                if published < expected_news_friday():
+                published = BulletinSources.edition_date(source, page_html, url)
+                if published < self.clock.expected_news_friday():
                     raise AudioError(f"{info['name']} is still dated {published}; current bulletin unavailable")
                 with tempfile.NamedTemporaryFile(dir=self.originals, suffix=".mp3", delete=False) as target:
                     temp_path = Path(target.name)
@@ -434,7 +456,7 @@ class AudioService:
                             size = 0
                             async for chunk in response.content.iter_chunked(65536):
                                 size += len(chunk)
-                                if size > MAX_UPLOAD:
+                                if size > self.settings.max_upload:
                                     raise AudioError("News file exceeds 100 MB")
                                 target.write(chunk)
                     except Exception:
@@ -490,8 +512,8 @@ class AudioService:
                 db.execute("INSERT INTO jobs(id,name,node,items,status,created_at,scheduled_for) VALUES(?,?,?,?,?,?,?)",
                            (uuid.uuid4().hex, item["name"], item["node"], item["items"], status, now, item["next_at"]))
                 if item["recurrence"] in ("daily", "weekly"):
-                    next_at = (daily_next(item["local_time"], now + 1) if item["recurrence"] == "daily"
-                               else weekly_next(item["weekday"], item["local_time"], now + 1))
+                    next_at = (self.clock.daily_next(item["local_time"], now + 1) if item["recurrence"] == "daily"
+                               else self.clock.weekly_next(item["weekday"], item["local_time"], now + 1))
                     db.execute("UPDATE schedules SET next_at=? WHERE id=?", (next_at, item["id"]))
                 else:
                     db.execute("UPDATE schedules SET enabled=0 WHERE id=?", (item["id"],))
@@ -521,8 +543,16 @@ class AudioService:
                            (status, error, datetime.now().timestamp() if status in
                             {"done", "substituted", "failed", "interrupted", "cancelled"} else None, job_id))
 
+    def speech_profile(self):
+        if self._speech_profile is None:
+            self._speech_profile = load_profile()
+        return self._speech_profile
+
+    def fallback_path(self):
+        return self.converted / ("qst-no-new-file-" + self.speech_profile().identity + ".ulaw")
+
     def _render_unavailable(self):
-        output = self.converted / FALLBACK_FILE
+        output = self.fallback_path()
         return self._render_stack_name(FALLBACK_TEXT, output)
 
     def _render_stack_name(self, text, output):
@@ -531,11 +561,11 @@ class AudioService:
         with tempfile.TemporaryDirectory(dir=self.cache) as temp_dir:
             wav = Path(temp_dir) / "stack-name.wav"
             raw = Path(temp_dir) / "stack-name.ulaw"
-            self._tool(["nice", "-n", "10", PIPER_BIN, "--model", PIPER_MODEL,
-                        "--length-scale", PIPER_LENGTH_SCALE, "--volume", "0.8",
-                        "--output-file", str(wav)], 120, input=text)
+            profile = self.speech_profile()
+            profile.check_model()
+            self._tool(profile.command(wav), 120, input=text)
             self._tool(["ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
-                        "-i", str(wav), "-af", "aresample=8000,volume=4/3,alimiter=limit=0.95:level=false:latency=true",
+                        "-i", str(wav), "-af", profile.audio_filter,
                         "-ar", "8000", "-ac", "1", "-c:a", "pcm_mulaw",
                         "-f", "mulaw", str(raw)], 60)
             if not 800 <= raw.stat().st_size <= 60 * 8000:
@@ -548,7 +578,7 @@ class AudioService:
         if not isinstance(name, str) or not 1 <= len(name.strip()) <= 80:
             raise AudioError("Enter a stack name of 1 to 80 characters")
         text = " ".join(name.split())
-        digest = hashlib.sha256((SPEECH_PROFILE + ":" + text).encode()).hexdigest()
+        digest = hashlib.sha256((self.speech_profile().identity + ":" + text).encode()).hexdigest()
         output = self.converted / ("stack-name-" + digest + ".ulaw")
         async with self.tts_lock:
             if not output.exists():
@@ -649,11 +679,11 @@ class AudioService:
                 lambda: self.playback(node, segment.with_suffix("")))
         else:
             await self.playback(node, segment.with_suffix(""))
-        await asyncio.sleep(seconds + GAP_SECONDS)
+        await asyncio.sleep(seconds + self.settings.gap_seconds)
 
     async def _prepare_unavailable(self):
         async with self.tts_lock:
-            output = self.converted / FALLBACK_FILE
+            output = self.fallback_path()
             if not output.exists():
                 output = await asyncio.to_thread(self._render_unavailable)
         return output
@@ -671,7 +701,7 @@ class AudioService:
                 asset_id = item[6:] if not source else None
                 if source:
                     cached = self._source_asset(source)
-                    if not cached or cached["edition_date"] != expected_news_friday():
+                    if not cached or cached["edition_date"] != self.clock.expected_news_friday():
                         asset_id = await self.fetch_source(source)
                     else:
                         asset_id = cached["asset_id"]
@@ -771,9 +801,9 @@ class AudioService:
         for source in NEWS:
             try:
                 cached = self._source_asset(source)
-                today = datetime.now(PACIFIC).date()
-                if (cached and cached["edition_date"] == expected_news_friday()
-                        and datetime.fromtimestamp(cached["fetched_at"], PACIFIC).date() == today):
+                today = datetime.now(self.clock.zone).date()
+                if (cached and cached["edition_date"] == self.clock.expected_news_friday()
+                        and datetime.fromtimestamp(cached["fetched_at"], self.clock.zone).date() == today):
                     continue
                 await self.fetch_source(source)
             except Exception as e:
@@ -794,8 +824,8 @@ class AudioService:
                             self.active[node] = asyncio.create_task(self._run_job(job))
                     elif self.active[node].done():
                         self.active.pop(node)
-                now = datetime.now(PACIFIC)
-                if (now.weekday() == 4 and now.hour >= 13
+                now = datetime.now(self.clock.zone)
+                if (now.weekday() == 4 and now.hour >= self.settings.release_hour
                         and datetime.now().timestamp() - self.last_collect_attempt >= 1800
                         and (self.collect_task is None or self.collect_task.done())):
                     self.last_collect_attempt = datetime.now().timestamp()

@@ -27,7 +27,7 @@ def load_server():
     sys.modules["aiohttp_session"] = session
     for name in ("node_configs", "security", "web_configs"):
         sys.modules[f"asl_allmon.{name}"] = types.ModuleType(f"asl_allmon.{name}")
-    return importlib.import_module("asl_allmon.allmon3_server").ServerWS
+    return importlib.import_module("asl_allmon.announcements").AnnouncementsAddon
 
 
 class AudioAPITest(unittest.TestCase):
@@ -60,8 +60,8 @@ class AudioAPITest(unittest.TestCase):
                     return {"node": 2000, "name": "News", "items": ["source:arn"]}
 
             request = Request()
-            state = server._ServerWS__audio_state
-            mutate = server._ServerWS__audio_mutation
+            state = server._AnnouncementsAddon__audio_state
+            mutate = server._AnnouncementsAddon__audio_mutation
             with self.assertRaises(web.HTTPForbidden):
                 asyncio.run(state(request))
             request.session = {"auth_sess": "valid"}

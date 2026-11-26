@@ -21,17 +21,19 @@ class TimeoutGuardError(RuntimeError):
     pass
 
 
-def parse_status(text, node):
-    if not re.search(rf'NODE {node} STATISTICS', text):
-        raise TimeoutGuardError('Cannot verify timeout node identity')
-    state = re.search(r'^Selected system state\.+:\s*(\d+)\s*$', text, re.M)
-    timer = re.search(r'^Time out timer\.+:\s*(ENABLED|DISABLED)\s*$', text, re.M)
-    if not state or not timer:
-        raise TimeoutGuardError('Cannot verify timeout protection state')
-    return int(state[1]), timer[1] == 'ENABLED'
 
 
 class TimeoutGuard:
+    @staticmethod
+    def parse_status(text, node):
+        if not re.search(rf'NODE {node} STATISTICS', text):
+            raise TimeoutGuardError('Cannot verify timeout node identity')
+        state = re.search(r'^Selected system state\.+:\s*(\d+)\s*$', text, re.M)
+        timer = re.search(r'^Time out timer\.+:\s*(ENABLED|DISABLED)\s*$', text, re.M)
+        if not state or not timer:
+            raise TimeoutGuardError('Cannot verify timeout protection state')
+        return int(state[1]), timer[1] == 'ENABLED'
+
     def __init__(self, directory, command, identities, clock=time.monotonic, boot_id=None):
         self.directory = Path(directory)
         self.command = command
@@ -87,7 +89,7 @@ class TimeoutGuard:
         return record
 
     async def _status(self, node):
-        return parse_status(await self.command(node, f'rpt stats {node}'), node)
+        return self.parse_status(await self.command(node, f'rpt stats {node}'), node)
 
     async def _set(self, node, enabled, state):
         async with asyncio.timeout(20):
