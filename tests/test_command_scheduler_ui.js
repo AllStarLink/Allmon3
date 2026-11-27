@@ -36,6 +36,7 @@ const WEATHER='rpt cmd 59521 cmd /usr/lib/allmon3-weather/say-weather-59521';
   await page.waitForFunction(()=>typeof audioAuthChanged==='function');
   await page.evaluate(()=>audioAuthChanged());
   await page.locator('#audio-title h2').click();
+  for(const id of ['audio-run-at','audio-daily-time','audio-weekly-time']) assert.equal(await page.locator('#'+id).getAttribute('step'),'1');
   assert.equal(await page.locator('#command-master-enabled').isChecked(),false);
   assert.equal(await page.locator('#audio-master-enabled').isChecked(),false);
   const audioBox=await page.locator('#audio-master-label').boundingBox();
@@ -51,11 +52,11 @@ const WEATHER='rpt cmd 59521 cmd /usr/lib/allmon3-weather/say-weather-59521';
   await page.locator('#command-text').fill(WEATHER);
   for(const recurrence of ['once','daily','weekly']){
    await page.locator('#audio-recurrence').selectOption(recurrence);
-   if(recurrence==='once')await page.locator('#audio-run-at').fill('2030-06-01T14:15');
-   if(recurrence==='daily')await page.locator('#audio-daily-time').fill('09:30');
+   if(recurrence==='once')await page.locator('#audio-run-at').fill('2030-06-01T14:15:37');
+   if(recurrence==='daily')await page.locator('#audio-daily-time').fill('09:30:19');
    if(recurrence==='weekly'){
     await page.locator('#audio-weekday').selectOption('2');
-    await page.locator('#audio-weekly-time').fill('17:45');
+    await page.locator('#audio-weekly-time').fill('17:45:53');
    }
    await page.locator('button[onclick="scheduleAudio()"]').click();
    await page.waitForFunction(n=>audioState.schedules.length===n,['once','daily','weekly'].indexOf(recurrence)+1);
@@ -64,9 +65,9 @@ const WEATHER='rpt cmd 59521 cmd /usr/lib/allmon3-weather/say-weather-59521';
    assert.equal(payload.recurrence,recurrence);assert.equal(payload.command,WEATHER);
    assert.equal(payload.node,59521);assert.equal(payload.kind,'command');assert.deepEqual(payload.items,[]);
    assert.equal(payload.name,'Say weather');
-   if(recurrence==='once')assert.equal(payload.run_at,'2030-06-01T14:15');
-   if(recurrence==='daily')assert.equal(payload.local_time,'09:30');
-   if(recurrence==='weekly'){assert.equal(payload.local_time,'17:45');assert.equal(payload.weekday,2);}
+   if(recurrence==='once')assert.equal(payload.run_at,'2030-06-01T14:15:37');
+   if(recurrence==='daily')assert.equal(payload.local_time,'09:30:19');
+   if(recurrence==='weekly'){assert.equal(payload.local_time,'17:45:53');assert.equal(payload.weekday,2);}
   }
   assert.equal(await page.locator('#audio-stack-validation').isVisible(),false,'empty audio stack allowed for command');
   assert.match(await page.locator('#audio-schedules').innerText(),/Command: rpt cmd 59521 cmd/);

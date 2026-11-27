@@ -197,6 +197,10 @@ remain visible and block further playback until Stop/recovery succeeds.
 
 ## Scheduling and master enable
 
+- **Time controls:** Once, Daily, and Weekly accept hours, minutes, and seconds
+  (`HH:MM:SS`) for both audio and command schedules. Existing `HH:MM` schedules
+  continue at second `00`. The scheduler checks for due work every second; this
+  is not a real-time guarantee and queued work can delay a start.
 - **Once:** the server timezone shown beside the date/time field. API callers may
   also supply an explicit UTC offset. Nonexistent DST wall times are rejected.
 - **Daily/weekly:** the same advertised server timezone. The default reads the

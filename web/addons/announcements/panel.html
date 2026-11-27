@@ -62,10 +62,10 @@
 							<option value="once">Once</option><option value="daily">Daily</option><option value="weekly">Weekly</option>
 						</select></div>
 					<div id="audio-once-fields" class="col-12"><label for="audio-run-at" class="form-label">Date and time (<span class="audio-timezone">system timezone</span>)</label>
-						<input id="audio-run-at" type="datetime-local" class="form-control"></div>
+						<input id="audio-run-at" type="datetime-local" step="1" aria-describedby="audio-time-help" class="form-control"></div>
 					<div id="audio-daily-fields" class="col-12 d-none">
                         <label for="audio-daily-time" class="form-label">Time each day (<span class="audio-timezone">system timezone</span>)</label>
-                        <input id="audio-daily-time" type="time" class="form-control" value="14:00">
+                        <input id="audio-daily-time" type="time" step="1" aria-describedby="audio-time-help" class="form-control" value="14:00:00">
                     </div>
 					<div id="audio-weekly-fields" class="col-12 d-none">
 						<label for="audio-weekday" class="form-label">Day and time (<span class="audio-timezone">system timezone</span>)</label>
@@ -73,9 +73,9 @@
 							<option value="0">Monday</option><option value="1">Tuesday</option><option value="2">Wednesday</option>
 							<option value="3">Thursday</option><option value="4" selected>Friday</option>
 							<option value="5">Saturday</option><option value="6">Sunday</option>
-						</select><input id="audio-weekly-time" type="time" class="form-control" value="14:00"></div>
+						</select><input id="audio-weekly-time" aria-label="Time each week" type="time" step="1" aria-describedby="audio-time-help" class="form-control" value="14:00:00"></div>
 					</div>
-					<div class="col-12"><button class="btn btn-outline-primary" type="button" onclick="scheduleAudio()">Save schedule</button></div>
+					<div class="col-12"><p id="audio-time-help" class="small text-muted mb-2">Set hours, minutes, and seconds (HH:MM:SS). Starts are checked every second; queued work may delay playback.</p><button class="btn btn-outline-primary" type="button" onclick="scheduleAudio()">Save schedule</button></div>
 				</div>
                 </div></section></div>
             </div>

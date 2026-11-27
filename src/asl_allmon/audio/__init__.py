@@ -63,37 +63,41 @@ class ScheduleClock:
         return (now.date() - timedelta(days=days_since_friday)).isoformat()
 
 
+    @staticmethod
+    def _wall_time(value):
+        """Accept second-resolution wall times and existing HH:MM schedules."""
+        if not isinstance(value, str) or not re.fullmatch(
+                r"(?:[01][0-9]|2[0-3]):[0-5][0-9](?::[0-5][0-9])?", value):
+            raise AudioError("Choose a time in HH:MM or HH:MM:SS format")
+        return clock_time(*map(int, value.split(":")))
+
     def weekly_next(self, weekday, hhmm, after=None):
-        if type(weekday) is not int or not 0 <= weekday <= 6 or not re.fullmatch(r"[0-2][0-9]:[0-5][0-9]", hhmm):
+        if type(weekday) is not int or not 0 <= weekday <= 6:
             raise AudioError("Choose a weekday and time")
-        hour, minute = map(int, hhmm.split(":"))
-        if hour > 23:
-            raise AudioError("Invalid time")
+        wall_time = self._wall_time(hhmm)
         now = datetime.fromtimestamp(after if after is not None else datetime.now().timestamp(), self.zone)
         for days in range(15):
             day = now.date() + timedelta(days=days)
             if day.weekday() == weekday:
-                candidate = datetime.combine(day, clock_time(hour, minute), self.zone)
+                candidate = datetime.combine(day, wall_time, self.zone)
                 if datetime.fromtimestamp(candidate.timestamp(), self.zone).replace(tzinfo=None) != candidate.replace(tzinfo=None):
                     continue
-                if candidate.timestamp() > now.timestamp() + 1:
+                if candidate.timestamp() > now.timestamp():
                     return candidate.timestamp()
         raise AudioError("Could not calculate the next run")
 
 
     def daily_next(self, hhmm, after=None):
         """Next configured wall-clock time; skip missing DST times, repeat folds once."""
-        if not isinstance(hhmm, str) or not re.fullmatch(r"(?:[01][0-9]|2[0-3]):[0-5][0-9]", hhmm):
-            raise AudioError("Choose a daily time")
-        hour, minute = map(int, hhmm.split(":"))
+        wall_time = self._wall_time(hhmm)
         now = datetime.fromtimestamp(after if after is not None else datetime.now().timestamp(), self.zone)
         for days in range(3):
             day = now.date() + timedelta(days=days)
-            candidate = datetime.combine(day, clock_time(hour, minute), self.zone)
+            candidate = datetime.combine(day, wall_time, self.zone)
             # A nonexistent spring-forward time round-trips to a different wall time.
             if datetime.fromtimestamp(candidate.timestamp(), self.zone).replace(tzinfo=None) != candidate.replace(tzinfo=None):
                 continue
-            if candidate.timestamp() > now.timestamp() + 1:
+            if candidate.timestamp() > now.timestamp():
                 return candidate.timestamp()
         raise AudioError("Could not calculate the next daily run")
 
@@ -562,8 +566,8 @@ class AudioService:
                 db.execute("INSERT INTO jobs(id,name,node,items,status,created_at,scheduled_for,kind,command) VALUES(?,?,?,?,?,?,?,?,?)",
                            (uuid.uuid4().hex, item["name"], item["node"], item["items"], status, now, item["next_at"], item["kind"], item["command"]))
                 if item["recurrence"] in ("daily", "weekly"):
-                    next_at = (self.clock.daily_next(item["local_time"], now + 1) if item["recurrence"] == "daily"
-                               else self.clock.weekly_next(item["weekday"], item["local_time"], now + 1))
+                    next_at = (self.clock.daily_next(item["local_time"], now) if item["recurrence"] == "daily"
+                               else self.clock.weekly_next(item["weekday"], item["local_time"], now))
                     db.execute("UPDATE schedules SET next_at=? WHERE id=?", (next_at, item["id"]))
                 else:
                     db.execute("UPDATE schedules SET enabled=0 WHERE id=?", (item["id"],))
@@ -906,7 +910,7 @@ class AudioService:
                         and (self.collect_task is None or self.collect_task.done())):
                     self.last_collect_attempt = datetime.now().timestamp()
                     self.collect_task = asyncio.create_task(self._collect_friday())
-                await asyncio.sleep(2)
+                await asyncio.sleep(1)
         finally:
             if self.collect_task:
                 self.collect_task.cancel()

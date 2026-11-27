@@ -34,7 +34,7 @@ class DailyTests(unittest.TestCase):
         self.assertEqual(audio.ScheduleClock('America/Los_Angeles').daily_next('01:30', stamp('2026-11-01T01:30')), stamp('2026-11-02T01:30'))
 
     def test_invalid_times_are_user_errors(self):
-        for value in [None, 1400, '', '24:00', '14:60', '2:00', '14:00:00']:
+        for value in [None, 1400, '', '24:00', '14:60', '2:00', '14:00:60']:
             with self.subTest(value=value), self.assertRaises(audio.AudioError):
                 audio.ScheduleClock('America/Los_Angeles').daily_next(value)
 

@@ -59,11 +59,11 @@ const {chromium}=require('playwright');const fs=require('fs'),path=require('path
  assert.equal(await page.locator('#audio-add-item').getAttribute('aria-invalid'),null);
  await page.locator('#audio-stack-name').fill('Browser-only test');
  await page.locator('#audio-daily-time').fill('');await save.click();assert.equal(requests.length,0);
- await page.locator('#audio-daily-time').fill('22:30');
+ await page.locator('#audio-daily-time').fill('22:30:41');
  const saved=page.waitForResponse(r=>r.url().endsWith('/master/audio/schedule')&&r.request().method()==='POST');
  await save.click();await saved;
  await page.waitForFunction(()=>!audioRefreshing);assert.equal(await page.locator('#audio-feedback').innerText(),'');
- assert.equal(requests.length,1);assert.deepEqual(requests[0].items,['source:arn']);assert.equal(requests[0].recurrence,'daily');assert.equal(requests[0].local_time,'22:30');assert.equal(requests[0].weekday,undefined);assert.equal(requests[0].run_at,undefined);
+ assert.equal(requests.length,1);assert.deepEqual(requests[0].items,['source:arn']);assert.equal(requests[0].recurrence,'daily');assert.equal(requests[0].local_time,'22:30:41');assert.equal(requests[0].weekday,undefined);assert.equal(requests[0].run_at,undefined);
  await page.locator('#audio-stack').getByRole('button',{name:'Remove',exact:true}).click();await save.click();
  assert.equal(await page.locator('#audio-stack-validation').isVisible(),true);assert.equal(requests.length,1);
  console.log('PASS: empty once/daily/weekly stacks blocked without request; selecting without adding still blocked; warning focuses selector; Add clears warning; Daily fields/payload and blank-time validation work; removing last item restores guard. No live backend used.');
