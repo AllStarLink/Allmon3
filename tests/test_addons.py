@@ -70,3 +70,32 @@ class AddonTests(unittest.TestCase):
                         AnnouncementConfig(path)
             path.unlink()
             self.assertEqual(AnnouncementConfig(path).gap_seconds, 15)
+
+    def test_ini_storage_overrides_reach_addon_runtime_and_survive_restart(self):
+        # Keep the real INI parser, add-in constructor and AudioService. Redirect
+        # only the config filename, not parsed settings or runtime storage fields.
+        cls = load_server()
+        module = importlib.import_module('asl_allmon.announcements')
+        nodes = types.SimpleNamespace(all_nodes=[1999], colo_nodes={}, nodes={
+            1999: types.SimpleNamespace(host='localhost', port=5038)})
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / 'announcements.ini'
+            state, cache = root / 'custom-state', root / 'custom-cache'
+            path.write_text(f'[announcements]\nstate_dir={state}\ncache_dir={cache}\ntimezone=UTC\n')
+            with patch.object(module, 'AnnouncementConfig', side_effect=lambda: AnnouncementConfig(path)):
+                addon = cls(None, nodes, types.SimpleNamespace())
+                addon.audio.initialize()
+                self.assertEqual(addon.audio.state, state)
+                self.assertEqual(addon.audio.cache, cache)
+                self.assertEqual(addon.audio.db_path, state / 'audio.sqlite3')
+                self.assertEqual(addon.audio.originals, state / 'audio-originals')
+                self.assertEqual(addon.audio.converted, cache / 'audio')
+                self.assertTrue(addon.audio.db_path.is_file())
+                self.assertTrue(addon.audio.originals.is_dir())
+                self.assertTrue(addon.audio.converted.is_dir())
+                addon.audio.set_playback_enabled(False)
+                restarted = cls(None, nodes, types.SimpleNamespace())
+                restarted.audio.initialize()
+                self.assertFalse(restarted.audio.playback_enabled())
+                self.assertEqual(restarted.audio.db_path, addon.audio.db_path)

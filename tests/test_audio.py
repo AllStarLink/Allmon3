@@ -36,7 +36,7 @@ class BulletinTest(unittest.TestCase):
 class AudioServiceTest(unittest.IsolatedAsyncioTestCase):
     async def test_config_backup_restores_library_schedules_and_master_without_cache(self):
         root = Path(self.temp.name)
-        relative = Path(audio.DEFAULT_AUDIO_CONFIG).relative_to("/etc/allmon3")
+        relative = Path(audio.AnnouncementConfig(root / "absent.ini").state_dir).relative_to("/etc/allmon3")
         original = audio.AudioService(root / "original/etc/allmon3" / relative,
                                       root / "original/cache", [1999, 2000], AsyncMock())
         original.initialize()

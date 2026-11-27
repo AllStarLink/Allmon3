@@ -21,8 +21,6 @@ import aiohttp
 from asl_allmon.speech import load_profile
 from asl_allmon.announcement_config import AnnouncementConfig
 
-DEFAULT_AUDIO_CONFIG = "/etc/allmon3/audio"
-
 FALLBACK_TEXT = "Q S T. No new file is available this week."
 EXTENSIONS = {".mp3", ".wav", ".flac", ".ogg", ".opus", ".m4a", ".aac"}
 NEWS = {
