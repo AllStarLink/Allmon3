@@ -8,3 +8,6 @@ usr/share/doc/allmon3/audio-player.md
 etc/allmon3/announcements.ini
 etc/allmon3/speech.ini
 etc/allmon3/addons.d/announcements.ini
+usr/bin/allmon3-say-time
+etc/allmon3/time.ini
+usr/share/doc/allmon3/say-time.md

@@ -1,4 +1,5 @@
 BINS = \
+	allmon3-say-time \
 	allmon3 \
 	allmon3-passwd \
 	allmon3-cmd-client \

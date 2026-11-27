@@ -1,0 +1,150 @@
+#!/usr/bin/python3
+"""Speak the system's local time with the shared Piper voice. Default: text only."""
+import argparse
+import configparser
+from datetime import datetime
+import fcntl
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+import syslog
+import tempfile
+import time
+
+from asl_allmon.speech import load_profile, FILTER
+
+CONFIG = '/etc/allmon3/time.ini'
+CACHE = Path('/var/cache/allmon3-time')
+WORDS = ('zero one two three four five six seven eight nine ten eleven twelve '
+         'thirteen fourteen fifteen sixteen seventeen eighteen nineteen').split()
+TENS = {2: 'twenty', 3: 'thirty', 4: 'forty', 5: 'fifty'}
+
+
+def minute_words(value):
+    if value < 20:
+        return WORDS[value]
+    return TENS[value // 10] + (' ' + WORDS[value % 10] if value % 10 else '')
+
+
+def report(now=None):
+    now = datetime.now().astimezone() if now is None else now
+    if now.tzinfo is None or now.utcoffset() is None:
+        raise ValueError('Time must include a timezone')
+    hour = WORDS[now.hour % 12 or 12]
+    minute = ("o'clock" if now.minute == 0 else
+              'oh ' + WORDS[now.minute] if now.minute < 10 else minute_words(now.minute))
+    period = 'A M' if now.hour < 12 else 'P M'
+    return {'text': f'The local time is {hour} {minute} {period}.',
+            'local_time': now.isoformat(), 'timezone': now.tzname()}
+
+
+def load_settings(path, node):
+    if not re.fullmatch(r'[1-9][0-9]{0,9}', node):
+        raise ValueError('Invalid local node')
+    cfg = configparser.ConfigParser(interpolation=None)
+    with open(path) as stream:
+        cfg.read_file(stream)
+    if cfg.defaults() or cfg.sections() != ['time'] or set(cfg['time']) != {'nodes'}:
+        raise ValueError('time.ini must contain only [time] and nodes')
+    nodes = cfg['time']['nodes'].replace(',', ' ').split()
+    if any(not re.fullmatch(r'[1-9][0-9]{0,9}', n) for n in nodes):
+        raise ValueError('Invalid configured local node')
+    if node not in nodes:
+        raise ValueError('Time announcement is not enabled for this local node')
+
+
+def render(text, destination):
+    profile = load_profile()
+    destination = Path(destination)
+    with tempfile.TemporaryDirectory(dir=destination.parent) as temp:
+        wav = Path(temp) / 'time.wav'
+        raw = Path(temp) / 'time.ulaw'
+        profile.check_model()
+        subprocess.run(profile.command(wav), input=text, text=True,
+                       capture_output=True, check=True, timeout=90)
+        # Older deployed speech profiles use the shared constant; current ones
+        # expose their configured gain/limiter through audio_filter.
+        audio_filter = getattr(profile, 'audio_filter', FILTER)
+        subprocess.run(['ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error', '-y',
+                        '-i', str(wav), '-af', audio_filter, '-ar', '8000', '-ac', '1',
+                        '-c:a', 'pcm_mulaw', '-f', 'mulaw', str(raw)],
+                       capture_output=True, check=True, timeout=30)
+        if not 800 <= raw.stat().st_size <= 20 * 8000:
+            raise ValueError('Time speech must be between 0.1 and 20 seconds')
+        os.chmod(raw, 0o644)
+        os.replace(raw, destination)
+    return destination.stat().st_size / 8000
+
+
+def require_local_node(node):
+    result = subprocess.run(['/usr/sbin/asterisk', '-rx', 'rpt localnodes'],
+                            capture_output=True, text=True, check=True, timeout=10)
+    if node not in {line.strip() for line in result.stdout.splitlines()
+                    if re.fullmatch(r'[1-9][0-9]{0,9}', line.strip())}:
+        raise ValueError('Node is not local to this Asterisk instance')
+
+
+def play(node, path):
+    if not re.fullmatch(r'[1-9][0-9]{0,9}', node):
+        raise ValueError('Invalid node')
+    path = Path(path)
+    if path.parent != CACHE or not re.fullmatch(r'time-' + re.escape(node) + r'-[0-9]+\.ulaw', path.name):
+        raise ValueError('Invalid playback path')
+    require_local_node(node)
+    result = subprocess.run(['/usr/sbin/asterisk', '-rx', f'rpt localplay {node} {path.with_suffix("")}'],
+                            capture_output=True, text=True, check=True, timeout=10)
+    if any(word in (result.stdout + result.stderr).lower() for word in
+           ('no such command', 'unable to connect', 'unknown node', 'not ready', 'usage:', 'failed', 'error')):
+        raise ValueError('Asterisk rejected local time playback')
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--node', required=True)
+    parser.add_argument('--config', default=CONFIG)
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument('--text', action='store_true', help='show time text only (default)')
+    mode.add_argument('--render', metavar='PATH', help='synthesize without playback')
+    mode.add_argument('--play', action='store_true', help='play on the local node, not linked nodes')
+    args = parser.parse_args(argv)
+    try:
+        load_settings(args.config, args.node)
+        if not args.play:
+            data = report()
+            if args.render:
+                data['seconds'] = render(data['text'], Path(args.render))
+            print(json.dumps(data))
+            return 0
+        require_local_node(args.node)
+        with (CACHE / ('node-' + args.node + '.lock')).open('a') as lock:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                raise ValueError('Time announcement already in progress') from None
+            for old in CACHE.glob('time-' + args.node + '-*.ulaw'):
+                if old.stat().st_mtime < time.time() - 3600:
+                    old.unlink()
+            output = CACHE / f'time-{args.node}-{time.time_ns()}.ulaw'
+            # Synthesis crossing a minute boundary must not announce the old minute.
+            for attempt in range(2):
+                data = report()
+                data['seconds'] = render(data['text'], output)
+                if report()['local_time'][:16] == data['local_time'][:16]:
+                    break
+            else:
+                raise ValueError('Speech generation too slow to announce the current minute')
+            play(args.node, output)
+            syslog.syslog(syslog.LOG_INFO, 'Say Time queued locally: ' + data['text'])
+            print(json.dumps(data))
+        return 0
+    except Exception as exc:
+        syslog.syslog(syslog.LOG_ERR, 'Say Time failed: ' + str(exc))
+        print('Say Time: ' + str(exc), file=sys.stderr)
+        return 1
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

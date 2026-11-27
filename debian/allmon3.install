@@ -1,4 +1,8 @@
-usr/bin/*
+usr/bin/allmon3
+usr/bin/allmon3-passwd
+usr/bin/allmon3-cmd-client
+usr/bin/allmon3-status-client
+usr/bin/allmon3-voter-client
 usr/share/man/man1/*
 usr/share/allmon3/index.html
 usr/share/allmon3/voter.html

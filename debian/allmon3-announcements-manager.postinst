@@ -3,6 +3,9 @@ set -e
 if [ "$1" = configure ]; then
     install -d -m 0750 -o allmon3 -g allmon3 /etc/allmon3/audio /var/lib/allmon3/audio-tot
     install -d -m 0755 -o allmon3 -g allmon3 /var/cache/allmon3
+    if getent passwd asterisk >/dev/null && getent group asterisk >/dev/null; then
+        install -d -m 0755 -o asterisk -g asterisk /var/cache/allmon3-time
+    fi
     deb-systemd-invoke restart allmon3.service >/dev/null || true
 fi
 #DEBHELPER#
