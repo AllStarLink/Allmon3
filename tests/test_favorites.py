@@ -5,6 +5,7 @@ import tarfile
 import tempfile
 import unittest
 from pathlib import Path
+from favorites_cli import cli_config
 
 spec = importlib.util.spec_from_file_location(
     "allmon_favorites", Path(__file__).resolve().parents[1] / "src/asl_allmon/favorites/__init__.py")
@@ -17,7 +18,7 @@ FavoritesError = module.FavoritesError
 class FavoritesTest(unittest.TestCase):
     def test_configuration_backup_restores_favorites_and_group_edits(self):
         # Node backups capture /etc/allmon3, not application state in /var/lib.
-        relative = Path(module.DEFAULT_FAVORITES_CONFIG).relative_to("/etc/allmon3")
+        relative = Path(cli_config()["favorites_config_file"]).relative_to("/etc/allmon3")
         self.assertNotEqual(relative.parent, Path("."))
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

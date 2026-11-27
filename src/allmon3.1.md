@@ -26,7 +26,7 @@ optional arguments:
 
   \-\-menuconfig MENUCONFIG path to INI configuration for menus (default /etc/allmon3/menu.ini
 
-  \-\-favoritesconfig FAVORITESCONFIG path to writable JSON storage for link favorites (default /etc/allmon3/favorites/favorites.json)
+  \-\-favoritesconfig FAVORITESCONFIG path to writable JSON storage for link favorites (default `/etc/allmon3/favorites/favorites.json`)
 
   \-\-version   get the version of the software
 
@@ -47,15 +47,15 @@ under the terms of the AGPL v3.
 
 # FAVORITES SYNCHRONIZATION
 
-Favorites are stored under /etc/allmon3 so configuration backups include them.
-The service account needs write access only to /etc/allmon3/favorites for the
+Favorites are stored under `/etc/allmon3` so configuration backups include them.
+The service account needs write access only to `/etc/allmon3/favorites` for the
 lock file and atomic JSON replacement, not to the parent configuration directory.
-The Debian package provisions this subdirectory with owner allmon3:allmon3 and
-mode 0750. Manual installations must provision it for their service account.
-Custom --favoritesconfig paths must be included separately in backups.
+The Debian package provisions this subdirectory with owner `allmon3:allmon3` and
+mode `0750`. Manual installations must provision it for their service account.
+Custom `--favoritesconfig` paths must be included separately in backups.
 
-The optional [favorites-groups] section of web.ini maps group names to
-comma-separated managed node IDs, for example station = 1999,2000.
+The optional `[favorites-groups]` section of `web.ini` maps group names to
+comma-separated managed node IDs, for example `station = 1999,2000`.
 Each node may belong to one group. After restarting Allmon3, additions,
 edits and deletions on any member propagate atomically to every member.
 Ungrouped nodes remain independent; separate Allmon3 servers are not replicated.

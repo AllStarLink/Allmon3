@@ -7,8 +7,6 @@ import re
 import tempfile
 from pathlib import Path
 
-DEFAULT_FAVORITES_CONFIG = "/etc/allmon3/favorites/favorites.json"
-
 
 class FavoritesError(ValueError):
     """Invalid favorite or damaged favorites file."""

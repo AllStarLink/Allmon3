@@ -26,7 +26,7 @@ class ServerWS:
 
     __MAX_MSG_LEN = 256
 
-    def __init__(self, configs_web, configs_node, server_security, favorites_file=favorites.DEFAULT_FAVORITES_CONFIG):
+    def __init__(self, configs_web, configs_node, server_security, favorites_file):
         self.config_web = configs_web
         self.config_nodes = configs_node
         self.httpserver = web.Application()
@@ -109,7 +109,7 @@ class ServerWS:
     ## Node Functions
     ##
 
-    async def __proc_node(self, request):
+    def __proc_node(self, request):
         try:
             c = request.url.path.split("/")
             r_txt = None
@@ -128,22 +128,6 @@ class ServerWS:
                 if c[3] == "voter":
                     log.debug("self.__proc_voter_config(%s, %s)", node, int(c[2]))
                     r_txt = self.__proc_voter_config(node, int(c[2]))
-
-                if c[3] == "favorite-group":
-                    denied = await self.__favorites_access(request, c[2])
-                    if denied is not None:
-                        return denied
-                    r_txt = json.dumps(self.favorites.members(c[2]))
-
-                if c[3] == "favorites":
-                    denied = await self.__favorites_access(request, c[2])
-                    if denied is not None:
-                        return denied
-                    try:
-                        r_txt = json.dumps(self.favorites.list(c[2]))
-                    except (favorites.FavoritesError, OSError) as e:
-                        log.warning("unable to load favorites: %s", e)
-                        return web.json_response({"ERROR": "Favorites unavailable"}, status=500)
 
         except (IndexError, KeyError):
             log.debug("IndexError/KeyError")
@@ -176,6 +160,24 @@ class ServerWS:
             return web.json_response(
                 {"SECURITY": "Not permitted on every node in this favorites group"}, status=403)
         return None
+
+    async def __proc_favorite_group(self, request):
+        source = request.match_info["node"]
+        denied = await self.__favorites_access(request, source)
+        if denied is not None:
+            return denied
+        return web.json_response({"SUCCESS": self.favorites.members(source)})
+
+    async def __proc_favorites_read(self, request):
+        source = request.match_info["node"]
+        denied = await self.__favorites_access(request, source)
+        if denied is not None:
+            return denied
+        try:
+            return web.json_response({"SUCCESS": self.favorites.list(source)})
+        except (favorites.FavoritesError, OSError) as e:
+            log.warning("unable to load favorites: %s", e)
+            return web.json_response({"ERROR": "Favorites unavailable"}, status=500)
 
     async def __proc_favorites_write(self, request):
         source = request.match_info["node"]
@@ -344,6 +346,8 @@ class ServerWS:
             web.post("/login", self.__proc_login),
             web.post(r"/node/{node:[0-9]+}/favorites", self.__proc_favorites_write),
             web.get(r"/auth/{cmd:.*}", self.__proc_auth),
+            web.get(r"/node/{node:[0-9]+}/favorite-group", self.__proc_favorite_group),
+            web.get(r"/node/{node:[0-9]+}/favorites", self.__proc_favorites_read),
             web.get(r"/node/{cmd:.*}", self.__proc_node),
             web.get(r"/ui/{cmd:.*}", self.__proc_ui)
             ]
