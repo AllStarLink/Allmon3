@@ -47,7 +47,14 @@ under the terms of the AGPL v3.
 
 # FAVORITES SYNCHRONIZATION
 
-Favorites are stored under `/etc/allmon3` so configuration backups include them.
+Favorites are stored under `/etc/allmon3/favorites`. A recursive backup of
+`/etc/allmon3` includes them; merely storing them under `/etc` does not add them
+to a backup tool's explicit include list. For `asl-backup-menu` or WebUI, check
+`/var/asl-backups/asl-backup-files` and add `/etc/allmon3/favorites` if neither it
+nor its parent is listed. Preserve other include-list entries and back up
+`/etc/allmon3/web.ini` for the group configuration. Stop Allmon3 while backing
+up/restoring, install the package before restoring its writable directory, and
+verify the restored favorites before restarting.
 The service account needs write access only to `/etc/allmon3/favorites` for the
 lock file and atomic JSON replacement, not to the parent configuration directory.
 The Debian package provisions this subdirectory with owner `allmon3:allmon3` and
