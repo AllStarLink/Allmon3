@@ -141,7 +141,21 @@ sudo install -d -m 0750 -o allmon3 -g allmon3 /etc/allmon3/audio
 metadata and job history; `audio-originals/` contains the source media needed by
 saved stacks. These are runtime-created, not packaged conffiles. Back up the
 **whole `/etc/allmon3` tree recursively**, including this directory and media.
-Original uploads can be large; check backup capacity and do not exclude them.
+For `asl-backup-menu` and WebUI, inspect `/var/asl-backups/asl-backup-files`:
+older defaults list individual Allmon3 files, not the entire tree. Add the
+following entries if not already covered, preserving any custom entries:
+
+```text
+/etc/allmon3/audio
+/etc/allmon3/announcements.ini
+/etc/allmon3/speech.ini
+/etc/allmon3/addons.d
+```
+
+Include overridden `state_dir` and other custom configuration paths explicitly.
+Original uploads can be large; check the cloud size limit and retain a local
+backup when media does not fit. Do not silently exclude source media. Install
+the corresponding packages before restoring their writable directories.
 Stop Allmon3 at idle before copying SQLite and originals, and keep it stopped
 while restoring. Restore ownership to `allmon3:allmon3` on the audio subtree,
 with directories 0750 and files 0640; do not make all of `/etc/allmon3` writable.
