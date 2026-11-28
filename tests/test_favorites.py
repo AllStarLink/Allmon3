@@ -19,7 +19,7 @@ class FavoritesTest(unittest.TestCase):
     def test_configuration_backup_restores_favorites_and_group_edits(self):
         # Node backups capture /etc/allmon3, not application state in /var/lib.
         relative = Path(cli_config()["favorites_config_file"]).relative_to("/etc/allmon3")
-        self.assertNotEqual(relative.parent, Path("."))
+        self.assertEqual(relative, Path("favorites.json"))
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             config = root / "original/etc/allmon3"

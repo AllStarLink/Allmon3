@@ -70,37 +70,44 @@ more. Select a favorite to rename it or change its node ID with **Save changes**
 or to delete it. **New favorite** clears the selection so you can add another.
 Saving a favorite does not connect to that node; use **Execute** to connect.
 Favorites are shared among Allmon3 users with access to the same local node and
-are saved per local node in `/etc/allmon3/favorites/favorites.json`, alongside
+are saved per local node in `/etc/allmon3/favorites.json`, alongside
 the other Allmon3 configuration so node backups of `/etc/allmon3` include them.
-The service needs write access only to the `favorites` subdirectory for its
-lock file and atomic JSON replacement; the parent `/etc/allmon3` directory does
-not need service write access. The Debian package creates the subdirectory with
-owner `allmon3:allmon3` and mode `0750`. For a manual installation, provision it
-for the account running Allmon3:
+Atomic saves create `favorites.json.lock` and temporary files beside the JSON.
+The Debian package keeps `/etc/allmon3` owned by `root:allmon3` with mode `1775`:
+the service group can create files, while the sticky bit prevents it from
+renaming or deleting root-owned configuration entries. Existing configuration
+file permissions are not broadened recursively. The JSON is service-owned,
+mode `0640`. For a manual installation, provision the directory:
 
 ```sh
-sudo install -d -m 0750 -o allmon3 -g allmon3 /etc/allmon3/favorites
+sudo install -d -m 1775 -o root -g allmon3 /etc/allmon3
 ```
 
 Use `--favoritesconfig PATH` to choose a different writable file and explicitly
 include that location in your backups. The favorites JSON is runtime-created,
-not a packaged conffile; package upgrades do not replace it. When restoring a
-backup, stop Allmon3, restore the directory with its service ownership and
-permissions, then start Allmon3.
+not a packaged conffile; package upgrades do not replace it. To restore a backup,
+stop Allmon3, restore the file, ensure it is owned by `allmon3:allmon3` with mode
+`0640`, and reapply the directory permissions above before restarting. If the
+lock file was restored too, it must also be service-owned and writable.
 
-If you tested an earlier revision of this PR using `/var/lib/allmon3/favorites.json`,
-stop Allmon3 and back up that file before switching versions. After provisioning
-the new directory, copy the file **only if the new destination does not exist**:
+Earlier PR revisions used `/var/lib/allmon3/favorites.json` or
+`/etc/allmon3/favorites/favorites.json`. No automatic migration or merge is
+performed. Before switching versions, stop Allmon3 and back up the old file.
+Copy the selected source **only if the new destination does not exist**; for
+the previous subdirectory location:
 
 ```sh
-sudo sh -ec 'test ! -e /etc/allmon3/favorites/favorites.json &&
-    test ! -L /etc/allmon3/favorites/favorites.json &&
-    install -m 0640 -o allmon3 -g allmon3 /var/lib/allmon3/favorites.json /etc/allmon3/favorites/favorites.json'
+sudo sh -ec 'test ! -e /etc/allmon3/favorites.json &&
+    test ! -L /etc/allmon3/favorites.json &&
+    install -m 0640 -o allmon3 -g allmon3 /etc/allmon3/favorites/favorites.json /etc/allmon3/favorites.json'
 ```
 
-Keep the old copy until the new version has been verified. If both files exist,
-review them instead of overwriting either one. Remove or update an explicit
-`--favoritesconfig` override pointing to the old location before restarting.
+For the earlier `/var/lib` revision, substitute `/var/lib/allmon3/favorites.json`
+as the source. Keep the old copy until the new version has been verified. If
+multiple copies exist, review them instead of overwriting or merging blindly.
+An absent destination starts with an empty favorites list. Remove or update an
+explicit `--favoritesconfig` override only if you intend to change its location;
+custom overrides remain supported unchanged.
 
 #### Automatically synchronized favorites
 
