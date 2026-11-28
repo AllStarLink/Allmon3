@@ -63,6 +63,79 @@ apt install allmon3
 
 2. Edit `/etc/allmon3/web.ini` as desired.
 
+In the link command dialog, select a saved node from the Favorites dropdown to
+fill the Node # field. Enter a node number and a favorite name, then use **Add
+favorite** to add it. After adding, enter another node number and name to add
+more. Select a favorite to rename it or change its node ID with **Save changes**,
+or to delete it. **New favorite** clears the selection so you can add another.
+Saving a favorite does not connect to that node; use **Execute** to connect.
+Favorites are shared among Allmon3 users with access to the same local node and
+are saved per local node in `/etc/allmon3/favorites.json`, alongside
+the other Allmon3 configuration so node backups of `/etc/allmon3` include them.
+Atomic saves create `favorites.json.lock` and temporary files beside the JSON.
+The Debian package keeps `/etc/allmon3` owned by `root:allmon3` with mode `1775`:
+the service group can create files, while the sticky bit prevents it from
+renaming or deleting root-owned configuration entries. Existing configuration
+file permissions are not broadened recursively. The JSON is service-owned,
+mode `0640`. For a manual installation, provision the directory:
+
+```sh
+sudo install -d -m 1775 -o root -g allmon3 /etc/allmon3
+```
+
+Use `--favoritesconfig PATH` to choose a different writable file and explicitly
+include that location in your backups. The favorites JSON is runtime-created,
+not a packaged conffile; package upgrades do not replace it. To restore a backup,
+stop Allmon3, restore the file, ensure it is owned by `allmon3:allmon3` with mode
+`0640`, and reapply the directory permissions above before restarting. If the
+lock file was restored too, it must also be service-owned and writable.
+
+Earlier PR revisions used `/var/lib/allmon3/favorites.json` or
+`/etc/allmon3/favorites/favorites.json`. No automatic migration or merge is
+performed. Before switching versions, stop Allmon3 and back up the old file.
+Copy the selected source **only if the new destination does not exist**; for
+the previous subdirectory location:
+
+```sh
+sudo sh -ec 'test ! -e /etc/allmon3/favorites.json &&
+    test ! -L /etc/allmon3/favorites.json &&
+    install -m 0640 -o allmon3 -g allmon3 /etc/allmon3/favorites/favorites.json /etc/allmon3/favorites.json'
+```
+
+For the earlier `/var/lib` revision, substitute `/var/lib/allmon3/favorites.json`
+as the source. Keep the old copy until the new version has been verified. If
+multiple copies exist, review them instead of overwriting or merging blindly.
+An absent destination starts with an empty favorites list. Remove or update an
+explicit `--favoritesconfig` override only if you intend to change its location;
+custom overrides remain supported unchanged.
+
+#### Automatically synchronized favorites
+
+To share one live favorites list among selected nodes managed by this Allmon3
+instance, add an optional group to `/etc/allmon3/web.ini`:
+
+```ini
+[favorites-groups]
+station = 1999,2000
+```
+
+Restart Allmon3 after configuring groups. Each member must be a managed node
+(including `multinodes` members), and a node may belong to only one group.
+The dialog displays the group: adding, renaming, changing a favorite's node ID,
+or deleting on any member immediately updates every member in one locked,
+atomic file transaction. Reopen an already-open dialog to refresh its list.
+No link commands are sent. This is synchronization within one Allmon3 instance,
+not replication between separate servers.
+
+Existing lists are merged when the service starts, retaining all unique entries.
+If the same favorite node has different names, startup refuses the group without
+changing the favorites file. Back up the file, remove/disable the proposed group,
+and resolve those names in the independent lists before enabling it again.
+Users must have access to **every** group member to read or change its favorites;
+a per-node restriction cannot be bypassed through another group member.
+Nodes outside groups keep independent lists. Removing a group leaves each member
+with its last synchronized copy. The existing JSON format remains compatible.
+
 3. Set a password for the default user allmon3:
 ```
 allmon3-passwd allmon3

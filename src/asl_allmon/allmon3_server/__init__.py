@@ -16,7 +16,7 @@ import logging
 import re
 import time
 import websockets
-from .. import node_configs, security, web_configs
+from .. import favorites, node_configs, security, web_configs
 
 __BUILD_ID = "@@HEAD-DEVELOP@@"
 log = logging.getLogger(__name__)
@@ -26,11 +26,17 @@ class ServerWS:
 
     __MAX_MSG_LEN = 256
 
-    def __init__(self, configs_web, configs_node, server_security):
+    def __init__(self, configs_web, configs_node, server_security, favorites_file):
         self.config_web = configs_web
         self.config_nodes = configs_node
         self.httpserver = web.Application()
         self.server_security = server_security
+        self.favorites = favorites.FavoritesStore(
+            favorites_file, getattr(configs_web, "favorite_groups", None))
+        managed = {str(node) for node in configs_node.all_nodes}
+        if any(member not in managed for group in self.favorites.groups for member in group):
+            raise favorites.FavoritesError("Favorites groups must contain only managed nodes")
+        self.favorites.synchronize()
 
     @staticmethod
     def __get_json_error(message):
@@ -138,6 +144,64 @@ class ServerWS:
         for n in self.config_nodes.all_nodes:
             ret.append(int(n))
         return json.dumps(ret)
+
+    async def __favorites_access(self, request, source):
+        if int(source) not in self.config_nodes.all_nodes:
+            return web.json_response({"ERROR": "Unknown source node"}, status=404)
+
+        session = await get_session(request)
+        session_id = session.get("auth_sess")
+        if session_id not in self.server_security.session_db:
+            return web.json_response({"SECURITY": "Log in to manage favorites"}, status=403)
+        user = self.server_security.session_db[session_id].user
+        if (user in self.server_security.restricted_users
+                and any(f"{user}{member}" not in self.server_security.restrictdb
+                        for member in self.favorites.members(source))):
+            return web.json_response(
+                {"SECURITY": "Not permitted on every node in this favorites group"}, status=403)
+        return None
+
+    async def __proc_favorite_group(self, request):
+        source = request.match_info["node"]
+        denied = await self.__favorites_access(request, source)
+        if denied is not None:
+            return denied
+        return web.json_response({"SUCCESS": self.favorites.members(source)})
+
+    async def __proc_favorites_read(self, request):
+        source = request.match_info["node"]
+        denied = await self.__favorites_access(request, source)
+        if denied is not None:
+            return denied
+        try:
+            return web.json_response({"SUCCESS": self.favorites.list(source)})
+        except (favorites.FavoritesError, OSError) as e:
+            log.warning("unable to load favorites: %s", e)
+            return web.json_response({"ERROR": "Favorites unavailable"}, status=500)
+
+    async def __proc_favorites_write(self, request):
+        source = request.match_info["node"]
+        denied = await self.__favorites_access(request, source)
+        if denied is not None:
+            return denied
+
+        # JSON cannot be posted by a cross-site HTML form; browser scripts
+        # from other origins cannot pass the CORS preflight for this endpoint.
+        if request.content_type != "application/json":
+            return web.json_response({"ERROR": "Expected JSON"}, status=415)
+        try:
+            payload = await request.json()
+            if not isinstance(payload, dict):
+                raise favorites.FavoritesError("Invalid favorite request")
+            updated = self.favorites.change(
+                source, payload.get("action"), payload.get("node"),
+                payload.get("label"), payload.get("original_node"))
+            return web.json_response({"SUCCESS": updated})
+        except (favorites.FavoritesError, ValueError) as e:
+            return web.json_response({"ERROR": str(e)}, status=400)
+        except OSError as e:
+            log.error("unable to save favorites: %s", e)
+            return web.json_response({"ERROR": "Favorites storage is not writable"}, status=500)
 
     def __proc_node_config(self, node):
         nc = dict()
@@ -280,7 +344,10 @@ class ServerWS:
         api_routes = [
             web.post("/cmd", self.__proc_cmd),
             web.post("/login", self.__proc_login),
+            web.post(r"/node/{node:[0-9]+}/favorites", self.__proc_favorites_write),
             web.get(r"/auth/{cmd:.*}", self.__proc_auth),
+            web.get(r"/node/{node:[0-9]+}/favorite-group", self.__proc_favorite_group),
+            web.get(r"/node/{node:[0-9]+}/favorites", self.__proc_favorites_read),
             web.get(r"/node/{cmd:.*}", self.__proc_node),
             web.get(r"/ui/{cmd:.*}", self.__proc_ui)
             ]

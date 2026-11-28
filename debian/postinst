@@ -29,6 +29,16 @@ do_configure() {
 	## Ensure Perms on Sensitive Files
 	chown allmon3:allmon3 /etc/allmon3/allmon3.ini /etc/allmon3/user*
 	chmod 660 /etc/allmon3/allmon3.ini /etc/allmon3/user*
+	# Atomic favorites saves create a lock and temporary file beside the JSON.
+	# Root owns the directory; sticky mode protects root-owned configuration
+	# entries from replacement by the service. Do not chmod/chown recursively.
+	install -d -m 1775 -o root -g allmon3 /etc/allmon3
+	for favorite_file in /etc/allmon3/favorites.json /etc/allmon3/favorites.json.lock; do
+		if [ -f "$favorite_file" ] && [ ! -L "$favorite_file" ]; then
+			chown allmon3:allmon3 "$favorite_file"
+			chmod 0640 "$favorite_file"
+		fi
+	done
 
 	## Apache Management
 	if [ -e /usr/share/apache2/apache2-maintscript-helper ]; then
